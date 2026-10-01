@@ -311,9 +311,11 @@
 #op-preview-saved:hover { filter: drop-shadow(0 0 3px var(--gold-glow)); }
 #op-preview-saved::after { left: calc(-3.6 * var(--u)); }
 
-#opponent-mode { gap: calc(0.5 * var(--u)); }
-#opponent-mode > p { margin: 0; }
+#opponent-mode, #deck-owner-row { gap: calc(0.5 * var(--u)); }
+#opponent-mode > p, #deck-owner-row > p { margin: 0; }
+#deck-owner-row { margin-top: calc(0.35 * var(--u)); }
 #opponent-preview #game-mode,
+#opponent-preview #deck-owner,
 #opponent-preview #ai-difficulty {
 	gap: calc(0.3 * var(--u));
 }
@@ -321,6 +323,7 @@
 	margin-top: calc(0.35 * var(--u));
 }
 #opponent-preview #game-mode button,
+#opponent-preview #deck-owner button,
 #opponent-preview #ai-difficulty button {
 	width: auto;
 	height: calc(1.5 * var(--u));
@@ -335,11 +338,13 @@
 	transition: color .2s, border-color .2s, box-shadow .2s;
 }
 #opponent-preview #game-mode button:hover,
+#opponent-preview #deck-owner button:hover,
 #opponent-preview #ai-difficulty button:hover {
 	color: var(--gold-1);
 	border-color: var(--gold-line);
 }
 #opponent-preview #game-mode button[aria-checked="true"],
+#opponent-preview #deck-owner button[aria-checked="true"],
 #opponent-preview #ai-difficulty button[aria-checked="true"] {
 	color: #1b1206;
 	background: var(--gold-gradient);

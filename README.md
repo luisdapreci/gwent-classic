@@ -46,8 +46,8 @@ Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click 
 Two people can play each other on the same device (hot-seat).
 
 1. On the title screen choose **Local 2-Player**, or pick **Local Player 2** under *Opponent* in the deck builder.
-2. Player 1 uses the deck in the deck builder. Player 2 uses the deck shown under *Opponent*: a random premade deck by default, an uploaded deck, or one of your saved faction decks (click the deck icon next to the deck name). Build Player 2's deck under another faction first if you want to use your own.
-3. Press **Start game**.
+2. Each player builds their own deck. Use the **Editing: Player 1 / Player 2** switch under *Opponent* to choose whose deck the builder shows; faction, leader, card changes, **Upload Deck** and **Download Deck** all apply to that player. Player 2's decks are saved separately from Player 1's, one per faction.
+3. Press **Start game**. Both decks must be legal (22+ units, at most 10 specials).
 
 Player 1 plays the bottom half of the board and Player 2 the top half. The hand tray at the bottom only ever shows the hand of the player whose turn it is. Whenever control changes hands, a **Pass the device** screen hides the board until the next player presses **Ready**, so neither player sees the other's cards. This also happens for each player's opening redraw. If one player has passed, the other keeps playing without the handoff screen.
 
@@ -93,10 +93,10 @@ Open the **Deck Builder** from the title screen.
 - A deck needs **at least 22 unit cards** and **no more than 10 special cards**. The stats column shows your counts.
 - **Download** saves your deck as `GwentDeck.json`. **Upload** loads one, checking the faction, leader, card IDs and copy limits; you can choose to import anyway if only some entries are invalid.
 - **Opponent:** choose **AI** or **Local Player 2** (see [Local multiplayer](#local-multiplayer)). The choice is remembered.
-- **Opponent's deck:** upload a deck for the AI or Player 2 to use instead of a random premade one, or click the deck icon to use one of your saved faction decks. It must be a legal deck (22+ units, at most 10 specials). You can view or clear it from the same panel.
+- **Opponent's deck:** upload a deck for the AI to use instead of a random premade one, or click the deck icon to use one of your saved faction decks. It must be a legal deck (22+ units, at most 10 specials). You can view or clear it from the same panel. In local multiplayer this is replaced by the Player 1 / Player 2 deck switch.
 - **AI difficulty:** pick **Easy**, **Normal** or **Hard** under the opponent's deck (shown when playing the AI). Easy skips its redraw and often makes random plays; Normal weighs its options with some randomness; Hard always takes its best-rated play and, once you've passed, wins the round with its cheapest sufficient card. The choice is remembered.
 
-Decks are saved per faction in your browser's `localStorage`, along with the last faction you used.
+Decks are saved per faction in your browser's `localStorage`, along with the last faction you used (separately for Player 2 in local multiplayer).
 
 Deck file format (`index` refers to the position of the card in `card_dict` in `cards.js`):
 

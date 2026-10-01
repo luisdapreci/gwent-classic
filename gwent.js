@@ -2928,7 +2928,9 @@ class DeckMaker {
 		this.leader_elem = document.getElementById("card-leader");
 		this.leader_elem.children[1].addEventListener("click", () => this.selectLeader(), false);
 		this.leader_elem.children[1].addEventListener('mouseenter', CLICK_EVENT_SFX);
-		this.loadFactionDeck(Settings.lastFaction.get(), true);
+		// Whose deck the builder is editing; Player 2 only exists in local multiplayer
+		this.owner = "p1";
+		this.loadFactionDeck(Settings.getLastFaction(this.owner).get(), true);
 
 		this.opponentData = Settings.opponentDeckCustom.get();
 		this.updatedCustomOpponent();
@@ -2951,6 +2953,8 @@ class DeckMaker {
 		
 		this.mode_buttons = [...document.querySelectorAll("#game-mode > button")];
 		DeckMaker.bindRadioGroup(this.mode_buttons, b => this.setGameMode(b.dataset.mode));
+		this.owner_buttons = [...document.querySelectorAll("#deck-owner > button")];
+		DeckMaker.bindRadioGroup(this.owner_buttons, b => this.setDeckOwner(b.dataset.owner));
 		this.setGameMode(Settings.gameMode.get(), true);
 		document.getElementById("op-preview-saved").addEventListener("click", () => this.selectSavedOpponentDeck());
 	}
@@ -2999,7 +3003,7 @@ class DeckMaker {
 		DeckMaker.checkRadio(this.difficulty_buttons, b => b.dataset.level === level);
 	}
 	
-	// Chooses between playing the AI and local multiplayer, where Player 2 uses the opponent's deck
+	// Chooses between playing the AI and local multiplayer, where Player 2 builds their own deck
 	setGameMode(mode, silent = false) {
 		if (mode !== "hotseat")
 			mode = "ai";
@@ -3009,10 +3013,29 @@ class DeckMaker {
 		DeckMaker.checkRadio(this.mode_buttons, b => b.dataset.mode === mode);
 		const hotseat = mode === "hotseat";
 		document.getElementById("ai-difficulty").classList.toggle("hide", hotseat);
-		const leaderLabel = document.getElementById("op-preview-leader");
-		leaderLabel.dataset.title = hotseat ? "Upload Player 2's deck" : "Upload opponent";
-		leaderLabel.setAttribute("aria-label", leaderLabel.dataset.title);
-		document.getElementById("op-preview-open").dataset.title = hotseat ? "View Player 2's deck" : "View opponent";
+		document.getElementById("opponent-deck").classList.toggle("hide", hotseat);
+		document.getElementById("deck-owner-row").classList.toggle("hide", !hotseat);
+		this.setDeckOwner(hotseat ? this.owner : "p1", true);
+		this.updateDeckTitle();
+	}
+	
+	// Switches the builder between Player 1's and Player 2's saved decks
+	setDeckOwner(owner, silent = false) {
+		if (owner !== "p2")
+			owner = "p1";
+		DeckMaker.checkRadio(this.owner_buttons, b => b.dataset.owner === owner);
+		if (owner === this.owner)
+			return;
+		if (!silent)
+			AudioManager.playSFX("ui_card_bank");
+		this.owner = owner;
+		this.loadFactionDeck(Settings.getLastFaction(owner).get(), true);
+		this.updateDeckTitle();
+	}
+	
+	updateDeckTitle() {
+		const title = !DeckMaker.isHotseatMode() ? "Cards in Deck" : this.owner === "p2" ? "Player 2's Deck" : "Player 1's Deck";
+		document.getElementById("card-deck-title").textContent = title;
 	}
 
 	loadFactionDeck(faction, force = false)
@@ -3021,7 +3044,7 @@ class DeckMaker {
 			return;
 		if (!this.setFaction(faction, true))
 			return;
-		const faction_deck = Settings.getFactionSettings(this.faction).get();
+		const faction_deck = Settings.getFactionSettings(this.faction, this.owner).get();
 		this.setLeader(faction_deck.leader);
 		this.makeBank(this.faction, faction_deck.cards);
 		this.update();
@@ -3056,7 +3079,7 @@ class DeckMaker {
 			this.leader_elem.children[1].style.backgroundImage = largeURL(this.leader.card.deck + "_" + this.leader.card.filename);
 		}
 		this.faction = faction_name;
-		Settings.lastFaction.set(faction_name);
+		Settings.getLastFaction(this.owner).set(faction_name);
 		return true;
 	}
 	
@@ -3213,7 +3236,7 @@ class DeckMaker {
 			let data = c.cards[i].data;
 			this.leader = data;
 			this.leader_elem.children[1].style.backgroundImage = largeURL(data.card.deck + "_" + data.card.filename);
-			Settings.getFactionSettings(this.leader.card.deck).setLeader(this.leader);
+			Settings.getFactionSettings(this.leader.card.deck, this.owner).setLeader(this.leader);
 			AudioManager.playSFX('ui_card_bank');
 		}, () => true, false, true);
 		Carousel.curr.index = index;
@@ -3248,7 +3271,7 @@ class DeckMaker {
 			this.remove(index, this.deck);
 			AudioManager.playSFX('discard');
 		}
-		Settings.getFactionSettings(this.faction).setCards(this.deck.filter(x => x.count > 0));
+		Settings.getFactionSettings(this.faction, this.owner).setCards(this.deck.filter(x => x.count > 0));
 		this.update();
 	}
 	
@@ -3276,25 +3299,48 @@ class DeckMaker {
 		this.stats = {};
 	}
 	
-	// Verifies current deck, creates the players and their decks, then starts a new game
+	// Verifies the decks, creates the players and their decks, then starts a new game
 	startNewGame(){
-		const warning = DeckMaker.ruleWarnings(this.stats.units, this.stats.special);
+		const hotseat = DeckMaker.isHotseatMode();
+		const p1 = this.playerDeck("p1");
+		const p2 = hotseat ? this.playerDeck("p2") : null;
+		const warning = [["Player 1", p1], ["Player 2", p2]]
+			.filter(([, d]) => d && DeckMaker.ruleWarnings(d.units, d.special))
+			.map(([name, d]) => (hotseat ? name + "'s deck:\n" : "") + DeckMaker.ruleWarnings(d.units, d.special))
+			.join("\n");
 		if (warning)
 			return ui.alert("Invalid deck", warning);
 		
-		const me_deck = { 
-			faction: this.faction,
-			leader: card_dict[this.leader.index], 
-			cards: this.deck.filter(x => x.count > 0)
-		};
-		const op_deck = this.constructOpponentDeck(true);
-		const hotseat = DeckMaker.isHotseatMode();
-		
-		player_me = new Player(0, "Player 1", me_deck);
-		player_op = new Player(1, hotseat ? "Player 2" : DeckMaker.opponentName(), op_deck, hotseat);
+		player_me = new Player(0, "Player 1", p1.deck);
+		player_op = hotseat ? new Player(1, "Player 2", p2.deck, true) : new Player(1, DeckMaker.opponentName(), this.constructOpponentDeck(true));
 		
 		this.elem.classList.add("hide");
 		game.startGame();
+	}
+	
+	// The deck a player will use: the builder's contents if it's editing that player, otherwise their saved deck
+	playerDeck(owner){
+		let faction, leader, cards;
+		if (owner === this.owner) {
+			faction = this.faction;
+			leader = card_dict[this.leader.index];
+			cards = this.deck.filter(x => x.count > 0).map(x => ({index: x.index, count: x.count}));
+		} else {
+			faction = Settings.getLastFaction(owner).get();
+			if (!this.isValidFaction(faction))
+				faction = "realms";
+			const saved = Settings.getFactionSettings(faction, owner).get();
+			leader = card_dict[saved.leader]?.row === "leader" && card_dict[saved.leader].deck === faction
+				? card_dict[saved.leader] : card_dict.find(c => c.row === "leader" && c.deck === faction);
+			cards = (saved.cards ?? []).filter(c => card_dict[c.index]);
+		}
+		return {deck: {faction: faction, leader: leader, cards: cards}, ...DeckMaker.countCards(cards)};
+	}
+	
+	// Counts unit and special (incl. weather) cards in a list of {index, count}
+	static countCards(cards){
+		const units = cards.filter(c => !["special", "weather"].includes(card_dict[c.index].deck)).reduce((a, c) => a + Number(c.count), 0);
+		return {units: units, special: cards.reduce((a, c) => a + Number(c.count), 0) - units};
 	}
 
 	constructOpponentDeck(useCustom = true)
@@ -3426,8 +3472,7 @@ class DeckMaker {
 			cards.push({index: index, count: Math.min(count, max)});
 		}
 
-		const units = cards.filter(c => !["special", "weather"].includes(card_dict[c.index].deck)).reduce((a, c) => a + c.count, 0);
-		const special = cards.reduce((a, c) => a + c.count, 0) - units;
+		const {units, special} = DeckMaker.countCards(cards);
 		const rules = DeckMaker.ruleWarnings(units, special);
 		if (rules && enforceRules)
 			return fail(warning + rules);
@@ -3454,7 +3499,7 @@ class DeckMaker {
 		}
 		this.makeBank(loadedDeck.faction, loadedDeck.cards);
 		this.update();
-		const saved = Settings.getFactionSettings(this.faction);
+		const saved = Settings.getFactionSettings(this.faction, this.owner);
 		saved.setLeader(this.leader);
 		saved.setCards(this.deck.filter(x => x.count > 0));
 	}
@@ -3476,19 +3521,18 @@ class DeckMaker {
 		this.updatedCustomOpponent();
 	}
 	
-	// Lets the client pick one of their saved faction decks as the opponent's (Player 2's) deck
+	// Lets the client pick one of their saved faction decks as the AI opponent's deck
 	selectSavedOpponentDeck()
 	{
 		const container = new CardContainer();
 		container.cards = Object.keys(factions).map(f => ({abilities: [f], filename: f, desc_name: factions[f].name, desc: "Use your saved " + factions[f].name + " deck.", faction: "faction"}));
 		const current = isEmpty(this.opponentData) ? this.faction : this.opponentData.faction;
-		const title = DeckMaker.isHotseatMode() ? "Choose Player 2's deck" : "Choose the opponent's deck";
 		ui.queueCarousel(container, 1, async (c, i) => {
 			const faction = c.cards[i].filename;
 			const saved = Settings.getFactionSettings(faction).get();
 			const deck = {faction: faction, leader: saved.leader, cards: (saved.cards ?? []).map(x => [x.index, x.count])};
 			await this.loadOpponentDeck(deck, false);
-		}, () => true, false, true, title);
+		}, () => true, false, true, "Choose the opponent's deck");
 		Carousel.curr.index = Math.max(0, container.cards.findIndex(c => c.filename === current));
 		Carousel.curr.update();
 	}
@@ -3725,6 +3769,7 @@ class Settings
 	static soundEffects = new ToggleOption("gc-sound-effects", true);
 	static effects = new ToggleOption("gc-effects", true);
 	static lastFaction = new SavedString("gc-last-faction", "realms"); 
+	static p2LastFaction = new SavedString("gc-p2-last-faction", "monsters");
 	static aiDifficulty = new SavedString("gc-ai-difficulty", "normal");
 	static gameMode = new SavedString("gc-game-mode", "ai");
 	static realmsDeck = new SavedDeck("gc-deck-realms", premade_deck[0]);
@@ -3733,9 +3778,20 @@ class Settings
 	static scoiataelDeck = new SavedDeck("gc-deck-scoiatael", premade_deck[6]);
 	static skelligesDeck = new SavedDeck("gc-deck-skellige", premade_deck[8]);
 	static opponentDeckCustom = new SavedDeck("gc-deck-opponent-custom");
+	// Local multiplayer: Player 2 keeps their own deck per faction
+	static p2Decks = Object.fromEntries(["realms", "nilfgaard", "monsters", "scoiatael", "skellige"]
+		.map((f, i) => [f, new SavedDeck("gc-p2-deck-" + f, premade_deck[2 * i])]));
 	
-	static getFactionSettings(factionName)
+	// owner is "p1" or "p2"
+	static getLastFaction(owner = "p1")
 	{
+		return owner === "p2" ? Settings.p2LastFaction : Settings.lastFaction;
+	}
+	
+	static getFactionSettings(factionName, owner = "p1")
+	{
+		if (owner === "p2")
+			return Settings.p2Decks[factionName] ?? null;
 		switch(factionName) {
 			case "realms":
 				return Settings.realmsDeck;

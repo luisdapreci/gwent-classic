@@ -297,7 +297,7 @@
 				<button role="radio" data-mode="hotseat">Local Player 2</button>
 			</div>
 		</div>
-		<div class="center">
+		<div id="opponent-deck" class="center">
 			<button id="op-preview-open" class="hide" data-title="View opponent"></button>
 			<div id="op-preview-faction" class="hide"></div>
 			<label id="op-preview-leader" for="add-opponent" data-title="Upload opponent">
@@ -311,6 +311,13 @@
 			<button role="radio" data-level="easy">Easy</button>
 			<button role="radio" data-level="normal">Normal</button>
 			<button role="radio" data-level="hard">Hard</button>
+		</div>
+		<div id="deck-owner-row" class="center hide">
+			<p>Editing</p>
+			<div id="deck-owner" class="center" role="radiogroup" aria-label="Deck being edited">
+				<button role="radio" data-owner="p1">Player 1</button>
+				<button role="radio" data-owner="p2">Player 2</button>
+			</div>
 		</div>
 	</div>
 </section>
