@@ -133,9 +133,9 @@ html { scrollbar-color: var(--gold-3) rgba(0, 0, 0, 0.45); }
 #toggle-effects.deck-menu { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 51.9 * var(--u)); }
 #toggle-notifications.deck-menu { display: none !important; }
 
-body.title-open #toggle-music.deck-menu   { top: calc(var(--stage-y) + 37.5 * var(--u)); left: calc(var(--stage-x) + 8 * var(--u)); }
-body.title-open #toggle-sfx.deck-menu     { top: calc(var(--stage-y) + 37.5 * var(--u)); left: calc(var(--stage-x) + 11.2 * var(--u)); }
-body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + 37.5 * var(--u)); left: calc(var(--stage-x) + 14.4 * var(--u)); }
+body.title-open #toggle-music.deck-menu   { top: calc(var(--stage-y) + 41.7 * var(--u)); left: calc(var(--stage-x) + 8 * var(--u)); }
+body.title-open #toggle-sfx.deck-menu     { top: calc(var(--stage-y) + 41.7 * var(--u)); left: calc(var(--stage-x) + 11.2 * var(--u)); }
+body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + 41.7 * var(--u)); left: calc(var(--stage-x) + 14.4 * var(--u)); }
 
 /* ---------- tooltip ---------- */
 

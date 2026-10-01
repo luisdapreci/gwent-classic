@@ -403,13 +403,18 @@
 	animation: fog-drift 18s ease-in-out infinite alternate;
 }
 
-#hand-row {
+#hand-row, #hand-row-op {
 	top: 8%;
 	height: 91%;
 	left: 7.1%;
 	width: 92.5%;
 	z-index: 1;
 }
+/* .card-container's display would otherwise override .hide */
+#field-hand > .hide { display: none; }
+
+/* local multiplayer: Player 2 can target their own (top) units with Decoy */
+body.hotseat #field-op .card:not(.noclick) { pointer-events: auto; }
 
 .row-selectable {
 	background-color: rgba(255, 200, 100, 0.06);

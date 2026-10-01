@@ -133,6 +133,7 @@
 	animation: fade-up .7s var(--ease-out) backwards;
 }
 #title-play { animation-delay: .8s; }
+#title-local { animation-delay: .875s; }
 #title-deck { animation-delay: .95s; }
 
 .title-credit {

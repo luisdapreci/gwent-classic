@@ -307,11 +307,20 @@
 #op-preview-clear:hover { filter: drop-shadow(0 0 3px var(--debuff)); }
 #op-preview-open::after,
 #op-preview-clear::after { left: calc(-2.9 * var(--u)); }
+#op-preview-saved { background-image: url("../svg/deck.svg"); }
+#op-preview-saved:hover { filter: drop-shadow(0 0 3px var(--gold-glow)); }
+#op-preview-saved::after { left: calc(-3.6 * var(--u)); }
 
+#opponent-mode { gap: calc(0.5 * var(--u)); }
+#opponent-mode > p { margin: 0; }
+#opponent-preview #game-mode,
 #opponent-preview #ai-difficulty {
 	gap: calc(0.3 * var(--u));
+}
+#opponent-preview #ai-difficulty {
 	margin-top: calc(0.35 * var(--u));
 }
+#opponent-preview #game-mode button,
 #opponent-preview #ai-difficulty button {
 	width: auto;
 	height: calc(1.5 * var(--u));
@@ -325,10 +334,12 @@
 	letter-spacing: 0.05em;
 	transition: color .2s, border-color .2s, box-shadow .2s;
 }
+#opponent-preview #game-mode button:hover,
 #opponent-preview #ai-difficulty button:hover {
 	color: var(--gold-1);
 	border-color: var(--gold-line);
 }
+#opponent-preview #game-mode button[aria-checked="true"],
 #opponent-preview #ai-difficulty button[aria-checked="true"] {
 	color: #1b1206;
 	background: var(--gold-gradient);

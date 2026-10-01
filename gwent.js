@@ -534,12 +534,14 @@ class ControllerAI {
 
 // Can make actions during turns like playing cards that it owns
 class Player {
-	constructor(id, name, deck) {
+	// id 0 is the bottom (human) player; the top player is an AI unless human is true (local multiplayer)
+	constructor(id, name, deck, human = id === 0) {
 		this.id = id;
 		this.tag = (id === 0) ? "me" : "op";
-		this.controller = (id === 0) ? new Controller() : new ControllerAI(this);
+		this.name = name;
+		this.controller = human ? new Controller() : new ControllerAI(this);
 		
-		this.hand = (id === 0) ? new Hand(document.getElementById("hand-row")) : new HandAI();
+		this.hand = !human ? new HandAI() : new Hand(document.getElementById(id === 0 ? "hand-row" : "hand-row-op"), this.tag);
 		this.grave =  new Grave( document.getElementById("grave-" + this.tag));
 		this.deck = new Deck(deck.faction, document.getElementById("deck-" + this.tag));
 		this.deck_data = deck;
@@ -548,12 +550,11 @@ class Player {
 		
 		this.leader = new Card(deck.leader, this);
 		this.elem_leader = document.getElementById("leader-" + this.tag);
-		makeAccessible(this.elem_leader, this.tag === "me" ? "Your leader" : "Opponent's leader");
+		makeAccessible(this.elem_leader, id === 0 && !human ? "Your leader" : human ? name + "'s leader" : "Opponent's leader");
 		this.elem_leader.children[0].replaceChildren( this.leader.elem );
 
 		this.reset();
 		
-		this.name = name;
 		document.getElementById("name-" + this.tag).innerHTML = name;
 		
 		document.getElementById("deck-name-" +this.tag).innerHTML = factions[deck.faction].name;
@@ -586,6 +587,10 @@ class Player {
 		return board.opponent(this);
 	}
 	
+	isHuman(){
+		return !(this.controller instanceof ControllerAI);
+	}
+	
 	// Updates the player's total score and notifies the gamee
 	updateTotal(n){
 		this.total += n;
@@ -616,7 +621,7 @@ class Player {
 		if (this.leaderAvailable)
 			this.elem_leader.children[1].classList.remove("hide");
 		
-		if (this === player_me) {
+		if (this.isHuman()) {
 			document.getElementById("pass-button").classList.remove("noclick");
 		}
 		
@@ -660,7 +665,7 @@ class Player {
 	endTurn(){
 		if (!this.passed && !this.canPlay())
 			this.setPassed(true);
-		if (this === player_me){
+		if (this.isHuman()){
 			document.getElementById("pass-button").classList.add("noclick");
 		}
 		document.getElementById("stats-" + this.tag).classList.remove("current-turn");
@@ -720,9 +725,10 @@ class Player {
 		this.elem_leader.children[0].classList.remove("fade");
 		this.elem_leader.children[1].classList.remove("hide");
 		
-		if (this.id === 0 && this.leader.activated.length > 0){
+		if (this.isHuman() && this.leader.activated.length > 0){
+			// Both leaders are clickable in local multiplayer; only the player whose turn it is may activate theirs
 			this.elem_leader.addEventListener("click", 
-				async () => await ui.viewCard(this.leader, async () => {
+				async () => await ui.viewCard(this.leader, game.currPlayer !== this ? undefined : async () => {
 					AudioManager.playSFX('open');
 					await this.activateLeader();
 		}	), false);
@@ -967,7 +973,7 @@ class Deck extends CardContainer {
 	async draw(hand){
 		if (this.cards.length === 0)
 			return;
-		if (hand === player_op.hand)
+		if (!hand.isVisible())
 			hand.addCard(this.removeCard(0));
 		else
 			await board.toHand(this.cards[0], this);
@@ -1024,14 +1030,19 @@ class HandAI extends CardContainer {
 		this.counter = document.getElementById("hand-count-op"); 
 		this.hidden_elem = document.getElementById("hand-op");
 	}
+	isVisible() { return false; }
 	resize() {this.counter.innerHTML = this.cards.length; }
 }
 
-// Hand used by current player
+// Hand of a human player. In local multiplayer only the active player's hand is shown.
 class Hand extends CardContainer {
-	constructor(elem){
+	constructor(elem, tag = "me"){
 		super(elem);
-		this.counter = document.getElementById("hand-count-me");
+		this.counter = document.getElementById("hand-count-" + tag);
+	}
+	
+	isVisible() {
+		return !this.elem.classList.contains("hide");
 	}
 	
 	// Override. An explicit index keeps the card at that array position (mulligan); the DOM stays sorted.
@@ -1405,6 +1416,16 @@ class Board {
 		return player === player_me ? player_op : player_me;
 	}
 	
+	// Screen reader labels name each side's owner; "Your"/"Opponent's" is ambiguous in local multiplayer
+	labelRows(){
+		const hotseat = game.isHotseat();
+		this.row.forEach((r, i) => {
+			const side = i < 3 ? (hotseat ? player_op.name + "'s" : "Opponent's") : (hotseat ? player_me.name + "'s" : "Your");
+			r.elem.setAttribute("aria-label", side + " " + r.type + " row");
+			r.elem_special.setAttribute("aria-label", side + " " + r.type + " row special slot");
+		});
+	}
+	
 	// Sends and translates a card from the source to the Deck of the card's holder
 	async toDeck(card, source){
 		await this.moveTo(card, "deck", source);
@@ -1567,6 +1588,12 @@ class Game {
 		return this.state === GameState.PLAYING;
 	}
 
+	// True when both players are humans sharing this device
+	isHotseat()
+	{
+		return !!player_op?.isHuman();
+	}
+
 	setState(newState)
 	{
 		if (!(newState instanceof GameStateEnum) || this.state === newState)
@@ -1583,14 +1610,18 @@ class Game {
 		this.initPlayers(player_me, player_op);
 		this.setState(GameState.PLAYING);
 		AudioManager.playSFX('game_opening');
+		// In local multiplayer hands stay hidden until their owner takes the device
+		ui.handViewer = null;
+		document.body.classList.toggle("hotseat", this.isHotseat());
+		board.labelRows();
+		ui.showHand(this.isHotseat() ? null : player_me);
 		await this.runEffects(this.gameStart);
 		await this.coinToss();
 		AudioManager.playSFX('redraw');
-		const opening = player_me.deck.cards.slice(0, 10);
-		await Promise.all([
-			...opening.map(c => board.toHand(c, player_me.deck)),
-			...opening.map(() => player_op.deck.draw(player_op.hand))
-		]);
+		const openingDraw = p => p.hand.isVisible()
+			? p.deck.cards.slice(0, 10).map(c => board.toHand(c, p.deck))
+			: Array.from({length: 10}, () => p.deck.draw(p.hand));
+		await Promise.all([...openingDraw(player_me), ...openingDraw(player_op)]);
 		AudioManager.playSFX("game_start");
 		await this.initialRedraw();
 		this.currPlayer = this.firstPlayer;
@@ -1602,18 +1633,26 @@ class Game {
 		if (this.firstPlayer)
 			return;
 		this.firstPlayer = (Math.random() < 0.5) ? player_me : player_op;
-		await ui.notification(this.firstPlayer.tag + "-coin", 3000);
+		await ui.playerNotification("coin", this.firstPlayer, 3000);
 	}
 	
-	// Allows the player to swap out up to two cards from their iniitial hand
+	// Allows each human player to swap out up to two cards from their initial hand
 	async initialRedraw(){
-		for (let i=0; i < ControllerAI.difficulty().redraws; i++)
-			player_op.controller.redraw();
-		await ui.queueCarousel(player_me.hand, 2, async (c, i) => { 
-			AudioManager.playSFX('redraw');
-			await player_me.deck.swap(c, c.cards[i]);
-		}, c => true, false, true, "Choose up to 2 cards to redraw.");
-		player_me.hand.sort();
+		const hotseat = this.isHotseat();
+		for (const player of [player_op, player_me].filter(p => !p.isHuman()))
+			for (let i=0; i < ControllerAI.difficulty().redraws; i++)
+				player.controller.redraw();
+		for (const player of [player_me, player_op].filter(p => p.isHuman())) {
+			if (hotseat)
+				await ui.handoff(player, "Choose up to 2 cards from your starting hand to redraw.");
+			await ui.queueCarousel(player.hand, 2, async (c, i) => { 
+				AudioManager.playSFX('redraw');
+				await player.deck.swap(c, c.cards[i]);
+			}, c => true, false, true, (hotseat ? player.name + ": c" : "C") + "hoose up to 2 cards to redraw.");
+			player.hand.sort();
+			if (hotseat)
+				ui.showHand(null);
+		}
 		ui.enablePlayer(false);
 	}
 	
@@ -1639,24 +1678,33 @@ class Game {
 		
 		await ui.notification("round-start", 1200);
 		AudioManager.playSFX(this.currPlayer === player_me ? "turn_me" : "turn_op");
-		await ui.notification(this.currPlayer.tag + "-turn", 1200);
+		await ui.playerNotification("turn", this.currPlayer, 1200);
 		this.startTurn();
 	}
 	
 	// Starts a new turn. Enables client interraction in client's turn.
 	async startTurn() {
 		await this.runEffects(this.turnStart);
-		ui.enablePlayer(this.currPlayer === player_me);
+		if (this.isHotseat()) {
+			if (ui.handViewer === this.currPlayer)
+				ui.showHand(this.currPlayer);
+			else
+				await ui.handoff(this.currPlayer, "It's your turn.");
+		}
+		ui.enablePlayer(this.currPlayer.isHuman());
 		this.currPlayer.startTurn();
 	}
 	
 	// Ends the current turn and may end round. Disables client interraction in client's turn.
 	async endTurn() {
-		if (this.currPlayer === player_me)
+		if (this.currPlayer.isHuman())
 			ui.enablePlayer(false);
+		// Keep the hand up only if the same player is about to continue (opponent already passed)
+		if (this.isHotseat() && (this.currPlayer.passed || !this.currPlayer.opponent().passed))
+			ui.showHand(null);
 		await this.runEffects(this.turnEnd);
 		if (this.currPlayer.passed)
-			await ui.notification(this.currPlayer.tag + "-pass", 1200);
+			await ui.playerNotification("pass", this.currPlayer, 1200);
 		if (player_op.passed && player_me.passed)
 			this.endRound();
 		else
@@ -1665,7 +1713,7 @@ class Game {
 			{
 				this.currPlayer = this.currPlayer.opponent();
 				AudioManager.playSFX(this.currPlayer === player_me ? "turn_me" : "turn_op");
-				await ui.notification(this.currPlayer.tag + "-turn", 1200);
+				await ui.playerNotification("turn", this.currPlayer, 1200);
 			}
 			await this.startTurn();
 		}
@@ -1686,11 +1734,18 @@ class Game {
 		
 		player_me.endRound( dif > 0);
 		player_op.endRound( dif < 0);
-		if (dif > 0)
-			fx.burst(document.getElementById("score-total-me"), "gold");
+		if (winner && (winner === player_me || this.isHotseat()))
+			fx.burst(document.getElementById("score-total-" + winner.tag), "gold");
 		
 		let notificationKey = "";
-		if (dif > 0)
+		let caption;
+		if (winner && this.isHotseat())
+		{
+			AudioManager.playSFX("round_win");
+			notificationKey = "win-round";
+			caption = ui.playerCaption("win", winner);
+		}
+		else if (dif > 0)
 		{
 			AudioManager.playSFX("round_win");
 			notificationKey = "win-round";
@@ -1708,7 +1763,7 @@ class Game {
 
 		await Promise.all([
 			board.clearRound(),
-			ui.notification(notificationKey, 1200)
+			ui.notification(notificationKey, 1200, caption)
 		]);
 
 		EventManager.roundEnded.dispatch(this.roundCount, player_me.total, player_op.total);
@@ -1738,11 +1793,20 @@ class Game {
 		}
 		
 		endScreen.children[0].className = "";
+		const winnerElem = document.getElementById("end-winner");
+		winnerElem.classList.add("hide");
 		if (player_op.health <= 0 && player_me.health <= 0) {
 			endScreen.getElementsByTagName("p")[0].classList.remove("hide");
 			AudioManager.playSFX("game_lose");
 			endScreen.children[0].classList.add("end-draw");
 			ui.announce("The game ended in a draw");
+		} else if (this.isHotseat()) {
+			const winner = player_op.health === 0 ? player_me : player_op;
+			AudioManager.playSFX("game_win");
+			endScreen.children[0].classList.add("end-win");
+			winnerElem.textContent = winner.name + " wins!";
+			winnerElem.classList.remove("hide");
+			ui.announce(winner.name + " won the game!");
 		} else if (player_op.health === 0){
 			AudioManager.playSFX("game_win");
 			endScreen.children[0].classList.add("end-win");
@@ -1771,6 +1835,7 @@ class Game {
 	// Returns the client to the deck customization screen
 	returnToCustomization(){
 		document.activeElement?.blur();
+		ui.closeHandoff();
 		this.reset();
 		player_me.reset();
 		player_op.reset();
@@ -1784,9 +1849,10 @@ class Game {
 
 	newOpponentGame()
 	{
+		const hotseat = this.isHotseat();
 		this.reset();
 		player_me.reset();
-		player_op = new Player('op', DeckMaker.opponentName(), dm.constructOpponentDeck(false));
+		player_op = new Player(1, hotseat ? player_op.name : DeckMaker.opponentName(), dm.constructOpponentDeck(false), hotseat);
 		this.endScreen.classList.add("hide");
 		this.startGame();
 	}
@@ -2059,9 +2125,20 @@ class UI {
 		this.lastRow = null;
 		this.toggleSettings = [];
 		document.getElementById("pass-button").addEventListener("click", () => {
-			player_me.passRound();
+			if (!game.currPlayer?.isHuman())
+				return;
+			game.currPlayer.passRound();
 			AudioManager.playSFX('pass');
 		}, false);
+		this.handoff_elem = document.getElementById("handoff");
+		this.handViewer = null;
+		this.handoffResolve = null;
+		document.getElementById("handoff-ready").addEventListener("click", () => {
+			const resolve = this.handoffResolve;
+			this.handoffResolve = null;
+			resolve?.();
+		});
+		document.getElementById("handoff-quit").addEventListener("click", () => game.exitGame());
 		document.getElementById("click-background").addEventListener("click", () => ui.cancel(), false);
 		this.music = {};
 		this.musicTrack = "menu";
@@ -2091,6 +2168,7 @@ class UI {
 			'.deck-options',
 			'#pass-button',
 			'#end-screen>button',
+			'#handoff button',
 			'#op-preview-leader',
 			'#opponent-preview button'
 		].forEach(addMouseEnterSFXBySelector);
@@ -2115,6 +2193,33 @@ class UI {
 	enablePlayer(enable){
 		let main = document.getElementsByTagName("main")[0].classList;
 		if (enable) main.remove("noclick"); else main.add("noclick");
+	}
+	
+	// Shows only the passed player's hand in the hand tray; null hides all hands
+	showHand(player){
+		document.getElementById("hand-row").classList.toggle("hide", !player || player !== player_me);
+		document.getElementById("hand-row-op").classList.toggle("hide", !player || player !== player_op);
+	}
+	
+	// Local multiplayer: covers the board until the named player confirms they have the device, then shows their hand
+	async handoff(player, message){
+		this.showHand(null);
+		this.handoff_elem.querySelector(".handoff-shield").style.backgroundImage = iconURL("deck_shield_" + player.deck.faction);
+		document.getElementById("handoff-name").textContent = player.name;
+		document.getElementById("handoff-desc").textContent = message;
+		this.handoff_elem.classList.remove("hide");
+		this.announce("Pass the device to " + player.name + ". " + message);
+		document.getElementById("handoff-ready").focus();
+		await new Promise(resolve => this.handoffResolve = resolve);
+		this.handoff_elem.classList.add("hide");
+		this.handViewer = player;
+		this.showHand(player);
+	}
+	
+	// Hides the handoff screen without resuming the game waiting on it (used when quitting)
+	closeHandoff(){
+		this.handoffResolve = null;
+		this.handoff_elem.classList.add("hide");
 	}
 	
 	// Initializes the youtube background music players (menu: Kaer Morhen, game: Gwent mix)
@@ -2247,7 +2352,7 @@ class UI {
 	
 	// Called when the player selects a selectable CardContainer
 	async selectRow(row){
-		EventManager.rowSelected.dispatch(row, player_me);
+		EventManager.rowSelected.dispatch(row, game.currPlayer);
 		if (game.placedEffectsActive)
 		{
 			return;
@@ -2291,9 +2396,19 @@ class UI {
 		}
 		else
 		{
-			document.getElementById('leader-me').classList.add("noclick");
-			document.getElementById('pass-button').classList.add("noclick");
-			player_me.hand.cards.forEach( c => c.elem.classList.add("noclick") );
+			this.setTurnControlsEnabled(false);
+		}
+	}
+	
+	// Toggles the leaders, pass button and hand cards that could otherwise interrupt a forced choice
+	setTurnControlsEnabled(enable){
+		document.getElementById('pass-button').classList.toggle("noclick", !enable);
+		for (const player of [player_me, player_op]) {
+			if (!player)
+				continue;
+			player.elem_leader.classList.toggle("noclick", !enable);
+			if (player.hand instanceof Hand)
+				player.hand.cards.forEach( c => c.elem.classList.toggle("noclick", !enable) );
 		}
 	}
 	
@@ -2309,9 +2424,7 @@ class UI {
 	// Hides the card preview then disables and removes highlighting from card destinations
 	hidePreview(){
 		document.getElementById("click-background").classList.add("noclick");
-		player_me.hand.cards.forEach( c => c.elem.classList.remove("noclick") );
-		document.getElementById('leader-me').classList.remove("noclick");
-		document.getElementById('pass-button').classList.remove("noclick");
+		this.setTurnControlsEnabled(true);
 		
 		this.preview.classList.add("hide");
 		this.setSelectable(null, false);
@@ -2349,19 +2462,44 @@ class UI {
 		}
 	}
 	
-	// Displayed a timed notification to the client
-	async notification(name, duration){
-		this.announce(UI.notificationText[name]);
+	// Displayed a timed notification to the client. caption overrides the banner's built-in text.
+	async notification(name, duration, caption){
+		this.announce(caption ?? UI.notificationText[name]);
 		if (!Settings.notifications.isEnabled())
 			return;
 		if (!duration)
 			duration = 1200;
 		const fadeSpeed = 150;
 		duration = Math.max(400, duration - 2*fadeSpeed);
-		this.notif_elem.children[0].id = "notif-" + name;
+		const banner = this.notif_elem.children[0];
+		banner.id = "notif-" + name;
+		if (caption)
+			banner.dataset.caption = caption;
+		else
+			delete banner.dataset.caption;
 		await fadeIn(this.notif_elem, fadeSpeed);
 		await sleep(duration);
 		await fadeOut(this.notif_elem, fadeSpeed);
+	}
+	
+	// Local multiplayer banner text that names the player, since "you"/"opponent" is ambiguous on a shared screen
+	playerCaption(kind, player){
+		if (!game.isHotseat())
+			return undefined;
+		const name = player.name;
+		return {
+			coin: name + " will go first",
+			first: name + " will go first",
+			turn: name + "'s turn",
+			pass: name + " has passed",
+			win: name + " won the round!",
+			skellige: name + "'s Skellige ability triggered!"
+		}[kind];
+	}
+	
+	// Shows the "me-"/"op-" variant of a banner for the player, named in local multiplayer
+	async playerNotification(kind, player, duration){
+		await this.notification(player.tag + "-" + kind, duration, this.playerCaption(kind, player));
 	}
 	
 	// Displays a cancellable Carousel for a single card 
@@ -2382,14 +2520,13 @@ class UI {
 	// Displays a Carousel menu of filtered container items that match the predicate.
 	// Suspends gameplay until the Carousel is closed. Automatically picks random card if activated for AI player
 	async queueCarousel(container, count, action, predicate, bSort, bQuit, title){
-		if (game.currPlayer === player_op) {
-			if (player_op.controller instanceof ControllerAI)
-				for (let i=0; i<count; ++i){
-					let cards = container.cards.reduce((a,c,i) => !predicate || predicate(c) ? a.concat([i]) : a, []);
-					if (cards.length === 0)
-						break;
-					await action(container, cards[randomInt(cards.length)]);
-				}
+		if (game.currPlayer && !game.currPlayer.isHuman()) {
+			for (let i=0; i<count; ++i){
+				let cards = container.cards.reduce((a,c,i) => !predicate || predicate(c) ? a.concat([i]) : a, []);
+				if (cards.length === 0)
+					break;
+				await action(container, cards[randomInt(cards.length)]);
+			}
 			return;
 		}
 		let carousel = new Carousel(container, count, action, predicate, bSort, bQuit, title);
@@ -2458,6 +2595,9 @@ class UI {
 		
 		weather.elem.classList.add("noclick");
 		
+		// board.row[0..2] belong to player_op, [3..5] to player_me
+		const isOwnRow = i => (i >= 3) === (card.holder === player_me);
+		
 		if (card.name === "Scorch") {
 			for (let r of board.row){
 				r.elem.classList.add("row-selectable");
@@ -2468,7 +2608,7 @@ class UI {
 		if (card.isSpecial()){
 			for (let i=0; i<6; i++){
 				let r = board.row[i];
-				if (i < 3 || r.special !== null){
+				if (!isOwnRow(i) || r.special !== null){
 					r.elem.classList.add("noclick");
 					r.elem_special.classList.add("noclick");
 				} else {
@@ -2484,7 +2624,7 @@ class UI {
 			for (let i=0; i<6; ++i) {
 				let r = board.row[i];
 				let units = r.cards.filter(c => c.isUnit());
-				if (i < 3 || units.length === 0) {
+				if (!isOwnRow(i) || units.length === 0) {
 					r.elem.classList.add("noclick");
 					r.elem_special.classList.add("noclick");
 					r.elem.classList.remove("card-selectable");
@@ -2622,6 +2762,9 @@ class Carousel {
 	// Called by client to perform action on the middle card in focus
 	async select(event) {
 		(event || window.event).stopPropagation();
+		// The carousel stays current while the last action runs; repeated Enter presses must not re-run it
+		if (this.count <= 0)
+			return;
 		--this.count;
 		if (this.isLastSelection())
 			this.elem.classList.add("hide");
@@ -2803,25 +2946,47 @@ class DeckMaker {
 		document.getElementById("start-game").addEventListener("mouseenter", CLICK_EVENT_SFX, false);
 		
 		this.difficulty_buttons = [...document.querySelectorAll("#ai-difficulty > button")];
-		this.difficulty_buttons.forEach(b => {
-			b.addEventListener("click", () => this.setDifficulty(b.dataset.level));
+		DeckMaker.bindRadioGroup(this.difficulty_buttons, b => this.setDifficulty(b.dataset.level));
+		this.setDifficulty(Settings.aiDifficulty.get(), true);
+		
+		this.mode_buttons = [...document.querySelectorAll("#game-mode > button")];
+		DeckMaker.bindRadioGroup(this.mode_buttons, b => this.setGameMode(b.dataset.mode));
+		this.setGameMode(Settings.gameMode.get(), true);
+		document.getElementById("op-preview-saved").addEventListener("click", () => this.selectSavedOpponentDeck());
+	}
+	
+	// Click and arrow-key selection for a role=radiogroup of buttons
+	static bindRadioGroup(buttons, select) {
+		buttons.forEach(b => {
+			b.addEventListener("click", () => select(b));
 			b.addEventListener("mouseenter", CLICK_EVENT_SFX);
 			b.addEventListener("keydown", e => {
 				const step = {ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1}[e.key];
 				if (!step)
 					return;
 				e.preventDefault();
-				const buttons = this.difficulty_buttons;
 				const next = buttons[(buttons.indexOf(b) + step + buttons.length) % buttons.length];
-				this.setDifficulty(next.dataset.level);
+				select(next);
 				next.focus();
 			});
 		});
-		this.setDifficulty(Settings.aiDifficulty.get(), true);
+	}
+	
+	// Marks the button matching the predicate as the checked radio
+	static checkRadio(buttons, isSelected) {
+		buttons.forEach(b => {
+			const selected = isSelected(b);
+			b.setAttribute("aria-checked", selected);
+			b.tabIndex = selected ? 0 : -1;
+		});
 	}
 	
 	static opponentName() {
 		return ControllerAI.difficulty().label + " AI";
+	}
+	
+	static isHotseatMode() {
+		return Settings.gameMode.get() === "hotseat";
 	}
 	
 	// Selects the AI difficulty used for the next game
@@ -2831,11 +2996,23 @@ class DeckMaker {
 		if (!silent && level !== Settings.aiDifficulty.get())
 			AudioManager.playSFX("ui_card_bank");
 		Settings.aiDifficulty.set(level);
-		this.difficulty_buttons.forEach(b => {
-			const selected = b.dataset.level === level;
-			b.setAttribute("aria-checked", selected);
-			b.tabIndex = selected ? 0 : -1;
-		});
+		DeckMaker.checkRadio(this.difficulty_buttons, b => b.dataset.level === level);
+	}
+	
+	// Chooses between playing the AI and local multiplayer, where Player 2 uses the opponent's deck
+	setGameMode(mode, silent = false) {
+		if (mode !== "hotseat")
+			mode = "ai";
+		if (!silent && mode !== Settings.gameMode.get())
+			AudioManager.playSFX("ui_card_bank");
+		Settings.gameMode.set(mode);
+		DeckMaker.checkRadio(this.mode_buttons, b => b.dataset.mode === mode);
+		const hotseat = mode === "hotseat";
+		document.getElementById("ai-difficulty").classList.toggle("hide", hotseat);
+		const leaderLabel = document.getElementById("op-preview-leader");
+		leaderLabel.dataset.title = hotseat ? "Upload Player 2's deck" : "Upload opponent";
+		leaderLabel.setAttribute("aria-label", leaderLabel.dataset.title);
+		document.getElementById("op-preview-open").dataset.title = hotseat ? "View Player 2's deck" : "View opponent";
 	}
 
 	loadFactionDeck(faction, force = false)
@@ -3111,9 +3288,10 @@ class DeckMaker {
 			cards: this.deck.filter(x => x.count > 0)
 		};
 		const op_deck = this.constructOpponentDeck(true);
+		const hotseat = DeckMaker.isHotseatMode();
 		
 		player_me = new Player(0, "Player 1", me_deck);
-		player_op = new Player(1, DeckMaker.opponentName(), op_deck);
+		player_op = new Player(1, hotseat ? "Player 2" : DeckMaker.opponentName(), op_deck, hotseat);
 		
 		this.elem.classList.add("hide");
 		game.startGame();
@@ -3296,6 +3474,23 @@ class DeckMaker {
 		Settings.opponentDeckCustom.clear();
 		this.opponentData = Settings.opponentDeckCustom.get();
 		this.updatedCustomOpponent();
+	}
+	
+	// Lets the client pick one of their saved faction decks as the opponent's (Player 2's) deck
+	selectSavedOpponentDeck()
+	{
+		const container = new CardContainer();
+		container.cards = Object.keys(factions).map(f => ({abilities: [f], filename: f, desc_name: factions[f].name, desc: "Use your saved " + factions[f].name + " deck.", faction: "faction"}));
+		const current = isEmpty(this.opponentData) ? this.faction : this.opponentData.faction;
+		const title = DeckMaker.isHotseatMode() ? "Choose Player 2's deck" : "Choose the opponent's deck";
+		ui.queueCarousel(container, 1, async (c, i) => {
+			const faction = c.cards[i].filename;
+			const saved = Settings.getFactionSettings(faction).get();
+			const deck = {faction: faction, leader: saved.leader, cards: (saved.cards ?? []).map(x => [x.index, x.count])};
+			await this.loadOpponentDeck(deck, false);
+		}, () => true, false, true, title);
+		Carousel.curr.index = Math.max(0, container.cards.findIndex(c => c.filename === current));
+		Carousel.curr.update();
 	}
 
 	updatedCustomOpponent()
@@ -3531,6 +3726,7 @@ class Settings
 	static effects = new ToggleOption("gc-effects", true);
 	static lastFaction = new SavedString("gc-last-faction", "realms"); 
 	static aiDifficulty = new SavedString("gc-ai-difficulty", "normal");
+	static gameMode = new SavedString("gc-game-mode", "ai");
 	static realmsDeck = new SavedDeck("gc-deck-realms", premade_deck[0]);
 	static nilfgaardDeck = new SavedDeck("gc-deck-nilfgaard", premade_deck[2]);
 	static monstersDeck = new SavedDeck("gc-deck-monsters", premade_deck[4]);
@@ -3608,7 +3804,7 @@ class EventManager
 async function translateTo(card, container_source, container_dest){
 	if (!container_dest || !container_source)
 		return;
-	if (container_dest === player_op.hand && container_source === player_op.deck)
+	if (container_dest instanceof HandAI && container_source instanceof Deck)
 		return;
 	
 	let elem = card.elem;
@@ -3627,7 +3823,7 @@ async function translateTo(card, container_source, container_dest){
 		let mid = trueOffset(container_source.elem, true) + container_source.elem.offsetWidth/2;
 		x += trueOffset(elem, true) - mid;
 	}
-	if (container_source instanceof Row && container_dest === player_me.hand)
+	if (container_source instanceof Row && container_dest instanceof Hand)
 		y *= 7/8;
 	if (container_source instanceof Deck || container_source instanceof HandAI)
 		fx.flash(elem, "flip-in", 500);
@@ -3835,7 +4031,14 @@ function closeTitleScreen() {
 }
 document.getElementById("title-play").addEventListener("click", () => {
 	closeTitleScreen();
+	dm.setGameMode("ai", true);
 	dm.startNewGame();
+}, false);
+// Local multiplayer opens the deck builder so both decks can be chosen before starting
+document.getElementById("title-local").addEventListener("click", () => {
+	closeTitleScreen();
+	dm.setGameMode("hotseat", true);
+	AudioManager.playSFX("menu_opening");
 }, false);
 document.getElementById("title-deck").addEventListener("click", () => {
 	closeTitleScreen();
@@ -3849,7 +4052,7 @@ document.getElementById("deck-back").addEventListener("click", () => {
 	titleScreen.classList.remove("leaving");
 	AudioManager.playSFX("menu_opening");
 }, false);
-["#title-play", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
+["#title-play", "#title-local", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
 
 
 function onFirstInput() {

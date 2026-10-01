@@ -41,22 +41,20 @@ var factions = {
 	scoiatael: {
 		name: "Scoia'tael",
 		factionAbility: player => game.gameStart.push( async () => {
-			let notif = "";
-			if (player === player_me) {
-				await ui.popup("Go First", () => game.firstPlayer = player, "Let Opponent Start", () => game.firstPlayer = player.opponent(), "Would you like to go first?", "The Scoia'tael faction perk allows you to decide who will get to go first.", 0.55);
-				notif = game.firstPlayer.tag + "-first";
-			} else if (player.hand instanceof HandAI) {
-				if (Math.random() < 0.5) {
-					game.firstPlayer = player;
-					notif = "scoiatael";
-				} else {
-					game.firstPlayer = player.opponent();
-					notif = game.firstPlayer.tag + "-first";
-				}
+			if (player.isHuman()) {
+				const hotseat = game.isHotseat();
+				await ui.popup("Go First", () => game.firstPlayer = player,
+					hotseat ? "Let " + player.opponent().name + " Start" : "Let Opponent Start", () => game.firstPlayer = player.opponent(),
+					hotseat ? player.name + ", would you like to go first?" : "Would you like to go first?",
+					"The Scoia'tael faction perk allows you to decide who will get to go first.", 0.55);
+				await ui.playerNotification("first", game.firstPlayer, 1200);
+			} else if (Math.random() < 0.5) {
+				game.firstPlayer = player;
+				await ui.notification("scoiatael", 1200);
 			} else {
-				//sleepUntil(game.firstPlayer); //TODO online
+				game.firstPlayer = player.opponent();
+				await ui.playerNotification("first", game.firstPlayer, 1200);
 			}
-			await ui.notification(notif,1200);
 			return true;
 		}),
 		description: "Decides who takes first turn."
@@ -68,7 +66,7 @@ var factions = {
 				return false;
 			const currPlayer = game.currPlayer;
 			game.currPlayer = player;
-			await ui.notification("skellige-" + player.tag, 1200);
+			await ui.playerNotification("skellige", player, 1200);
 			if (player.controller instanceof ControllerAI)
 			{
 				await Promise.all(player.grave.findCardsRandom(c => c.isUnit(), 2).map(c => board.toRow(c, player.grave)));
