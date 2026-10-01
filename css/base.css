@@ -139,7 +139,8 @@ body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + 37.5 * va
 
 /* ---------- tooltip ---------- */
 
-*[data-title]:hover::after {
+*[data-title]:hover::after,
+*[data-title]:focus-visible::after {
 	content: attr(data-title);
 	position: absolute;
 	bottom: calc(-2.1 * var(--u));
@@ -216,3 +217,21 @@ body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + 37.5 * va
 .hide { display: none; }
 .fade:not(.settings-button) { opacity: 0.2; }
 .noclick { pointer-events: none; }
+
+:focus-visible {
+	outline: calc(0.15 * var(--u)) solid var(--gold-1);
+	outline-offset: calc(0.1 * var(--u));
+	box-shadow: 0 0 calc(1 * var(--u)) var(--gold-glow);
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
+}

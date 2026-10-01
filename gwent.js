@@ -13,6 +13,16 @@ const addMouseEnterSFXBySelector = selector => {
 	e.addEventListener('mouseenter', CLICK_EVENT_SFX));
 };
 
+// Makes a clickable non-button element keyboard focusable; Enter/Space is handled globally via role=button
+function makeAccessible(elem, label) {
+	if (!elem)
+		return;
+	elem.tabIndex = 0;
+	elem.setAttribute("role", "button");
+	if (label)
+		elem.setAttribute("aria-label", label);
+}
+
 class Controller {}
 
 // Makes decisions for the AI opponent player
@@ -109,7 +119,13 @@ class ControllerAI {
 	
 	// Swaps a card from the hand with the deck if beneficial
 	redraw() {
-		const card = this.discardOrder({holder:this.player})[0];
+		let card = this.discardOrder({holder:this.player})[0];
+		if (!card) {
+			const keep = ["spy", "medic", "muster", "bond", "scorch", "scorch_c", "scorch_r", "scorch_s", "avenger", "avenger_kambi", "berserker"];
+			card = this.player.hand.cards
+				.filter(c => c.isUnit() && c.basePower <= 5 && !c.abilities.some(a => keep.includes(a)))
+				.sort((a, b) => a.basePower - b.basePower)[0];
+		}
 		if (card && card.power < 15) {
 			this.player.deck.swap(this.player.hand, card);
 		}
@@ -187,7 +203,7 @@ class ControllerAI {
 	}
 	
 	// Plays a Mardroeme to the most beneficial row. Assumes at least one viable row.
-	async mardroeme(card){ // TODO skellige
+	async mardroeme(card){
 		let row, max = 0;
 		for (let i=1; i<3; i++){
 			let curr = this.weightMardroemeRow(card, board.row[i]);
@@ -236,16 +252,11 @@ class ControllerAI {
 			targ = pair.c;
 			row = pair.r;
 		}
-		
-		for (let i = 0; !row ; ++i){
-			if (board.row[i].cards.indexOf(targ) !== -1){
-				row = board.row[i];
-				break;
-			}
-		}
-		
-		setTimeout(() => board.toHand(targ, row), 1000);
-		await this.player.playCardToRow(card, row);
+		row = row ?? board.row.find(r => r.cards.includes(targ));
+		await this.player.playCardAction(card, async () => await Promise.all([
+			board.toHand(targ, row),
+			board.moveTo(card, row, this.player.hand)
+		]));
 	}
 	
 	// Tells the controlled Player to play the Scorch card
@@ -270,14 +281,20 @@ class ControllerAI {
 
 	// Assigns a weight for how likely the conroller is to Pass the round
 	weightPass(){
-		if (this.player.health === 1)
+		const me = this.player, op = me.opponent();
+		if (me.health === 1)
 			return 0;
-		let dif = this.player.opponent().total - this.player.total;
-		if (dif > 30)
+		const dif = op.total - me.total;
+		const cardAdv = me.hand.cards.length - op.hand.cards.length;
+		// Opponent passed and we're behind (startTurn already passes when ahead): concede only big deficits
+		if (op.passed)
+			return dif > 15 + 5 * Math.max(0, cardAdv) ? 100 : 0;
+		if (Math.abs(dif) > 30)
 			return 100;
-		if (dif < -30 && this.player.opponent().handsize - this.player.handsize > 2)
-			return 100;
-		return Math.floor(Math.abs(dif));
+		if (dif <= 0)
+			return Math.floor(-dif + 5 * Math.max(0, cardAdv));
+		// Conceding a round is only worth it when it preserves a card advantage
+		return Math.floor(cardAdv > 0 ? dif + 5 * cardAdv : dif * 0.3);
 	}
 	
 	// Assigns a weight for how likely the controller is to activate its leader ability
@@ -373,7 +390,7 @@ class ControllerAI {
 			if (!row.effects.mardroeme)
 				n = row.cards.filter(c => c.name === "Young Berserker").length;
 			else
-				n = row.cards.filter(c => "Transformed Young Vildkaarl").length;
+				n = row.cards.filter(c => c.name === "Transformed Young Vildkaarl").length;
 			score = 8*((n+1)*(n+1) - n*n) + n*score;
 		}
 		return Math.max(1, score);
@@ -395,7 +412,7 @@ class ControllerAI {
 			if (!rows.length)
 				return 0;
 			rows = rows.map(r => this.weightHornRow(card, r) );
-			return Math.max(...rows)/2;
+			return Math.max(...rows);
 		}
 		
 		if (card.abilities) {
@@ -433,7 +450,13 @@ class ControllerAI {
 				score = this.weightRowChange(card, row); break;
 			case "medic": 
 				score = this.weightMedic(data, score, card.holder);	break;
-			case "spy": score = 15 + score; break;
+			case "spy": {
+				// score is the strength handed to the opponent; value comes from the 2 draws
+				const cardAdv = this.player.hand.cards.length - this.player.opponent().hand.cards.length;
+				score = this.player.deck.cards.length === 0 ? 1
+					: Math.max(1, 20 + 5 * Math.max(0, -cardAdv) + (game.roundCount < 3 ? 5 : 0) - score);
+				break;
+			}
 			case "muster": score *= 3; break;
 			case "scorch_c":
 				score = Math.max(1, this.weightScorchRow(card, max, "close")); break;
@@ -471,11 +494,12 @@ class Player {
 		this.deck = new Deck(deck.faction, document.getElementById("deck-" + this.tag));
 		this.deck_data = deck;
 		if (this.hand instanceof HandAI)
-			this.hand.hidden_elem.style.setProperty("--card-back", iconURL("deck_back_" + deck.faction, "jpg"));
+			this.hand.hidden_elem.style.setProperty("--card-back", absoluteIconURL("deck_back_" + deck.faction, "jpg"));
 		
 		this.leader = new Card(deck.leader, this);
 		this.elem_leader = document.getElementById("leader-" + this.tag);
-		this.elem_leader.children[0].appendChild( this.leader.elem );
+		makeAccessible(this.elem_leader, this.tag === "me" ? "Your leader" : "Opponent's leader");
+		this.elem_leader.children[0].replaceChildren( this.leader.elem );
 
 		this.reset();
 		
@@ -657,8 +681,6 @@ class Player {
 			this.elem_leader.addEventListener("click", async () => await ui.viewCard(this.leader), false);
 		}
 		this.elem_leader.addEventListener('mouseenter', CLICK_EVENT_SFX);
-		
-		// TODO set crown color
 	}
 	
 }
@@ -798,13 +820,6 @@ class CardContainer {
 		this.elem.classList.add("row-selectable");
 	}
 	
-	// Disallows teh row to be clicked
-	clearSelectable() {
-		this.elem.classList.remove("row-selectable");
-		for (card in this.cards)
-			card.elem.classList.add("noclick");
-	}
-	
 	// Returns the container to its default, empty state
 	reset() {
 		while(this.cards.length)
@@ -821,7 +836,8 @@ class CardContainer {
 class Grave extends CardContainer {
 	constructor(elem) {
 		super(elem)
-		elem.addEventListener("click", () => ui.viewCardsInContainer(this), false);
+		// Players are recreated each game; property assignment avoids stacking listeners on the shared element
+		elem.onclick = () => ui.viewCardsInContainer(this);
 	}
 	
 	// Override
@@ -867,7 +883,7 @@ class Deck extends CardContainer {
 	constructor(faction, elem){
 		super(elem);
 		this.faction = faction;
-		elem.style.setProperty("--card-back", iconURL("deck_back_" + faction, "jpg"));
+		elem.style.setProperty("--card-back", absoluteIconURL("deck_back_" + faction, "jpg"));
 
 		this.counter = document.createElement("div");
 		this.counter.classList = "deck-counter center";
@@ -899,6 +915,8 @@ class Deck extends CardContainer {
 	
 	// Sends the top card to the passed hand
 	async draw(hand){
+		if (this.cards.length === 0)
+			return;
 		if (hand === player_op.hand)
 			hand.addCard(this.removeCard(0));
 		else
@@ -966,15 +984,21 @@ class Hand extends CardContainer {
 		this.counter = document.getElementById("hand-count-me");
 	}
 	
-	// Override
+	// Override. An explicit index keeps the card at that array position (mulligan); the DOM stays sorted.
 	addCard(card, index){
-		const sortedIndex = this.getSortedIndex(card);
-		if (!index)
-			index = this.addCardSorted(card);
+		if (index === undefined)
+			this.addCardSorted(card);
 		else
-			super.addCard(card, index);
-		this.addCardElement(card, sortedIndex);
+			this.cards.splice(clamp(0, this.cards.length, index), 0, card);
+		const sorted = [...this.cards].sort(Card.compare);
+		const next = sorted[sorted.indexOf(card) + 1];
+		this.elem.insertBefore(card.elem, next ? next.elem : null);
 		this.resize();
+	}
+	
+	// Restores sorted array order after index-preserving inserts
+	sort(){
+		this.cards.sort(Card.compare);
 	}
 	
 	// Override
@@ -996,6 +1020,11 @@ class Row extends CardContainer {
 		this.effects = {weather:false, halfWeather: false, bond: {}, morale: 0, horn: 0, mardroeme: 0};
 		this.elem?.addEventListener("click", () => ui.selectRow(this), true);
 		this.elem_special?.addEventListener("click", () => ui.selectRow(this), false, true);
+		if (elem) {
+			const side = elem.parentElement.id === "field-op" ? "Opponent's" : "Your";
+			makeAccessible(this.elem, side + " " + this.type + " row");
+			makeAccessible(this.elem_special, side + " " + this.type + " row special slot");
+		}
 	}
 	
 	// Returns a copy of the row
@@ -1161,14 +1190,14 @@ class Row extends CardContainer {
 	
 	// Calculates the current power of a card affected by row affects
 	calcCardScore(card) {
-		if (card.name === "decoy")
+		if (card.name === "Decoy")
 			return 0;
 		let total = card.basePower;
 		if (card.hero)
 			return total;
 		if (this.effects.weather)
 		{
-			const weatherMin = this.effects.halfWeather ? Math.floor(total/2) : 1;
+			const weatherMin = this.effects.halfWeather ? Math.ceil(total/2) : 1;
 			total = Math.min(weatherMin, total);
 		}
 		if (game.doubleSpyPower && card.abilities.includes("spy"))
@@ -1231,8 +1260,7 @@ class Row extends CardContainer {
 		while(this.elem_special.firstChild)
 			this.elem_special.removeChild(this.elem_special.firstChild);
 		this.total = 0;
-		//["rain","fog","frost"].forEach( w => this.removeOverlay(w) );
-		this.effects = {weather:false, bond: {}, morale: 0, horn: 0, mardroeme: 0};
+		this.effects = {weather:false, halfWeather: false, bond: {}, morale: 0, horn: 0, mardroeme: 0};
 	}
 }
 
@@ -1250,6 +1278,7 @@ class Weather extends CardContainer {
 			this.types[key].rows = [board.row[i], board.row[5-i++]];
 		
 		this.elem.addEventListener("click",() => ui.selectRow(this), false);
+		makeAccessible(this.elem, "Weather");
 	}
 	
 	// Adds a card if unique and clears all weather if 'clear weather' card added
@@ -1405,8 +1434,8 @@ class Board {
 	async clearRound()
 	{
 		await Promise.all([
-			await weather.clearWeather(),
-			...board.row.map(async row => await row.clear())
+			weather.clearWeather(),
+			...board.row.map(row => row.clear())
 		]);
 	}
 }
@@ -1449,7 +1478,7 @@ class Game {
 		this.randomRespawn = false;
 		this.doubleSpyPower = false;
 
-		this.placedEffectsActive = false; //TODO replace with propper game state
+		this.placedEffectsActive = false;
 		
 		weather.reset();
 		board.row.forEach(r => r.reset());
@@ -1485,7 +1514,7 @@ class Game {
 
 	isPlaying()
 	{
-		return this.state === GameState.END_SCREEN;
+		return this.state === GameState.PLAYING;
 	}
 
 	setState(newState)
@@ -1507,10 +1536,11 @@ class Game {
 		await this.runEffects(this.gameStart);
 		await this.coinToss();
 		AudioManager.playSFX('redraw');
-		await Promise.all([...Array(10).keys()].map( async () => {
-			await player_me.deck.draw(player_me.hand);
-			await player_op.deck.draw(player_op.hand);
-		}));
+		const opening = player_me.deck.cards.slice(0, 10);
+		await Promise.all([
+			...opening.map(c => board.toHand(c, player_me.deck)),
+			...opening.map(() => player_op.deck.draw(player_op.hand))
+		]);
 		AudioManager.playSFX("game_start");
 		await this.initialRedraw();
 		this.currPlayer = this.firstPlayer;
@@ -1533,6 +1563,7 @@ class Game {
 			AudioManager.playSFX('redraw');
 			await player_me.deck.swap(c, c.cards[i]);
 		}, c => true, false, true, "Choose up to 2 cards to redraw.");
+		player_me.hand.sort();
 		ui.enablePlayer(false);
 	}
 	
@@ -1626,8 +1657,8 @@ class Game {
 		}
 
 		await Promise.all([
-			await board.clearRound(),
-			await ui.notification(notificationKey, 1200)
+			board.clearRound(),
+			ui.notification(notificationKey, 1200)
 		]);
 
 		EventManager.roundEnded.dispatch(this.roundCount, player_me.total, player_op.total);
@@ -1661,12 +1692,15 @@ class Game {
 			endScreen.getElementsByTagName("p")[0].classList.remove("hide");
 			AudioManager.playSFX("game_lose");
 			endScreen.children[0].classList.add("end-draw");
+			ui.announce("The game ended in a draw");
 		} else if (player_op.health === 0){
 			AudioManager.playSFX("game_win");
 			endScreen.children[0].classList.add("end-win");
+			ui.announce("You won the game!");
 		} else {
 			AudioManager.playSFX("game_lose");
 			endScreen.children[0].classList.add("end-lose");
+			ui.announce("You lost the game");
 		}
 		
 		fadeIn(endScreen, 300);
@@ -1686,6 +1720,7 @@ class Game {
 	
 	// Returns the client to the deck customization screen
 	returnToCustomization(){
+		document.activeElement?.blur();
 		this.reset();
 		player_me.reset();
 		player_op.reset();
@@ -1888,6 +1923,8 @@ class Card {
 		if (card.row === "leader")
 			return elem;
 		
+		makeAccessible(elem, card.name);
+		
 		let power = document.createElement("div");
 		elem.appendChild(power);
 		let bg;
@@ -1950,6 +1987,19 @@ class Card {
 
 // Handles notifications and client interration with menus
 class UI {
+	// Mirrors the banner captions in css/overlays.css for screen readers
+	static notificationText = {
+		"me-first": "You will go first", "op-first": "Your opponent will go first",
+		"me-coin": "You will go first", "op-coin": "Your opponent will go first",
+		"round-start": "Round start", "me-pass": "Round passed", "op-pass": "Your opponent has passed",
+		"win-round": "You won the round!", "lose-round": "Your opponent won the round", "draw-round": "The round ended in a draw",
+		"me-turn": "Your turn", "op-turn": "Opponent's turn",
+		"north": "Northern Realms faction ability triggered: draw an additional card",
+		"monsters": "Monsters faction ability triggered: one random unit stays on the board",
+		"scoiatael": "Opponent used the Scoia'tael faction perk to go first",
+		"skellige-me": "Skellige ability triggered", "skellige-op": "Opponent Skellige ability triggered"
+	};
+	
 	constructor() {
 		this.carousels = [];
 		this.notif_elem = document.getElementById("notification-bar");
@@ -1994,6 +2044,21 @@ class UI {
 			'#op-preview-leader',
 			'#opponent-preview button'
 		].forEach(addMouseEnterSFXBySelector);
+		
+		this.live_elem = document.getElementById("live-region");
+		[
+			'#exit-game', '#pass-button', '#grave-me', '#grave-op', '.settings-button',
+			'#change-faction', '#download-deck', '#upload-deck', '#op-preview-leader', '#card-leader > div', '#carousel .card-lg'
+		].forEach(selector => document.querySelectorAll(selector).forEach(e => makeAccessible(e, e.dataset.title || e.textContent.trim())));
+		document.querySelector('#card-leader > div').setAttribute("aria-label", "Choose leader");
+	}
+	
+	// Reads out a message to screen readers
+	announce(text){
+		if (!text)
+			return;
+		this.live_elem.textContent = "";
+		setTimeout(() => this.live_elem.textContent = text, 50);
 	}
 	
 	// Enables or disables client interration
@@ -2122,8 +2187,10 @@ class UI {
 		} else if (pCard.name === "Decoy") {
 			this.hidePreview(card);
 			this.enablePlayer(false);
-			board.toHand(card, row);
-			await board.moveTo(pCard, row, pCard.holder.hand);
+			await Promise.all([
+				board.toHand(card, row),
+				board.moveTo(pCard, row, pCard.holder.hand)
+			]);
 			pCard.holder.endTurn();
 		}
 	}
@@ -2234,6 +2301,7 @@ class UI {
 	
 	// Displayed a timed notification to the client
 	async notification(name, duration){
+		this.announce(UI.notificationText[name]);
 		if (!Settings.notifications.isEnabled())
 			return;
 		if (!duration)
@@ -2295,6 +2363,20 @@ class UI {
 	async popup(yesName, yes, noName, no, title, description, alpha = .95) {
 		let p = new Popup(yesName, yes, noName, no, title, description, alpha);
 		await sleepUntil( () => !Popup.curr) 
+	}
+	
+	// In-game replacement for window.alert
+	async alert(title, description) {
+		AudioManager.playSFX("warning");
+		await this.popup("OK", null, null, null, title, description);
+	}
+	
+	// In-game replacement for window.confirm. Resolves true if the first option is chosen.
+	async confirm(title, description, yesName = "Continue", noName = "Cancel") {
+		AudioManager.playSFX("warning");
+		let accepted = false;
+		await this.popup(yesName, () => accepted = true, noName, null, title, description);
+		return accepted;
 	}
 	
 	// Enables or disables selection and highlighting of rows specific to the card
@@ -2420,7 +2502,13 @@ class Carousel {
 		
 		if (!Carousel.elem) {
 			Carousel.elem = document.getElementById("carousel");
-			Carousel.elem.children[0].addEventListener("click", () => Carousel.curr.cancel(), false);
+			Carousel.elem.children[0].addEventListener("click", () => Carousel.curr?.cancel(), false);
+			[...Carousel.elem.children[0].children].forEach((e, i) => {
+				const offset = i - 2;
+				e.addEventListener("click", evt => offset === 0 ? Carousel.curr?.select(evt) : Carousel.curr?.shift(evt, offset));
+				e.addEventListener("mouseover", () => Carousel.curr?.nudge(offset));
+				e.addEventListener("mouseout", () => Carousel.curr?.nudge(0));
+			});
 		}
 		this.elem = Carousel.elem;
 		document.getElementsByTagName("main")[0].classList.remove("noclick");
@@ -2429,7 +2517,6 @@ class Carousel {
 		this.previews = this.elem.getElementsByClassName("card-lg");
 		this.desc = this.elem.getElementsByClassName("card-description")[0];
 		this.title_elem = this.elem.children[2];
-		[...this.elem.children[0].children].forEach(e => e.addEventListener("mouseout", evt=>Carousel.curr?.nudge(0)));
 		this.elem.children[0].style.setProperty('--carousel-trans-time', "0.25s");
 	}
 	
@@ -2525,6 +2612,7 @@ class Carousel {
 			if (curr >= 0 && curr < this.indices.length) {
 				let card = this.container.cards[this.indices[curr]];
 				this.previews[i].style.backgroundImage = largeURL(card.faction + "_" + card.filename);
+				this.previews[i].setAttribute("aria-label", card.name ?? card.desc_name);
 				this.previews[i].classList.remove("hide");
 				this.previews[i].classList.remove("noclick");
 			} else {
@@ -2558,24 +2646,54 @@ class Carousel {
 
 // Custom confirmation windows
 class Popup {
+	// Pass noName === null for a single-button (alert style) popup
 	constructor(yesName, yes, noName, no, header, description, alpha = .95){
 		this.yes = yes ? yes : ()=>{};
 		this.no = no ? no : ()=>{};
 		
 		this.elem = document.getElementById("popup");
+		Popup.init(this.elem);
 		let main = this.elem.children[0];
-		main.children[0].innerHTML = header ? header : "";
-		main.children[1].innerHTML = description ? description : "";
-		main.children[2].children[0].innerHTML = (yesName) ? yesName : "Yes";
-		main.children[2].children[1].innerHTML = (noName) ? noName : "No";
+		main.children[0].textContent = header ? header : "";
+		main.children[1].textContent = description ? description : "";
+		this.buttons = [...main.children[2].children];
+		this.buttons[0].textContent = (yesName) ? yesName : "Yes";
+		this.buttons[1].textContent = (noName) ? noName : "No";
+		this.buttons[1].classList.toggle("hide", noName === null);
 
 		const bgColor = new RGBA(10, 10, 10, alpha);
 		this.elem.style.backgroundColor = bgColor.toString();
 		
 		this.playerWasEnabled = !document.getElementsByTagName("main")[0].classList.contains("noclick");
+		this.returnFocus = document.activeElement;
 		this.elem.classList.remove("hide");
 		Popup.setCurrent(this);
 		ui.enablePlayer(true);
+		this.buttons[0].focus();
+	}
+	
+	// Wires the shared popup element once: buttons, Escape to dismiss, Tab kept inside the dialog
+	static init(elem){
+		if (Popup.initialized)
+			return;
+		Popup.initialized = true;
+		const [yesButton, noButton] = elem.children[0].children[2].children;
+		yesButton.addEventListener("click", () => Popup.curr?.selectYes());
+		noButton.addEventListener("click", () => Popup.curr?.selectNo());
+		elem.addEventListener("keydown", e => {
+			const popup = Popup.curr;
+			if (!popup)
+				return;
+			if (e.key === "Escape") {
+				e.preventDefault();
+				popup.buttons[1].classList.contains("hide") ? popup.selectYes() : popup.selectNo();
+			} else if (e.key === "Tab") {
+				e.preventDefault();
+				const visible = popup.buttons.filter(b => !b.classList.contains("hide"));
+				const i = visible.indexOf(document.activeElement);
+				visible[(i + (e.shiftKey ? -1 : 1) + visible.length) % visible.length].focus();
+			}
+		});
 	}
 	
 	// Sets this as the current popup window
@@ -2603,6 +2721,7 @@ class Popup {
 		ui.enablePlayer(this.playerWasEnabled);
 		this.elem.classList.add("hide");
 		Popup.clearCurrent();
+		this.returnFocus?.focus?.();
 	}
 	
 }
@@ -2716,8 +2835,9 @@ class DeckMaker {
 		let card_data = card_dict[index];
 		
 		let elem = document.createElement("div");
-		elem.style.backgroundImage = largeURL(card_data.deck + "_" + card_data.filename);
+		this.lazyArt(elem, largeURL(card_data.deck + "_" + card_data.filename), container_elem);
 		elem.classList.add("card-lg");
+		makeAccessible(elem, card_data.name);
 		let count = document.createElement("div");
 		elem.appendChild(count);
 		container_elem.appendChild(elem);
@@ -2730,6 +2850,27 @@ class DeckMaker {
 		elem.addEventListener("click", () => this.select(cardIndex, isBank), false);
 		elem.addEventListener("mouseenter", CLICK_EVENT_SFX, false);
 		return bankID;
+	}
+	
+	// Defers loading a preview's art until it is scrolled near view in its container
+	lazyArt(elem, url, container){
+		if (!("IntersectionObserver" in window)) {
+			elem.style.backgroundImage = url;
+			return;
+		}
+		this.observers ??= new Map();
+		let observer = this.observers.get(container);
+		if (!observer) {
+			observer = new IntersectionObserver(entries => entries.forEach(e => {
+				if (!e.isIntersecting)
+					return;
+				e.target.style.backgroundImage = e.target.dataset.art;
+				observer.unobserve(e.target);
+			}), {root: container, rootMargin: "100% 0px"});
+			this.observers.set(container, observer);
+		}
+		elem.dataset.art = url;
+		observer.observe(elem);
 	}
 	
 	// Updates the card preview elements when any changes are made to the deck
@@ -2863,6 +3004,7 @@ class DeckMaker {
 	
 	// Removes all elements in the bank and deck
 	clear(){
+		this.observers?.forEach(o => o.disconnect());
 		while (this.bank_elem.firstChild)
 			this.bank_elem.removeChild(this.bank_elem.firstChild);
 		while (this.deck_elem.firstChild)
@@ -2874,16 +3016,9 @@ class DeckMaker {
 	
 	// Verifies current deck, creates the players and their decks, then starts a new game
 	startNewGame(){
-		let warning = "";
-		if (this.stats.units < 22)
-			warning += "Your deck must have at least 22 unit cards. \n";
-		if (this.stats.special > 10)
-			warning += "Your deck must have no more than 10 special cards. \n";
-		if (warning != "")
-		{
-			AudioManager.playSFX("warning");
-			return alert(warning);
-		}
+		const warning = DeckMaker.ruleWarnings(this.stats.units, this.stats.special);
+		if (warning)
+			return ui.alert("Invalid deck", warning);
 		
 		const me_deck = { 
 			faction: this.faction,
@@ -2945,19 +3080,15 @@ class DeckMaker {
 		if (files.length <= 0)
 			return false;
 		let fr = new FileReader();
-		fr.onload = e => {
+		fr.onload = async e => {
+			document.getElementById(id).value = "";
+			let deck;
 			try {
-				const deck = this.deckFromJSON(e.target.result);
-				if (deck)
-					callback(deck);
-				
-			} catch (e) {
-				alert("Uploaded deck is not formatted correctly!");
+				deck = JSON.parse(e.target.result);
+			} catch (err) {
+				return ui.alert("Invalid deck file", "The uploaded file is not valid JSON.");
 			}
-			finally
-			{
-				document.getElementById(id).value = "";
-			}
+			await callback(deck);
 		}
 		fr.readAsText(files.item(0));
 	}
@@ -2972,68 +3103,83 @@ class DeckMaker {
 		this.uploadDeck('add-opponent', deck => this.loadOpponentDeck(deck, false));
 	}
 	
-	// Creates a deck from a JSON file's contents and sets that as the current deck
-	// Notifies client with warnings if the deck is invalid
-	deckFromJSON(json) {
-		let deck;
-		try {
-			deck = JSON.parse(json);
-			return deck;
-		} catch (e) {
-			AudioManager.playSFX('warning');
-			alert("Uploaded deck is not parsable!");
-			return;
-		}
+	// Returns a description of deck-building rule violations, or "" if the deck is legal
+	static ruleWarnings(units, special){
+		let warning = "";
+		if (units < 22)
+			warning += "The deck must have at least 22 unit cards (has " + units + ").\n";
+		if (special > 10)
+			warning += "The deck must have no more than 10 special cards (has " + special + ").\n";
+		return warning;
 	}
 
-	loadDeck(deck, siilent = true)
+	// Validates parsed deck JSON. Returns a sanitized deck, or null if invalid or the user declines warnings.
+	// enforceRules rejects decks that break the 22 unit / 10 special limits.
+	async loadDeck(deck, silent = true, enforceRules = false)
 	{
-		if (!deck)
+		const fail = async msg => {
+			if (!silent)
+				await ui.alert("Invalid deck", msg);
 			return null;
+		};
+		if (!deck || typeof deck !== "object")
+			return fail("The file does not describe a deck.");
+		if (!this.isValidFaction(deck.faction))
+			return fail("Unknown faction '" + deck.faction + "'.");
+		const leaderIndex = Number(deck.leader);
+		const leader = Number.isInteger(leaderIndex) ? card_dict[leaderIndex] : undefined;
+		if (!leader || leader.row !== "leader")
+			return fail("The deck's leader is not a valid leader card.");
+		if (!Array.isArray(deck.cards))
+			return fail("The deck has no card list.");
+
 		let warning = "";
-		// verify that leader card is actually a leader and that it's faction matches the deck faction
-		if (card_dict[deck.leader].row !== "leader")
-			warning += "'" + card_dict[deck.leader].name + "' is cannot be used as a leader\n";
-		if (deck.faction != card_dict[deck.leader].deck)
-			warning += "Leader '" + card_dict[deck.leader].name + "' doesn't match deck faction '" + deck.faction + "'.\n";
-		// check if cards exist and have correct faction & count
-		const cards = deck.cards.filter( c => {
-			const card = card_dict[c[0]];
-			if (!card) {
-				warning += "ID " + c[0] + " does not correspond to a card.\n";
-				return false
+		if (deck.faction !== leader.deck) {
+			const mismatch = "Leader '" + leader.name + "' doesn't match deck faction '" + factions[deck.faction].name + "'.\n";
+			if (enforceRules)
+				return fail(mismatch);
+			warning += mismatch;
+		}
+		const counts = new Map();
+		for (const c of deck.cards) {
+			const [index, count] = Array.isArray(c) ? c.map(Number) : [];
+			const card = Number.isInteger(index) ? card_dict[index] : undefined;
+			if (!card || card.row === "leader" || !Number.isInteger(count) || count < 1) {
+				warning += "Skipped invalid entry " + JSON.stringify(c) + ".\n";
+				continue;
 			}
 			if (![deck.faction, "neutral", "special", "weather"].includes(card.deck)) {
-				warning += "'" + card.name + "' cannot be used in a deck of faction type '" + deck.faction +"'\n";
-				return false;
+				warning += "'" + card.name + "' cannot be used in a " + factions[deck.faction].name + " deck.\n";
+				continue;
 			}
-			if (card.count < c[1]) {
-				warning += "Deck contains " + c[1] + "/" + card.count + " available " + card_dict[c.index].name + " cards\n";
-				c[1] = card.count;
-				return true;
-			}
-			return true;
-		})
-		.map(c => ({index:c[0], count:Math.min(c[1], card_dict[c[0]].count)}) );
-		// prompt warning if necessary
-		if (warning)
-		{
-			if (silent)
-			{
-				return null;
-			}
-			AudioManager.playSFX('warning');
-			if (confirm(warning + "\n\n\Continue importing deck?"))
-			{
-				return null;
-			}
+			counts.set(index, (counts.get(index) ?? 0) + count);
 		}
-		return {faction: deck.faction, leader: deck.leader, cards: cards};
+		const cards = [];
+		for (const [index, count] of counts) {
+			const card = card_dict[index];
+			const max = Number(card.count);
+			if (count > max)
+				warning += "Deck contains " + count + "/" + max + " available '" + card.name + "' cards.\n";
+			cards.push({index: index, count: Math.min(count, max)});
+		}
+
+		const units = cards.filter(c => !["special", "weather"].includes(card_dict[c.index].deck)).reduce((a, c) => a + c.count, 0);
+		const special = cards.reduce((a, c) => a + c.count, 0) - units;
+		const rules = DeckMaker.ruleWarnings(units, special);
+		if (rules && enforceRules)
+			return fail(warning + rules);
+		warning += rules;
+
+		if (warning) {
+			if (silent || !await ui.confirm("Deck has problems", warning + "\nContinue importing the deck?"))
+				return null;
+		}
+		return {faction: deck.faction, leader: leaderIndex, cards: cards};
 	}
 
-	loadPlayerDeck(deck, silent = true)
+	async loadPlayerDeck(deck, silent = true)
 	{
-		const loadedDeck = this.loadDeck(deck, silent);
+		const loadedDeck = await this.loadDeck(deck, silent);
 		if (!loadedDeck)
 			return;
 		
@@ -3043,13 +3189,16 @@ class DeckMaker {
 			this.leader = this.leaders.filter(c => c.index === loadedDeck.leader)[0];
 			this.leader_elem.children[1].style.backgroundImage = largeURL(this.leader.card.deck + "_" + this.leader.card.filename);
 		}
-		this.makeBank(deck.faction, loadedDeck.cards);
+		this.makeBank(loadedDeck.faction, loadedDeck.cards);
 		this.update();
+		const saved = Settings.getFactionSettings(this.faction);
+		saved.setLeader(this.leader);
+		saved.setCards(this.deck.filter(x => x.count > 0));
 	}
 
-	loadOpponentDeck(deck, silent = true)
+	async loadOpponentDeck(deck, silent = true)
 	{
-		const loadedDeck = this.loadDeck(deck, silent);
+		const loadedDeck = await this.loadDeck(deck, silent, true);
 		if (!loadedDeck)
 			return;
 		this.opponentData = loadedDeck;
@@ -3069,6 +3218,11 @@ class DeckMaker {
 		const factionElem = document.getElementById('op-preview-faction');
 		const leaderElem = document.getElementById('op-preview-leader');
 		const buttons = ['op-preview-clear', 'op-preview-open'].map(id=>document.getElementById(id));
+		if (!isEmpty(this.opponentData) && card_dict[this.opponentData.leader]?.row !== "leader")
+		{
+			Settings.opponentDeckCustom.clear();
+			this.opponentData = {};
+		}
 		if (isEmpty(this.opponentData))
 		{
 			leaderElem.children[1].innerHTML = "Random";
@@ -3105,8 +3259,14 @@ class AudioManager
 			'turn_me', 'turn_op', "ui_card", 'ui_card_bank', 'open', 'draw',
 			'clear', 'fog', 'frost', 'rain', 
 			'horn', 'spy', 'medic', 'morale', 'scorch', 'bond', 'decoy', "mardroeme", 'muster',
-			'hero', 'common_close', 'common_ranged', 'common_siege', 'redraw', 'discard'
-		].forEach(s => AudioManager.source[s] = getAudio(s));
+			'hero', 'common_close', 'common_ranged', 'common_siege', 'redraw', 'discard',
+			'pass', 'warning', 'menu_opening', 'game_opening', 'game_start', 'round1_start',
+			'round_win', 'round_lose', 'game_win', 'game_lose'
+		].forEach(s => {
+			const audio = getAudio(s);
+			audio.preload = "auto";
+			AudioManager.source[s] = audio;
+		});
 	}
 
 	static async play(key, waitTime = -1, forceWait = false)
@@ -3149,33 +3309,6 @@ class AudioManager
 	}
 }
 
-class AudioCycle
-{
-	constructor(...paths)
-	{
-		this.sources = [];
-		this.index = 0;
-		for (let i = 0; i < paths.length; ++i)
-		{
-			this.sources.push(audioURL(paths[i]));
-		}
-	}
-
-	play()
-	{
-		this.sources[this.index].play().then(a => {
-			a.pause();
-			a.currentTime = 0;
-		});
-		this.index = (this.index + 1) % this.sources.length;
-	}
-
-	pause()
-	{
-		this.sources.forEach(a => a.pause());
-	}
-}
-
 class ToggleOption
 {
 	constructor(key, enableByDefault = true, action = ()=>{})
@@ -3209,10 +3342,16 @@ class SavedObject
 	constructor(key, defaultValue = {}, action = ()=>{})
 	{
 		this.key = key;
-		const saved = localStorage?.getItem(this.key);
 		if (typeof defaultValue === "string" || defaultValue instanceof String)
 			defaultValue = JSON.parse(defaultValue);
-		this.obj = (saved !== null && saved !== undefined) ? JSON.parse(saved) : defaultValue;
+		let saved = null;
+		try {
+			saved = JSON.parse(localStorage?.getItem(this.key) ?? "null");
+		} catch (e) {
+			console.warn(`Discarding corrupt saved data for "${key}"`, e);
+			localStorage?.removeItem(this.key);
+		}
+		this.obj = (saved !== null && typeof saved === "object") ? saved : defaultValue;
 		this.action = action;
 	}
 	get()
@@ -3229,6 +3368,7 @@ class SavedObject
 		{
 			newObj = {};
 		}
+		this.obj = newObj;
 		localStorage?.setItem(this.key, JSON.stringify(newObj));
 		if (this.action)
 			this.action(this.obj);
@@ -3373,7 +3513,7 @@ class EventManager
 		EventManager.customizationOpened = new GameEvent('customize-opened', []);
 		EventManager.roundPassed = new GameEvent('round-passed', ['player', 'round']);
 		EventManager.roundStarted = new GameEvent('round-started', ['round', 'starting-player']);
-		EventManager.roundEnded = new GameEvent('round-started', ['round', 'points-me', 'points-op']);
+		EventManager.roundEnded = new GameEvent('round-ended', ['round', 'points-me', 'points-op']);
 		EventManager.gameStateChanged = new GameEvent('game-state-changed', ['oldState', 'newState']);
 	}
 }
@@ -3453,9 +3593,10 @@ async function translateTo(card, container_source, container_dest){
 
 // Translates an element by x from the left and y from the top
 async function translate(elem, x, y){
+	const width = elem.offsetWidth;
+	const margin = elem.style.marginLeft;
 	elem.style.transform = "translate(" + x + "px, " + y + "px)";
-	let margin = elem.style.marginLeft;
-	elem.style.marginRight = -elem.offsetWidth + "px";
+	elem.style.marginRight = -width + "px";
 	elem.style.marginLeft = "";
 	await sleep(499);
 	elem.style.transform = "";
@@ -3503,6 +3644,10 @@ async function fade(fadeIn, elem, dur){
 //      Get Image paths   
 function iconURL(name, ext = "png"){
 	return imgURL("icons/" + name, ext);
+}
+// url() inside a custom property resolves against the stylesheet that uses it, so make it absolute
+function absoluteIconURL(name, ext = "png"){
+	return "url('" + new URL("img/icons/" + name + "." + ext, document.baseURI).href + "')";
 }
 function largeURL(name, ext="jpg"){
 	return imgURL("lg/" + name, ext) 
@@ -3627,3 +3772,36 @@ function onFirstInput() {
 	["pointerdown", "keydown"].forEach(t => document.removeEventListener(t, onFirstInput, true));
 }
 ["pointerdown", "keydown"].forEach(t => document.addEventListener(t, onFirstInput, true));
+
+// Keyboard controls: Enter/Space activate focused controls; arrows/Enter/Escape drive the carousel; Escape closes previews
+document.addEventListener("keydown", e => {
+	if (Popup.curr)
+		return;
+	const carousel = Carousel.curr;
+	if (carousel) {
+		const moves = {ArrowLeft: -1, ArrowRight: 1};
+		if (e.key in moves)
+			carousel.shift(e, moves[e.key]);
+		else if (e.key === "Enter" || e.key === " ")
+			carousel.select(e);
+		else if (e.key === "Escape")
+			carousel.cancel();
+		else
+			return;
+		e.preventDefault();
+		return;
+	}
+	if (e.key === "Escape" && ui.previewCard && !document.getElementById("click-background").classList.contains("noclick")) {
+		e.preventDefault();
+		ui.cancel();
+		return;
+	}
+	const target = e.target;
+	if ((e.key === "Enter" || e.key === " ") && target.getAttribute?.("role") === "button" && target.tagName !== "BUTTON"
+			&& !target.closest(".noclick, .hide")) {
+		e.preventDefault();
+		target.click();
+	}
+});
+
+window.addEventListener("unhandledrejection", e => console.error("Unhandled game error:", e.reason));

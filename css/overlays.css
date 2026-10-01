@@ -340,6 +340,9 @@
 }
 
 #popup p {
+	max-height: calc(20 * var(--u));
+	overflow-y: auto;
+	white-space: pre-line;
 	margin: calc(0.6 * var(--u)) 0 calc(1.2 * var(--u));
 	color: var(--text);
 	font-family: var(--font-body);

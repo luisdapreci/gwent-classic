@@ -170,13 +170,13 @@
 		</div>
 	</section>
 	
-	<section id="carousel" class="hide">
+	<section id="carousel" class="hide" aria-label="Card selection">
 		<div>
-			<div class="card-lg" onclick="Carousel.curr.shift(event,-2)" onmouseover="Carousel.curr?.nudge(-2)"></div>
-			<div class="card-lg" onclick="Carousel.curr.shift(event,-1)" onmouseover="Carousel.curr?.nudge(-1)"></div>
-			<div class="card-lg" onclick="Carousel.curr.select(event)"   onmouseover="Carousel.curr?.nudge( 0)"></div>
-			<div class="card-lg" onclick="Carousel.curr.shift(event, 1)" onmouseover="Carousel.curr?.nudge( 1)"></div>
-			<div class="card-lg" onclick="Carousel.curr.shift(event, 2)" onmouseover="Carousel.curr?.nudge( 2)"></div>
+			<div class="card-lg"></div>
+			<div class="card-lg"></div>
+			<div class="card-lg"></div>
+			<div class="card-lg"></div>
+			<div class="card-lg"></div>
 		</div>
 		<div class="card-description">
 			<div></div>
@@ -187,19 +187,19 @@
 	</section>
 	
 	
-	<section id="popup" class="center hide">
+	<section id="popup" class="center hide" role="dialog" aria-modal="true" aria-labelledby="popup-title" aria-describedby="popup-desc">
 		<div>
-			<h3></h3>
-			<p></p>
+			<h3 id="popup-title"></h3>
+			<p id="popup-desc"></p>
 			<div>
-				<button onclick="Popup.curr.selectYes()"></button>
-				<button onclick="Popup.curr.selectNo()"></button>
+				<button></button>
+				<button></button>
 			</div>
 		</div>
 	</section>
 	
 	
-	<section id="notification-bar" class="hide">
+	<section id="notification-bar" class="hide" aria-hidden="true">
 		<div></div>
 	</section>
 	
@@ -302,10 +302,12 @@
 	</div>
 </section>
 
-<div data-title="Toggle music" id="toggle-music" class="center deck-menu settings-button"><img src="svg/music.svg"></img></div>
-<div data-title="Toggle sound effects" id="toggle-sfx" class="center deck-menu settings-button"><img src="svg/sfx.svg"></img></div>
-<div data-title="Toggle game messages" id="toggle-notifications" class="center deck-menu settings-button"><img src="svg/notification.svg"></img></div>
-<div data-title="Toggle visual effects" id="toggle-effects" class="center deck-menu settings-button"><img src="svg/effects.svg"></img></div>
+<div data-title="Toggle music" id="toggle-music" class="center deck-menu settings-button"><img src="svg/music.svg" alt=""></div>
+<div data-title="Toggle sound effects" id="toggle-sfx" class="center deck-menu settings-button"><img src="svg/sfx.svg" alt=""></div>
+<div data-title="Toggle game messages" id="toggle-notifications" class="center deck-menu settings-button"><img src="svg/notification.svg" alt=""></div>
+<div data-title="Toggle visual effects" id="toggle-effects" class="center deck-menu settings-button"><img src="svg/effects.svg" alt=""></div>
+
+<p id="live-region" class="sr-only" aria-live="polite" role="status"></p>
 
 <section id="title-screen">
 	<canvas></canvas>

@@ -126,8 +126,7 @@ var ability_dict = {
 				cardName = card['muster'];
 			}
 			let pred = c => c.name.startsWith(cardName);
-			let units = card.holder.hand.getCards(pred).map(x => [card.holder.hand, x])
-			.concat(card.holder.deck.getCards(pred).map( x => [card.holder.deck, x] ) );
+			let units = card.holder.deck.getCards(pred).map( x => [card.holder.deck, x] );
 			if (units.length === 0)
 				return;
 			await card.animate("muster");
@@ -372,11 +371,11 @@ var ability_dict = {
 			if (card.holder.controller instanceof ControllerAI) {
 				let cards = card.holder.controller.discardOrder(card).splice(0,2).filter(c => c.basePower < 7);
 				await Promise.all(cards.map(async c => await board.toGrave(c, card.holder.hand)));
-				card.holder.deck.draw(card.holder.hand);
+				await card.holder.deck.draw(card.holder.hand);
 				return;
 			} else
 				Carousel.curr.exit();
-			await ui.queueCarousel(hand, 2, (c,i) => board.toGrave(c.cards[i], c), () => true);
+			await ui.queueCarousel(hand, 2, async (c,i) => await board.toGrave(c.cards[i], c), () => true);
 			await ui.queueCarousel(deck, 1, (c,i) => board.toHand(c.cards[i], deck), () => true, true);
 		},
 		weight: (card, ai) => {
@@ -502,8 +501,11 @@ var ability_dict = {
 		description: "Shuffle all cards from each player's graveyard back into their decks.",
 		activated: async card => {
 			AudioManager.playSFX('redraw');
-			Promise.all(card.holder.grave.cards.map(c => board.toDeck(c, card.holder.grave)));
-			await Promise.all(card.holder.opponent().grave.cards.map(c => board.toDeck(c, card.holder.opponent().grave)));
+			const own = card.holder.grave, other = card.holder.opponent().grave;
+			await Promise.all([
+				...[...own.cards].map(c => board.toDeck(c, own)),
+				...[...other.cards].map(c => board.toDeck(c, other))
+			]);
 		},
 		weight: (card, ai, max, data) => {
 			if( game.roundCount < 2)

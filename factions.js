@@ -4,8 +4,8 @@ var factions = {
 	realms: {
 		name: "Northern Realms",
 		factionAbility: player => game.roundStart.push( async () => {
-			if (game.roundCount > 1 && game.roundHistory[game.roundCount-2].winner === player) {
-				player.deck.draw(player.hand);
+			if (game.roundCount > 1 && game.roundHistory[game.roundCount-2].winner === player && player.deck.cards.length > 0) {
+				await player.deck.draw(player.hand);
 				await ui.notification("north", 1200);
 			}
 			return false;
@@ -19,10 +19,14 @@ var factions = {
 	monsters: {
 		name: "Monsters",
 		factionAbility: player => game.roundEnd.push(() => {
+			// No next round if this round's loser(s) run out of lives
+			const winner = game.roundHistory[game.roundHistory.length-1].winner;
+			if ([player_me, player_op].some(p => p !== winner && p.health <= 1))
+				return false;
 			const units = board.row.filter( (r,i) => player === player_me ^ i < 3)
 				.reduce((a,r) => r.cards.filter(c => c.isUnit()).concat(a), []);
 			if (units.length === 0)
-				return;
+				return false;
 			const card = units[randomInt(units.length)];
 			card.noRemove = true;
 			game.roundStart.push( async () => {

@@ -17,7 +17,7 @@ No install, no build step. It's plain HTML, CSS and JavaScript.
 - [License](#license)
 
 ## Quick start
-**Windows:** double-click `Start Gwent.bat`. It starts a local server at http://127.0.0.1:8000/ and opens it in your browser. It uses Python if it's installed and falls back to Node.js (`npx http-server`) if not. Close the server window to stop it.
+**Windows:** double-click `Start Gwent.bat`. It starts a local server at http://127.0.0.1:8000/ and opens it in your browser. It uses Python if it's installed (the `py` launcher or a real `python`, not the Microsoft Store shortcut) and falls back to Node.js (`npx http-server`) if not. If neither is found it tells you what to install. Close the server window to stop it.
 
 **Any platform:** serve the folder with a static web server and open it, for example:
 
@@ -38,6 +38,8 @@ Win **two of three rounds**. The player with the higher total score when a round
 4. **End of round:** once both players have passed, scores are compared, the board is cleared to the discard piles, and the next round begins. You **do not draw** between rounds, so card advantage matters.
 
 Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click a card in your hand to select it, then click a row to play it. Click a card or row on the board to inspect it.
+
+**Keyboard:** <kbd>Tab</kbd> moves between cards, rows and buttons; <kbd>Enter</kbd> or <kbd>Space</kbd> activates the focused one. In card pickers, <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> browse, <kbd>Enter</kbd> selects and <kbd>Esc</kbd> closes. <kbd>Esc</kbd> also cancels a selected card. Game messages are announced to screen readers.
 
 ## Factions
 Your faction determines which unit cards and leaders you can use (neutral and special cards are available to all) and gives you a passive perk.
@@ -77,8 +79,8 @@ Open the **Deck Builder** from the title screen.
 - Choose a faction at the top, then click cards in the left (collection) and right (deck) lists to add or remove them.
 - Click your leader to cycle through the leaders available for that faction.
 - A deck needs **at least 22 unit cards** and **no more than 10 special cards**. The stats column shows your counts.
-- **Download** saves your deck as `GwentDeck.json`. **Upload** loads one, checking that it matches the faction and card limits.
-- **Opponent's deck:** upload a deck for the AI to use instead of a random premade one. You can view or clear it from the same panel.
+- **Download** saves your deck as `GwentDeck.json`. **Upload** loads one, checking the faction, leader, card IDs and copy limits; you can choose to import anyway if only some entries are invalid.
+- **Opponent's deck:** upload a deck for the AI to use instead of a random premade one. It must be a legal deck (22+ units, at most 10 specials). You can view or clear it from the same panel.
 
 Decks are saved per faction in your browser's `localStorage`, along with the last faction you used.
 

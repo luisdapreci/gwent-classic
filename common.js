@@ -1,11 +1,16 @@
 "use strict"
 
-Array.prototype.remove = function(elem)
-{
-	const index = this.indexOf(elem);
-	if (index !== -1)
-		this.splice(index, 1);
-}
+// Non-enumerable so it doesn't show up in for...in over arrays
+Object.defineProperty(Array.prototype, "remove", {
+	value: function(elem)
+	{
+		const index = this.indexOf(elem);
+		if (index !== -1)
+			this.splice(index, 1);
+	},
+	writable: true,
+	configurable: true
+});
 
 function isEmpty(obj)
 {
