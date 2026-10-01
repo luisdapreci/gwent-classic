@@ -1,0 +1,170 @@
+/* NOTE: gwent.js animates card movement with an inline `transform`.
+   Card effects must use the standalone translate/scale/rotate properties instead. */
+
+.card {
+	position: relative;
+	display: inline-block;
+	width: var(--card-w);
+	height: var(--card-h);
+	background-size: contain;
+	background-repeat: no-repeat;
+	border-radius: calc(0.25 * var(--u));
+	box-shadow:
+		inset 0 0 0 calc(0.07 * var(--u)) rgba(212, 168, 79, 0.55),
+		0 calc(0.12 * var(--u)) calc(0.45 * var(--u)) rgba(0, 0, 0, 0.65);
+	transition:
+		margin-bottom 0.05s,
+		margin-left .25s,
+		margin-right .25s,
+		transform 0.5s,
+		translate .18s var(--ease-out),
+		scale .18s var(--ease-out),
+		box-shadow .18s;
+}
+
+.hero {
+	box-shadow:
+		inset 0 0 0 calc(0.09 * var(--u)) var(--gold-1),
+		0 0 calc(0.5 * var(--u)) rgba(232, 182, 84, 0.45),
+		0 calc(0.12 * var(--u)) calc(0.45 * var(--u)) rgba(0, 0, 0, 0.65);
+}
+
+.deck-card .card { position: absolute; }
+
+.card > div {
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+/* power badge */
+.card > div:nth-child(1) {
+	top: -4%;
+	left: -4%;
+	width: 70%;
+	height: 50%;
+	margin-bottom: -71%;
+	background-position: 0 0;
+	filter: drop-shadow(0 calc(0.06 * var(--u)) calc(0.12 * var(--u)) rgba(0, 0, 0, 0.7));
+}
+.card > div:nth-child(1) > div {
+	top: 13%;
+	left: 7%;
+	width: 50%;
+	color: #120c04;
+	font-family: var(--font-display);
+	font-size: calc(0.92 * var(--u));
+	font-weight: 900;
+	text-shadow: 0 0 calc(0.12 * var(--u)) rgba(255, 255, 255, 0.95);
+	transition: color .3s;
+}
+.hero > div:nth-child(1) > div {
+	color: #fff8e6;
+	text-shadow: 0 0 calc(0.15 * var(--u)) black;
+}
+.card > div:nth-child(1) > .buffed {
+	color: var(--buff);
+	animation: power-bump .4s var(--ease-back);
+}
+.card > div:nth-child(1) > .debuffed {
+	color: var(--debuff);
+	animation: power-bump .4s var(--ease-back);
+}
+
+/* row icon */
+.card > div:nth-child(2) {
+	top: 75%;
+	left: 65%;
+	width: 33%;
+	height: 22%;
+	margin-bottom: -32%;
+}
+
+/* ability icon */
+.card > div:nth-child(3) {
+	top: 75%;
+	left: 31%;
+	width: 33%;
+	height: 22%;
+	margin-bottom: -32%;
+}
+
+/* ability animation overlay */
+.card > div:nth-child(4) {
+	width: 100%;
+	height: 100%;
+	background-position: center;
+	background-size: 40% auto;
+	opacity: 0;
+	transition: background-size 0.25s;
+}
+
+.card-container {
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+}
+.card-container .card {
+	margin: 0 1px;
+	flex-shrink: 0;
+}
+
+.card-selectable > .card:hover {
+	z-index: 2;
+	translate: 0 calc(-0.9 * var(--u));
+	scale: 1.08;
+	box-shadow:
+		inset 0 0 0 calc(0.1 * var(--u)) var(--gold-1),
+		0 0 calc(1 * var(--u)) var(--gold-glow),
+		0 calc(0.5 * var(--u)) calc(0.8 * var(--u)) rgba(0, 0, 0, 0.7);
+}
+.card-selectable > .card:hover::after {
+	pointer-events: all;
+	bottom: calc(-1.9 * var(--u));
+}
+
+/* ---------- card flip (deck -> hand, opponent reveal) ---------- */
+
+.card.flip-in {
+	animation: card-flip .5s var(--ease-out);
+}
+.card.flip-in::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 5;
+	border-radius: inherit;
+	background: var(--card-back) center / cover no-repeat;
+	box-shadow: inset 0 0 0 calc(0.07 * var(--u)) var(--gold-line);
+	animation: flip-face .5s step-end forwards;
+}
+.card.flip-in > div {
+	animation: flip-children .5s step-end;
+}
+
+/* ---------- large cards ---------- */
+
+.card-lg {
+	position: relative;
+	width: calc(16.1 * var(--u));
+	height: calc(30.4 * var(--u));
+	border-radius: calc(1.5 * var(--u));
+	background-size: contain;
+	background-position: center;
+	transform: perspective(calc(70 * var(--u))) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+	transition: transform .15s ease-out;
+}
+
+/* moving light sheen driven by fx.js tilt */
+.card-lg::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	pointer-events: none;
+	background: radial-gradient(circle at var(--mx, 50%) var(--my, 30%), rgba(255, 236, 190, 0.35) 0%, rgba(255, 236, 190, 0) 45%);
+	mix-blend-mode: soft-light;
+	opacity: 0;
+	transition: opacity .3s;
+}
+.card-lg.tilting::before { opacity: 1; }

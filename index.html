@@ -9,18 +9,31 @@
 	<meta name="description" content="Play the original Gwent minigame from The Witcher 3 in your browser! Includes cards from Hearts of Stone and Blood & Wine!" />
 	<meta name="keywords" content="arun, sundaram, programmer, gwent, tw3, witcher, card, game, gamedev, play" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<link rel="stylesheet" type="text/css" href="style.css" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Cinzel:wght@500;700;900&display=swap" />
+	<link rel="stylesheet" type="text/css" href="css/tokens.css" />
+	<link rel="stylesheet" type="text/css" href="css/base.css" />
+	<link rel="stylesheet" type="text/css" href="css/board.css" />
+	<link rel="stylesheet" type="text/css" href="css/cards.css" />
+	<link rel="stylesheet" type="text/css" href="css/overlays.css" />
+	<link rel="stylesheet" type="text/css" href="css/deckbuilder.css" />
+	<link rel="stylesheet" type="text/css" href="css/title.css" />
+	<link rel="stylesheet" type="text/css" href="css/fx.css" />
 </head>
 
-<body>
+<body class="title-open">
 
-<div id="dimensions" style="position:fixed;width:100vw;height:calc(100vw * 1080 / 1920);"></div>
+<div id="dimensions"></div>
 
 <div id="youtube"></div>
+<div id="youtube-menu"></div>
 
 <main>
 
 	<section id="click-background" class="noclick"></section>
+
+	<canvas id="fx-canvas"></canvas>
 
 	<section id="panel-left" class="panel">
 
@@ -221,9 +234,9 @@
 			</tbody>
 		</table>
 		<p class="hide">The battle cannot end in a draw. You can play a rematch using the same decks or surrender.</p>
-		<button>Customize</button>
-		<button>Rematch</button>
-		<button>New Game</button>
+		<button class="btn-gold">Customize</button>
+		<button class="btn-gold">Rematch</button>
+		<button class="btn-gold">New Game</button>
 	</section>
 	
 	<section id="deck-selector">
@@ -234,6 +247,7 @@
 </main>
 
 <section id="deck-customization">
+	<button id="deck-back" class="btn-ghost">&lsaquo; Main Menu</button>
 	<div id="faction-title" class="center">
 		<h1></h1>
 	</div>
@@ -271,7 +285,7 @@
 		<p>Hero Cards</p>
 		<p>0</p>
 	</div>
-	<button id="start-game">Start game</button>
+	<button id="start-game" class="btn-gold">Start game</button>
 	<div id="opponent-preview" class="center">
 		<div>
 			<p>Oponent's Deck</p>
@@ -291,14 +305,35 @@
 <div data-title="Toggle music" id="toggle-music" class="center deck-menu settings-button"><img src="svg/music.svg"></img></div>
 <div data-title="Toggle sound effects" id="toggle-sfx" class="center deck-menu settings-button"><img src="svg/sfx.svg"></img></div>
 <div data-title="Toggle game messages" id="toggle-notifications" class="center deck-menu settings-button"><img src="svg/notification.svg"></img></div>
+<div data-title="Toggle visual effects" id="toggle-effects" class="center deck-menu settings-button"><img src="svg/effects.svg"></img></div>
+
+<section id="title-screen">
+	<canvas></canvas>
+	<div class="title-fan">
+		<div class="card-lg" style="--i:-2; --d:2; background-image:url('img/lg/nilfgaard_emhyr_gold.jpg')"></div>
+		<div class="card-lg" style="--i:-1; --d:1; background-image:url('img/lg/neutral_yennefer.jpg')"></div>
+		<div class="card-lg" style="--i:0; --d:0; background-image:url('img/lg/neutral_geralt.jpg')"></div>
+		<div class="card-lg" style="--i:1; --d:1; background-image:url('img/lg/neutral_ciri.jpg')"></div>
+		<div class="card-lg" style="--i:2; --d:2; background-image:url('img/lg/monsters_eredin_gold.jpg')"></div>
+	</div>
+	<div class="title-menu">
+		<h1 class="title-logo">Gwent</h1>
+		<p class="title-sub">The Witcher Card Game</p>
+		<div class="title-rule"></div>
+		<button id="title-play" class="btn-gold">Play</button>
+		<button id="title-deck" class="btn-ghost">Deck Builder</button>
+	</div>
+	<p class="title-credit">Gwent Classic &middot; The Witcher 3: Wild Hunt</p>
+</section>
 
 <script type="text/javascript" src="common.js"></script>
 <script type="text/javascript" src="cards.js"></script>
 <script type="text/javascript" src="decks.js"></script>
 <script type="text/javascript" src="abilities.js"></script>
 <script type="text/javascript" src="factions.js"></script>
-<script src="https://www.youtube.com/iframe_api"></script>
 <script type="text/javascript" src="gwent.js"></script>
+<script type="text/javascript" src="fx.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
 </body>
 
 </html>

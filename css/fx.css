@@ -1,0 +1,224 @@
+#fx-canvas {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 50;
+	pointer-events: none;
+}
+
+main.fx-shake { animation: screen-shake .45s cubic-bezier(.36, .07, .19, .97); }
+
+/* sunlight sweep for Clear Weather */
+main::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 60;
+	pointer-events: none;
+	opacity: 0;
+	background: linear-gradient(105deg, transparent 30%, rgba(255, 236, 180, 0.28) 45%, rgba(255, 250, 225, 0.42) 50%, rgba(255, 236, 180, 0.28) 55%, transparent 70%);
+	background-size: 300% 100%;
+	mix-blend-mode: screen;
+}
+main.fx-sun::after { animation: sun-sweep 1.4s ease-out; }
+
+.fx-pulse { animation: score-pulse .45s var(--ease-back); }
+
+.gem.gem-break { animation: gem-break .8s ease-out; }
+
+/* ---------------- keyframes ---------------- */
+
+@keyframes screen-shake {
+	10%, 90% { translate: calc(-0.08 * var(--u)) 0; }
+	20%, 80% { translate: calc(0.16 * var(--u)) calc(0.05 * var(--u)); }
+	30%, 50%, 70% { translate: calc(-0.3 * var(--u)) calc(-0.08 * var(--u)); }
+	40%, 60% { translate: calc(0.3 * var(--u)) calc(0.08 * var(--u)); }
+}
+
+@keyframes sun-sweep {
+	0%   { opacity: 0; background-position: 100% 0; }
+	25%  { opacity: 1; }
+	100% { opacity: 0; background-position: 0% 0; }
+}
+
+@keyframes score-pulse {
+	0%   { scale: 1; }
+	40%  { scale: 1.28; }
+	100% { scale: 1; }
+}
+
+@keyframes power-bump {
+	0%   { scale: 1; }
+	45%  { scale: 1.45; }
+	100% { scale: 1; }
+}
+
+@keyframes gem-break {
+	0%   { scale: 1; filter: brightness(2) drop-shadow(0 0 calc(0.8 * var(--u)) rgba(255, 80, 50, 1)); }
+	30%  { scale: 1.35; rotate: -8deg; }
+	60%  { scale: 0.9; rotate: 6deg; }
+	100% { scale: 1; rotate: 0deg; filter: none; }
+}
+
+@keyframes card-flip {
+	0%   { rotate: y 180deg; scale: 1.08; }
+	100% { rotate: y 0deg; scale: 1; }
+}
+@keyframes flip-face {
+	0%   { opacity: 1; }
+	50%  { opacity: 0; }
+	100% { opacity: 0; }
+}
+@keyframes flip-children {
+	0%   { visibility: hidden; }
+	50%  { visibility: visible; }
+}
+
+@keyframes turn-glow {
+	0%, 100% {
+		box-shadow:
+			inset 0 calc(0.08 * var(--u)) 0 var(--gold-line),
+			inset 0 calc(-0.08 * var(--u)) 0 var(--gold-line),
+			calc(-2.4 * var(--u)) 0 calc(1.4 * var(--u)) calc(-0.2 * var(--u)) rgba(232, 182, 84, 0.75);
+	}
+	50% {
+		box-shadow:
+			inset 0 calc(0.08 * var(--u)) 0 var(--gold-2),
+			inset 0 calc(-0.08 * var(--u)) 0 var(--gold-2),
+			calc(-2.8 * var(--u)) 0 calc(1.8 * var(--u)) 0 rgba(246, 210, 130, 0.95);
+	}
+}
+
+@keyframes leader-ready {
+	0%, 100% { filter: drop-shadow(0 0 0 rgba(232, 182, 84, 0)); scale: 1; }
+	50%      { filter: drop-shadow(0 0 calc(0.5 * var(--u)) rgba(246, 210, 130, 0.9)); scale: 1.08; }
+}
+
+@keyframes score-lead-in {
+	from { opacity: 0; scale: 0.6; }
+	to   { opacity: 1; scale: 1; }
+}
+
+@keyframes passed-in {
+	from { opacity: 0; translate: calc(-1 * var(--u)) 0; }
+	to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes row-pulse {
+	0%, 100% { box-shadow: inset 0 0 0 calc(0.06 * var(--u)) rgba(232, 182, 84, 0.25); }
+	50%      { box-shadow: inset 0 0 0 calc(0.08 * var(--u)) rgba(246, 210, 130, 0.7), inset 0 0 calc(1.2 * var(--u)) rgba(232, 182, 84, 0.25); }
+}
+
+@keyframes frost-shimmer {
+	0%, 100% { filter: brightness(1); }
+	50%      { filter: brightness(1.25) saturate(1.2); }
+}
+
+@keyframes fog-drift {
+	from { background-position: 0% bottom; }
+	to   { background-position: 100% bottom; }
+}
+
+@keyframes notif-emblem {
+	0%   { opacity: 0; scale: 0.6; rotate: -10deg; }
+	100% { opacity: 1; scale: 1; rotate: 0deg; }
+}
+
+@keyframes notif-coin-flip {
+	0%   { opacity: 0; scale: 0.6; rotate: y 0deg; }
+	15%  { opacity: 1; scale: 1.15; }
+	80%  { scale: 1.05; }
+	100% { opacity: 1; scale: 1; rotate: y 1800deg; }
+}
+
+@keyframes notif-text {
+	from { opacity: 0; translate: calc(-2 * var(--u)) 0; letter-spacing: 0.2em; }
+	to   { opacity: 1; translate: 0 0; letter-spacing: 0.05em; }
+}
+
+@keyframes preview-in {
+	from { opacity: 0; translate: calc(2 * var(--u)) 0; }
+	to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes fade-in {
+	from { opacity: 0; }
+	to   { opacity: 1; }
+}
+
+@keyframes fade-up {
+	from { opacity: 0; translate: 0 calc(1 * var(--u)); }
+	to   { opacity: 1; translate: 0 0; }
+}
+
+@keyframes pop-in {
+	from { opacity: 0; scale: 0.9; }
+	to   { opacity: 1; scale: 1; }
+}
+
+@keyframes focus-glow {
+	0%, 100% { box-shadow: 0 0 calc(2.5 * var(--u)) rgba(232, 182, 84, 0.45), 0 calc(0.8 * var(--u)) calc(2 * var(--u)) rgba(0, 0, 0, 0.9); }
+	50%      { box-shadow: 0 0 calc(4 * var(--u)) rgba(246, 210, 130, 0.7), 0 calc(0.8 * var(--u)) calc(2 * var(--u)) rgba(0, 0, 0, 0.9); }
+}
+
+@keyframes end-banner-in {
+	0%   { opacity: 0; scale: 1.6; }
+	60%  { opacity: 1; }
+	100% { opacity: 1; scale: 1; }
+}
+
+@keyframes start-glow {
+	0%, 100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 calc(0.4 * var(--u)) rgba(232, 182, 84, 0.3); }
+	50%      { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 0 calc(1.4 * var(--u)) rgba(246, 210, 130, 0.7); }
+}
+
+@keyframes title-pan {
+	from { translate: -1.5% -1%; scale: 1.02; }
+	to   { translate: 1.5% 1%; scale: 1.06; }
+}
+
+@keyframes fan-in {
+	from { opacity: 0; scale: 0.8; }
+	to   { opacity: 1; scale: 1; }
+}
+
+@keyframes fan-float {
+	0%, 100% { top: calc(-12 * var(--u)); }
+	50%      { top: calc(-12.7 * var(--u)); }
+}
+
+@keyframes logo-in {
+	from { opacity: 0; letter-spacing: 0.4em; }
+	to   { opacity: 1; letter-spacing: 0.14em; }
+}
+
+@keyframes logo-shine {
+	0%, 60% { background-position: 100% 0; }
+	100%    { background-position: -50% 0; }
+}
+
+@keyframes rule-in {
+	from { scale: 0 1; opacity: 0; }
+	to   { scale: 1 1; opacity: 1; }
+}
+
+/* ---------------- reduced motion / effects off ---------------- */
+
+body.fx-off *,
+body.fx-off *::before,
+body.fx-off *::after {
+	animation-duration: 0s !important;
+	animation-delay: 0s !important;
+	animation-iteration-count: 1 !important;
+}
+body.fx-off #fx-canvas,
+body.fx-off #title-screen > canvas { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after {
+		animation-duration: 0s !important;
+		animation-delay: 0s !important;
+		animation-iteration-count: 1 !important;
+	}
+}

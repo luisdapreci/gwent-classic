@@ -470,6 +470,8 @@ class Player {
 		this.grave =  new Grave( document.getElementById("grave-" + this.tag));
 		this.deck = new Deck(deck.faction, document.getElementById("deck-" + this.tag));
 		this.deck_data = deck;
+		if (this.hand instanceof HandAI)
+			this.hand.hidden_elem.style.setProperty("--card-back", iconURL("deck_back_" + deck.faction, "jpg"));
 		
 		this.leader = new Card(deck.leader, this);
 		this.elem_leader = document.getElementById("leader-" + this.tag);
@@ -513,7 +515,10 @@ class Player {
 	// Updates the player's total score and notifies the gamee
 	updateTotal(n){
 		this.total += n;
-		document.getElementById("score-total-" + this.tag).children[0].innerHTML = this.total;
+		const scoreElem = document.getElementById("score-total-" + this.tag);
+		scoreElem.children[0].innerHTML = this.total;
+		if (n !== 0)
+			fx.pulse(scoreElem);
 		board.updateLeader();
 	}
 	
@@ -594,7 +599,10 @@ class Player {
 		if (!win) {
 			if (this.health < 1)
 				return;
-			document.getElementById("gem" + this.health + "-" +this.tag).classList.remove("gem-on");
+			const gem = document.getElementById("gem" + this.health + "-" +this.tag);
+			gem.classList.remove("gem-on");
+			fx.flash(gem, "gem-break", 800);
+			fx.burst(gem, "shard");
 			this.health--;
 		}
 		this.setPassed(false);
@@ -775,13 +783,13 @@ class CardContainer {
 	// Modifies the margin of card elements inside a row-like container to stack properly
 	resizeCardContainer(overlap_count, gap, coef) {
 		let n = this.elem.children.length;
-		let param = (n < overlap_count) ?  "" + gap+"vw" : defineCardRowMargin(n, coef);
+		let param = (n < overlap_count) ? "calc(" + gap + " * var(--u))" : defineCardRowMargin(n, coef);
 		let children = this.elem.getElementsByClassName("card");
 		for (let x of children)
 			x.style.marginLeft = x.style.marginRight = param;
 		
 		function defineCardRowMargin(n, coef = 0){
-			return "calc((100% - (4.45vw * " + n + ")) / (2*" +n+ ") - (" +coef+ "vw * " +n+ "))";
+			return "calc((100% - (var(--card-w) * " + n + ")) / (2*" +n+ ") - (" +coef+ " * var(--u) * " +n+ "))";
 		}
 	}
 	
@@ -849,7 +857,7 @@ class Grave extends CardContainer {
 	
 	// Offsets the card element in the deck
 	setCardOffset(card, n){
-		card.elem.style.left =  -0.03 * n +"vw";
+		card.elem.style.left = "calc(" + (-0.03 * n) + " * var(--u))";
 	}
 
 }
@@ -859,6 +867,7 @@ class Deck extends CardContainer {
 	constructor(faction, elem){
 		super(elem);
 		this.faction = faction;
+		elem.style.setProperty("--card-back", iconURL("deck_back_" + faction, "jpg"));
 
 		this.counter = document.createElement("div");
 		this.counter.classList = "deck-counter center";
@@ -924,7 +933,7 @@ class Deck extends CardContainer {
 	
 	// Offsets the card element in the deck
 	setCardOffset(elem, n){
-		elem.style.left =  -0.03 * n +"vw";
+		elem.style.left = "calc(" + (-0.03 * n) + " * var(--u))";
 	}
 	
 	// Override
@@ -1003,7 +1012,7 @@ class Row extends CardContainer {
 	}
 	
 	// Override
-	async addCard(card) {
+	async addCard(card, silent = false) {
 		if (card.isSpecial()) {
 			this.special = card;
 			this.elem_special.appendChild(card.elem);
@@ -1011,7 +1020,10 @@ class Row extends CardContainer {
 			let index = this.addCardSorted(card);
 			this.addCardElement(card, index);
 			this.resize();
-			await this.playPlacementAudio(card);
+			if (silent)
+				await sleep(DURATION_CARD_PLACEMENT);
+			else
+				await this.playPlacementAudio(card);
 		}
 		this.updateState(card, true);
 		game.placedEffectsActive = true;
@@ -1127,8 +1139,11 @@ class Row extends CardContainer {
 		}
 		let player = this.elem_parent.parentElement.id === "field-op" ? player_op : player_me;
 		player.updateTotal(total - this.total);
+		const scoreElem = this.elem_parent.getElementsByClassName("row-score")[0];
+		if (total !== this.total)
+			fx.pulse(scoreElem);
 		this.total = total;
-		this.elem_parent.getElementsByClassName("row-score")[0].innerHTML = this.total;
+		scoreElem.innerHTML = this.total;
 	}
 	
 	// Calculates and set the card's current power
@@ -1244,7 +1259,7 @@ class Weather extends CardContainer {
 		AudioManager.playSFX(card.audio);
 		card.elem.classList.add("noclick");
 		if (card.name === "Clear Weather"){
-			// TODO Sunlight animation
+			fx.sunlight();
 			await sleep(500);
 			this.clearWeather();
 		} else {
@@ -1357,10 +1372,10 @@ class Board {
 	}
 	
 	// Sends and translates a card from the source to a row name associated with the passed player
-	async addCardToRow(card, row_name, player, source) {
+	async addCardToRow(card, row_name, player, source, silent = false) {
 		let row = this.getRow(card, row_name, player);
 		await translateTo(card, source, row);
-		await row.addCard(card);
+		await row.addCard(card, silent);
 	}
 	
 	// Returns the CardCard associated with the row name that the card would be sent to
@@ -1485,6 +1500,7 @@ class Game {
 	// Sets initializes player abilities, player hands and redraw
 	async startGame() {
 		EventManager.gameOpened.dispatch();
+		ui.setMusicTrack("game");
 		this.initPlayers(player_me, player_op);
 		this.setState(GameState.PLAYING);
 		AudioManager.playSFX('game_opening');
@@ -1506,7 +1522,7 @@ class Game {
 		if (this.firstPlayer)
 			return;
 		this.firstPlayer = (Math.random() < 0.5) ? player_me : player_op;
-		await ui.notification(this.firstPlayer.tag + "-coin", 1200);
+		await ui.notification(this.firstPlayer.tag + "-coin", 3000);
 	}
 	
 	// Allows the player to swap out up to two cards from their iniitial hand
@@ -1589,6 +1605,8 @@ class Game {
 		
 		player_me.endRound( dif > 0);
 		player_op.endRound( dif < 0);
+		if (dif > 0)
+			fx.burst(document.getElementById("score-total-me"), "gold");
 		
 		let notificationKey = "";
 		if (dif > 0)
@@ -1632,10 +1650,10 @@ class Game {
 		for (let i=1; i<4; ++i) {
 			let round = this.roundHistory[i-1];
 			rows[1].children[i].innerHTML = round ? round.score_me : 0;
-			rows[1].children[i].style.color = round && round.winner === player_me ? "goldenrod" : "";
+			rows[1].children[i].classList.toggle("round-won", !!round && round.winner === player_me);
 			
 			rows[2].children[i].innerHTML = round ? round.score_op : 0;
-			rows[2].children[i].style.color = round && round.winner === player_op ? "goldenrod" : "";
+			rows[2].children[i].classList.toggle("round-won", !!round && round.winner === player_op);
 		}
 		
 		endScreen.children[0].className = "";
@@ -1675,6 +1693,7 @@ class Game {
 		this.endScreen.classList.add("hide");
 		document.getElementById("deck-customization").classList.remove("hide");
 		AudioManager.playSFX('menu_opening');
+		ui.setMusicTrack("menu");
 		this.setState(GameState.CUSTOMIZE);
 	}
 
@@ -1776,7 +1795,8 @@ class Card {
 			this.power = n;
 			elem.innerHTML = this.power;
 		}
-		elem.style.color = (n>this.basePower) ? "goldenrod" : (n<this.basePower) ? "red" : "";
+		elem.classList.toggle("buffed", n > this.basePower);
+		elem.classList.toggle("debuffed", n < this.basePower);
 	}
 	
 	// Resets the power of this card to default
@@ -1821,6 +1841,8 @@ class Card {
 		await sleep(50);
 		
 		fadeIn(anim, 300);
+		fx.burst(this.elem, "fire");
+		fx.shake();
 		await sleep(1300);
 		
 		fadeOut(anim, 300);
@@ -1941,11 +1963,11 @@ class UI {
 			AudioManager.playSFX('pass');
 		}, false);
 		document.getElementById("click-background").addEventListener("click", () => ui.cancel(), false);
-		this.youtube;
-		this.ytActive;
+		this.music = {};
+		this.musicTrack = "menu";
 		this.toggleMusic_elem = document.getElementById("toggle-music");
 		this.toggleSettings.push(this.toggleMusic_elem);
-		this.toggleMusic_elem.classList.add("fade");
+		this.toggleMusic_elem.classList.toggle("fade", !Settings.music.isEnabled());
 		this.toggleMusic_elem.addEventListener("click", () => this.toggleMusic(), false);
 		this.toggleNotifications_elem = document.getElementById("toggle-notifications");
 		this.toggleSettings.push(this.toggleNotifications_elem);
@@ -1957,6 +1979,10 @@ class UI {
 		this.toggleSFX_elem.addEventListener('click', () => this.toggleSFX())
 		if (!Settings.soundEffects.isEnabled())
 			this.toggleSFX_elem.classList.add("fade");
+		this.toggleEffects_elem = document.getElementById("toggle-effects");
+		this.toggleSettings.push(this.toggleEffects_elem);
+		this.toggleEffects_elem.addEventListener('click', () => this.toggleEffects());
+		this.applyEffectsSetting();
 
 		EventManager.gameOpened.bind(()=>this.toggleSettings.forEach(e=>e.classList.remove('deck-menu')));
 		EventManager.customizationOpened.bind(()=>this.toggleSettings.forEach(e=>e.classList.add('deck-menu')));
@@ -1976,45 +2002,75 @@ class UI {
 		if (enable) main.remove("noclick"); else main.add("noclick");
 	}
 	
-	// Initializes the youtube background music object
+	// Initializes the youtube background music players (menu: Kaer Morhen, game: Gwent mix)
 	initYouTube(){
-		this.youtube = new YT.Player('youtube', {
-			videoId: "UE9fPWy1_o4",
-			playerVars:  { "autoplay" : 1, "controls" : 0, "loop" : 1, "playlist" : "UE9fPWy1_o4", "rel" : 0, "version" : 3, "modestbranding" : 1 },
-			events: { 'onStateChange': initButton }
-		});
-		
-		function initButton(){
-			if (ui.ytActive !== undefined)
-				return;
-			ui.ytActive = true;
-			ui.youtube.playVideo();
-			let timer = setInterval( () => {
-				if (ui.youtube.getPlayerState() !== YT.PlayerState.PLAYING)
-					ui.youtube.playVideo();
-				else {
-					clearInterval(timer);
-					ui.toggleMusic_elem.classList.remove("fade");
-					if (!Settings.music.isEnabled())
-					{
-						setTimeout(()=>ui.toggleMusic(), 10);
-					}
+		const tracks = { menu: ["youtube-menu", "TJuPBBw-l-M"], game: ["youtube", "UE9fPWy1_o4"] };
+		for (const [name, [elemId, videoId]] of Object.entries(tracks)) {
+			const track = { ready: false, volume: 0, target: 0, timer: null };
+			track.player = new YT.Player(elemId, {
+				videoId: videoId,
+				playerVars:  { "autoplay" : 0, "controls" : 0, "loop" : 1, "playlist" : videoId, "rel" : 0, "playsinline" : 1 },
+				events: {
+					onReady: () => {
+						track.ready = true;
+						track.player.setVolume(0);
+						this.applyMusicSetting();
+					},
+					onError: e => console.warn(`YouTube ${name} music error:`, e.data)
 				}
-			}, 500);
+			});
+			this.music[name] = track;
 		}
+	}
+
+	// Switches between "menu" and "game" music with a crossfade
+	setMusicTrack(name){
+		this.musicTrack = name;
+		this.applyMusicSetting();
+	}
+
+	// Autoplay is attempted on load; if the browser blocks it, the first input retries
+	applyMusicSetting(){
+		const enabled = Settings.music.isEnabled();
+		this.toggleMusic_elem.classList.toggle("fade", !enabled);
+		for (const [name, track] of Object.entries(this.music)) {
+			const on = enabled && name === this.musicTrack;
+			this.fadeMusic(track, on ? 100 : 0, enabled ? 3000 : 600);
+		}
+	}
+
+	// Ramps a track's volume to target over ms; pauses it once silent
+	fadeMusic(track, target, ms){
+		if (!track.ready)
+			return;
+		if (target > 0) {
+			// YouTube may auto-mute or stay paused when autoplay was blocked
+			track.player.unMute();
+			if (track.player.getPlayerState() !== YT.PlayerState.PLAYING)
+				track.player.playVideo();
+		}
+		if (track.target === target && (track.timer || track.volume === target))
+			return;
+		clearInterval(track.timer);
+		track.target = target;
+		const from = track.volume, start = performance.now();
+		track.timer = setInterval(() => {
+			const t = Math.min(1, (performance.now() - start) / ms);
+			track.volume = from + (target - from) * t;
+			track.player.setVolume(Math.round(track.volume));
+			if (t < 1)
+				return;
+			clearInterval(track.timer);
+			track.timer = null;
+			if (target === 0)
+				track.player.pauseVideo();
+		}, 50);
 	}
 	
 	// Called when client toggles the music
 	toggleMusic(){
-		const isPlaying = this.youtube?.getPlayerState() === YT.PlayerState.PLAYING;
-		if (isPlaying) {
-			this.youtube?.pauseVideo();
-			this.toggleMusic_elem.classList.add("fade");
-		} else {
-			this.youtube?.playVideo();
-			this.toggleMusic_elem.classList.remove("fade");
-		}
-		Settings.music.setEnabled(!isPlaying);
+		Settings.music.toggle();
+		this.applyMusicSetting();
 	}
 
 	toggleNotifications() {
@@ -2043,16 +2099,16 @@ class UI {
 		}
 	}
 	
-	// Enables or disables backgorund music 
-	setYouTubeEnabled(enable){
-		if (this.ytActive === enable)
-			return;
-		if (enable && !this.mute)
-			ui.youtube.playVideo();
-		else
-			ui.youtube.pauseVideo();
-		this.ytActive = enable;
-}
+	toggleEffects() {
+		Settings.effects.toggle();
+		this.applyEffectsSetting();
+	}
+
+	applyEffectsSetting() {
+		const enabled = Settings.effects.isEnabled();
+		this.toggleEffects_elem.classList.toggle("fade", !enabled);
+		document.body.classList.toggle("fx-off", !enabled);
+	}
 	
 	// Called when the player selects a selectable card
 	async selectCard(card) {
@@ -2516,6 +2572,7 @@ class Popup {
 		const bgColor = new RGBA(10, 10, 10, alpha);
 		this.elem.style.backgroundColor = bgColor.toString();
 		
+		this.playerWasEnabled = !document.getElementsByTagName("main")[0].classList.contains("noclick");
 		this.elem.classList.remove("hide");
 		Popup.setCurrent(this);
 		ui.enablePlayer(true);
@@ -2541,9 +2598,9 @@ class Popup {
 		return false;
 	}
 	
-	// Clears the popup and diables player interraction
+	// Clears the popup and restores player interraction to its prior state
 	clear() {
-		ui.enablePlayer(false);
+		ui.enablePlayer(this.playerWasEnabled);
 		this.elem.classList.add("hide");
 		Popup.clearCurrent();
 	}
@@ -3047,8 +3104,8 @@ class AudioManager
 		[
 			'turn_me', 'turn_op', "ui_card", 'ui_card_bank', 'open', 'draw',
 			'clear', 'fog', 'frost', 'rain', 
-			'horn', 'spy', 'medic', 'morale', 'scorch', 'bond', 'decoy', "mardroeme",
-			'hero', 'common_close', 'common_ranged', 'common_siege'
+			'horn', 'spy', 'medic', 'morale', 'scorch', 'bond', 'decoy', "mardroeme", 'muster',
+			'hero', 'common_close', 'common_ranged', 'common_siege', 'redraw', 'discard'
 		].forEach(s => AudioManager.source[s] = getAudio(s));
 	}
 
@@ -3071,7 +3128,8 @@ class AudioManager
 					return await asyncAudio(audio);
 				else
 				{
-					audio.play();
+					if (userInteracted)
+						audio.play().catch(() => {});
 					return await sleep(waitTime);
 				}
 			}
@@ -3245,6 +3303,7 @@ class Settings
 	static music = new ToggleOption("gc-music", true);
 	static notifications = new ToggleOption("gc-notifications", true);
 	static soundEffects = new ToggleOption("gc-sound-effects", true);
+	static effects = new ToggleOption("gc-effects", true);
 	static lastFaction = new SavedString("gc-last-faction", "realms"); 
 	static realmsDeck = new SavedDeck("gc-deck-realms", premade_deck[0]);
 	static nilfgaardDeck = new SavedDeck("gc-deck-nilfgaard", premade_deck[2]);
@@ -3344,6 +3403,8 @@ async function translateTo(card, container_source, container_dest){
 	}
 	if (container_source instanceof Row && container_dest === player_me.hand)
 		y *= 7/8;
+	if (container_source instanceof Deck || container_source instanceof HandAI)
+		fx.flash(elem, "flip-in", 500);
 	await translate(elem, x, y);
 	
 	// Returns true if the element is visible in the viewport
@@ -3392,12 +3453,9 @@ async function translateTo(card, container_source, container_dest){
 
 // Translates an element by x from the left and y from the top
 async function translate(elem, x, y){
-	let vw100 = 100 / document.getElementById("dimensions").offsetWidth;
-	x*=vw100;
-	y*=vw100 ;
-	elem.style.transform = "translate(" + x + "vw, " + y + "vw)";
+	elem.style.transform = "translate(" + x + "px, " + y + "px)";
 	let margin = elem.style.marginLeft;
-	elem.style.marginRight = -elem.offsetWidth*vw100 + "vw";
+	elem.style.marginRight = -elem.offsetWidth + "px";
 	elem.style.marginLeft = "";
 	await sleep(499);
 	elem.style.transform = "";
@@ -3491,9 +3549,10 @@ function asyncAudio(audio)
 {
 	if (!userInteracted || !audio)
 		return
+	// addEventListener so concurrent plays of the same element all resolve; failed play() must not hang callers
 	return new Promise(r => {
-		audio.play();
-		audio.onended = r;
+		audio.addEventListener('ended', r, {once: true});
+		audio.play().catch(r);
 	});
 }
 
@@ -3535,5 +3594,36 @@ AudioManager.init();
 ui.enablePlayer(false);
 let dm = new DeckMaker();
 
+const titleScreen = document.getElementById("title-screen");
+let titleHideTimer;
+function closeTitleScreen() {
+	userInteracted = true;
+	document.body.classList.remove("title-open");
+	titleScreen.classList.add("leaving");
+	titleHideTimer = setTimeout(() => titleScreen.classList.add("hide"), 600);
+}
+document.getElementById("title-play").addEventListener("click", () => {
+	closeTitleScreen();
+	dm.startNewGame();
+}, false);
+document.getElementById("title-deck").addEventListener("click", () => {
+	closeTitleScreen();
+	AudioManager.playSFX("menu_opening");
+}, false);
+document.getElementById("deck-back").addEventListener("click", () => {
+	document.body.classList.add("title-open");
+	clearTimeout(titleHideTimer);
+	titleScreen.classList.remove("hide");
+	void titleScreen.offsetWidth; // reflow so the opacity transition runs
+	titleScreen.classList.remove("leaving");
+	AudioManager.playSFX("menu_opening");
+}, false);
+["#title-play", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
 
-document.addEventListener('click', () => userInteracted = true, { once: true });
+
+function onFirstInput() {
+	userInteracted = true;
+	ui.applyMusicSetting();
+	["pointerdown", "keydown"].forEach(t => document.removeEventListener(t, onFirstInput, true));
+}
+["pointerdown", "keydown"].forEach(t => document.addEventListener(t, onFirstInput, true));

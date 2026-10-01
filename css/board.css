@@ -1,0 +1,485 @@
+/* Geometry here is aligned to img/board.jpg; change sizes/positions with care. */
+
+.panel {
+	position: absolute;
+	display: inline-block;
+	height: var(--stage-h);
+	overflow: visible;
+}
+
+.panel div, .panel section, .panel span { position: relative; }
+
+#panel-left  { width: 26.5%; }
+#panel-mid   { width: 52.5%; left: 26.5%; }
+#panel-right { width: 21%; left: 79%; }
+
+#hand-op {
+	position: absolute;
+	width: var(--card-w);
+	height: var(--card-h);
+	top: calc(-7 * var(--u));
+	left: calc(33 * var(--u));
+	perspective: calc(30 * var(--u));
+}
+#hand-op .card { position: absolute; }
+
+#exit-game {
+	position: absolute;
+	top: calc(1.2 * var(--u));
+	left: calc(1 * var(--u));
+	width: calc(2.3 * var(--u));
+	height: calc(2.3 * var(--u));
+	border-radius: 50%;
+	background:
+		url("../svg/exit.svg") 55% center / 48% no-repeat,
+		radial-gradient(circle, rgba(30, 24, 16, 0.85) 0%, rgba(10, 8, 6, 0.85) 70%);
+	box-shadow: inset 0 0 0 calc(0.08 * var(--u)) var(--gold-line), 0 calc(0.15 * var(--u)) calc(0.5 * var(--u)) rgba(0, 0, 0, 0.6);
+	opacity: 0.55;
+	transition: opacity .2s, box-shadow .2s, scale .2s var(--ease-back);
+}
+#exit-game:hover {
+	opacity: 1;
+	scale: 1.08;
+	box-shadow: inset 0 0 0 calc(0.08 * var(--u)) var(--gold-2), 0 0 calc(0.9 * var(--u)) var(--gold-glow);
+}
+
+/* ------------------------ left panel ------------------------ */
+
+#weather {
+	top: 41.25%;
+	left: 27.9%;
+	width: 54.9%;
+	height: 12.75%;
+	margin-bottom: -27%;
+	z-index: 1;
+}
+
+.leader-box {
+	left: 27.5%;
+	width: 31.4%;
+	height: 12.5%;
+	margin-bottom: -26.25%;
+}
+.leader-box .card { pointer-events: none; }
+
+.leader-box > .leader-container {
+	display: flex;
+	justify-content: center;
+	height: 100%;
+	width: 63%;
+	margin-bottom: -80%;
+	border-radius: calc(0.6 * var(--u));
+	transition: box-shadow .25s;
+}
+.leader-box > .leader-container:hover {
+	box-shadow: 0 0 calc(1.2 * var(--u)) var(--gold-glow), inset 0 0 0 calc(0.1 * var(--u)) var(--gold-2);
+}
+
+.leader-box > div > .card {
+	position: absolute;
+	height: 98%;
+	width: 95%;
+	border-radius: calc(0.6 * var(--u));
+	box-shadow: 0 calc(0.2 * var(--u)) calc(0.6 * var(--u)) rgba(0, 0, 0, 0.7), inset 0 0 0 calc(0.08 * var(--u)) var(--gold-2);
+}
+
+.leader-active {
+	top: 33%;
+	left: 75%;
+	height: 28%;
+	width: 24%;
+}
+.leader-active > div {
+	width: 100%;
+	height: 100%;
+	background-image: url('../img/icons/icon_leader_active.png');
+	background-size: cover;
+	background-repeat: no-repeat;
+	animation: leader-ready 2.4s ease-in-out infinite;
+}
+
+#leader-op { top: 7.55%; }
+#leader-me { top: 77.5%; }
+#leader-op .leader-container::after,
+#leader-me .leader-container::after {
+	left: unset;
+	bottom: calc(-2.2 * var(--u));
+}
+
+/* player plates */
+.stats {
+	height: 12.5%;
+	width: 88.5%;
+	margin-bottom: -27%;
+	background: linear-gradient(90deg, rgba(8, 6, 4, 0.1) 0%, rgba(14, 11, 8, 0.86) 22%, rgba(18, 14, 10, 0.9) 75%, rgba(10, 8, 6, 0.55) 100%);
+	box-shadow:
+		inset 0 calc(0.08 * var(--u)) 0 var(--gold-faint),
+		inset 0 calc(-0.08 * var(--u)) 0 var(--gold-faint);
+	transition: box-shadow .4s;
+}
+
+.current-turn {
+	box-shadow:
+		inset 0 calc(0.08 * var(--u)) 0 var(--gold-line),
+		inset 0 calc(-0.08 * var(--u)) 0 var(--gold-line),
+		calc(-2.4 * var(--u)) 0 calc(1.4 * var(--u)) calc(-0.2 * var(--u)) rgba(232, 182, 84, 0.75);
+	animation: turn-glow 2.2s ease-in-out infinite;
+}
+
+#stats-op { top: 24.25%; }
+#stats-me { top: 61.75%; }
+
+.profile-img {
+	left: 28.4%;
+	top: 9.6%;
+	width: 21.9%;
+	height: 80%;
+	margin-bottom: -24%;
+	background-image: url('../img/icons/profile.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	border-radius: 100%;
+}
+.profile-img > div {
+	left: -10%;
+	top: -6%;
+	height: 118%;
+	width: 118%;
+	background-image: url('../img/icons/icon_player_border.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	overflow: visible;
+}
+.profile-img > div > div {
+	width: 43%;
+	height: 43%;
+	left: -10.5%;
+	top: .5%;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	filter: drop-shadow(0 0 calc(0.2 * var(--u)) rgba(0, 0, 0, 0.9));
+}
+#stats-me > div > div > div { top: 59%; }
+
+.score-total {
+	top: 31%;
+	left: 94.5%;
+	height: 40%;
+	width: 12%;
+	margin-bottom: -12%;
+	color: #120c04;
+	font-family: var(--font-display);
+	font-size: calc(2 * var(--u));
+	font-weight: 900;
+	text-shadow: 0 0 calc(0.3 * var(--u)) rgba(255, 245, 220, 0.9);
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+#score-total-me { background-image: url('../img/icons/score_total_me.png'); }
+#score-total-op { background-image: url('../img/icons/score_total_op.png'); }
+
+/* padding-top offsets Cinzel's digits, which sit ~0.045em above the line-box centre */
+.score-total > div {
+	height: 100%;
+	padding-top: 0.09em;
+	isolation: isolate;
+}
+
+.score-leader > div::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	left: -47.5%;
+	top: -17%;
+	width: 195%;
+	height: 150%;
+	background: url('../img/icons/icon_high_score.png') center / contain no-repeat;
+	animation: score-lead-in .5s var(--ease-back);
+}
+
+.hand-count {
+	top: 58.5%;
+	left: 53.25%;
+	height: 29.5%;
+	width: 17%;
+	margin-bottom: -9%;
+	padding-left: 7%;
+	color: var(--gold-1);
+	font-family: var(--font-display);
+	font-size: calc(1.45 * var(--u));
+	font-weight: 700;
+	text-shadow: 0 0 calc(0.3 * var(--u)) black;
+	background-image: url('../img/icons/icon_card_count.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: left;
+}
+#hand-count-me { top: 18.5%; }
+
+.gem {
+	width: 9%;
+	height: 31%;
+	margin-bottom: -9.25%;
+	background-image: url('../img/icons/icon_gem_off.png');
+	transition: filter .3s;
+}
+.gem-on {
+	background-image: url('../img/icons/icon_gem_on.png');
+	filter: drop-shadow(0 0 calc(0.35 * var(--u)) rgba(255, 60, 40, 0.65));
+}
+
+#gem2-op { top: 56.25%; left: 70.75%; }
+#gem1-op { top: 56%;    left: 80%; }
+#gem2-me { top: 14.5%;  left: 70.75%; }
+#gem1-me { top: 14.5%;  left: 80%; }
+
+.name {
+	left: 53%;
+	top: 6%;
+	width: 41.5%;
+	height: 20%;
+	margin-bottom: -6%;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: var(--gold-1);
+	font-family: var(--font-display);
+	font-size: calc(0.95 * var(--u));
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-shadow: 0 1px 2px black;
+}
+#name-me { top: 60%; }
+
+.deck-name {
+	left: 53%;
+	top: 25%;
+	width: 41.5%;
+	height: 20%;
+	margin-bottom: -6%;
+	overflow: hidden;
+	white-space: nowrap;
+	text-transform: capitalize;
+	color: var(--text-dim);
+	font-family: var(--font-body);
+	font-style: italic;
+	font-size: calc(0.9 * var(--u));
+}
+#deck-name-me { top: 80%; }
+
+.passed {
+	height: 0%;
+	width: 0%;
+	left: 90%;
+	top: 87%;
+	color: var(--parchment);
+	font-family: var(--font-display);
+	font-size: calc(1.3 * var(--u));
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	text-shadow: 0 0 calc(0.4 * var(--u)) black, 0 0 calc(0.8 * var(--u)) black;
+	animation: passed-in .45s var(--ease-back);
+}
+#passed-me { top: -3%; }
+
+#pass-button {
+	top: 82%;
+	left: 63%;
+	width: 20%;
+	height: 4%;
+	color: var(--gold-1);
+	font-family: var(--font-display);
+	font-size: calc(1.25 * var(--u));
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	background: linear-gradient(180deg, rgba(48, 36, 20, 0.95), rgba(14, 11, 7, 0.95));
+	border: 1px solid var(--gold-3);
+	border-radius: calc(0.3 * var(--u));
+	box-shadow: inset 0 1px 0 rgba(255, 230, 170, 0.25), 0 calc(0.15 * var(--u)) calc(0.5 * var(--u)) rgba(0, 0, 0, 0.7);
+	transition: box-shadow .2s, color .2s, opacity .3s, filter .3s;
+}
+#pass-button:hover {
+	color: #fff3d6;
+	border-color: var(--gold-1);
+	box-shadow: inset 0 1px 0 rgba(255, 230, 170, 0.35), 0 0 calc(1.1 * var(--u)) rgba(255, 122, 46, 0.55);
+}
+#pass-button.noclick {
+	opacity: 0.45;
+	filter: grayscale(0.7);
+}
+#pass-button[data-title]:hover::after {
+	bottom: calc(-2.2 * var(--u));
+	left: calc(-0.45 * var(--u));
+}
+
+/* ------------------------ middle panel ------------------------ */
+
+.field {
+	width: 100%;
+	height: 38.5%;
+}
+.field .hero { pointer-events: none; }
+
+#field-op { top: -1.1%; }
+#field-op .card { pointer-events: none; }
+#field-me { top: -1.0%; }
+
+#field-hand {
+	width: 100%;
+	height: 13%;
+}
+
+.field-row {
+	display: flex;
+	height: 32%;
+	top: 4%;
+	z-index: 1;
+}
+.field-row > div { position: absolute; }
+
+/* box matches the circle baked into board.jpg; padding-top offsets Cinzel's high digits */
+.row-score {
+	width: 5.6%;
+	height: 40.6%;
+	padding-top: 0.09em;
+	margin-bottom: -12.65%;
+	color: #120c04;
+	font-family: var(--font-display);
+	font-size: calc(1.5 * var(--u));
+	font-weight: 900;
+	text-shadow: 0 0 calc(0.3 * var(--u)) rgba(255, 245, 220, 0.95);
+}
+#field-op [data-row="siege"]  > .row-score { top: 31.75%; }
+#field-op [data-row="ranged"] > .row-score { top: 30.2%; }
+#field-op [data-row="close"]  > .row-score { top: 34.6%; }
+#field-me [data-row="close"]  > .row-score { top: 32.75%; }
+#field-me [data-row="ranged"] > .row-score { top: 32.8%; }
+#field-me [data-row="siege"]  > .row-score { top: 36.5%; }
+
+.row-special {
+	width: 14.25%;
+	height: 100%;
+	left: 5.1%;
+	margin-bottom: -12.65%;
+}
+
+.row-cards {
+	height: 100%;
+	left: 20%;
+	width: 79.7%;
+}
+
+.row-weather {
+	position: absolute;
+	top: 5%;
+	left: 5.75%;
+	width: 94.25%;
+	height: 100%;
+	pointer-events: none;
+	background-size: cover;
+	background-position: bottom;
+	background-repeat: no-repeat;
+	opacity: 0;
+}
+.frost {
+	background-image: url('../img/icons/overlay_frost.png');
+	background-color: rgba(150, 200, 255, 0.08);
+	animation: frost-shimmer 4s ease-in-out infinite;
+}
+.rain {
+	background-image: url('../img/icons/overlay_rain.png');
+	background-color: rgba(60, 90, 130, 0.12);
+}
+.fog {
+	background-image: url('../img/icons/overlay_fog.png');
+	background-color: rgba(180, 180, 170, 0.06);
+	background-size: 140% auto;
+	animation: fog-drift 18s ease-in-out infinite alternate;
+}
+
+#hand-row {
+	top: 8%;
+	height: 91%;
+	left: 7.1%;
+	width: 92.5%;
+	z-index: 1;
+}
+
+.row-selectable {
+	background-color: rgba(255, 200, 100, 0.06);
+	animation: row-pulse 1.6s ease-in-out infinite;
+}
+.row-selectable:hover {
+	background-color: rgba(255, 200, 100, 0.14);
+	animation: none;
+	box-shadow: inset 0 0 0 calc(0.1 * var(--u)) var(--gold-1), 0 0 calc(0.8 * var(--u)) var(--gold-glow);
+}
+
+/* ------------------------ right panel ------------------------ */
+
+.cardpile {
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: center;
+	width: 27.6%;
+	height: 13.5%;
+	margin-bottom: -36.25%;
+	overflow: visible;
+	z-index: 1;
+	border-radius: calc(0.3 * var(--u));
+	transition: box-shadow .25s;
+}
+.cardpile .card { pointer-events: none; }
+
+#grave-op { top: 6.5%;  left: 6.5%; }
+#deck-op  { top: 6.5%;  left: 51%; }
+#grave-me { top: 76.5%; left: 6.5%; }
+#deck-me  { top: 76.5%; left: 51%; }
+
+.grave:not(:empty):hover {
+	box-shadow: 0 0 calc(1 * var(--u)) var(--gold-glow);
+}
+.grave:not(:empty)::after { left: calc(-0.4 * var(--u)); }
+.grave:empty::after { visibility: hidden; }
+
+.deck-card {
+	position: relative;
+	display: inline-block;
+	width: var(--card-w);
+	height: calc(6.675 * var(--u));
+	background-size: contain;
+	background-repeat: no-repeat;
+	border-radius: calc(0.2 * var(--u));
+	box-shadow: calc(-0.1 * var(--u)) calc(-0.1 * var(--u)) calc(0.4 * var(--u)) rgba(0, 0, 0, 0.55);
+	perspective: calc(30 * var(--u));
+}
+
+.deck-counter {
+	position: relative;
+	z-index: 1;
+	width: calc(3 * var(--u));
+	height: calc(1.8 * var(--u));
+	color: var(--gold-1);
+	font-family: var(--font-display);
+	font-size: calc(1.1 * var(--u));
+	font-weight: 700;
+	background: linear-gradient(180deg, rgba(30, 24, 16, 0.92), rgba(8, 6, 4, 0.92));
+	border: 1px solid var(--gold-line);
+	border-radius: calc(0.25 * var(--u));
+	box-shadow: 0 calc(0.15 * var(--u)) calc(0.5 * var(--u)) rgba(0, 0, 0, 0.7);
+}
+
+.cardpile .deck-card {
+	top: -5%;
+	margin-top: -114.5%;
+}
+.cardpile > .card {
+	top: -5%;
+	margin-top: -108.5%;
+}

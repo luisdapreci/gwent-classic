@@ -1,0 +1,309 @@
+#deck-customization {
+	position: absolute;
+	left: var(--stage-x);
+	top: var(--stage-y);
+	width: var(--stage-w);
+	height: var(--stage-h);
+	z-index: 85;
+	overflow: hidden;
+	background: var(--ink);
+}
+
+#deck-customization::after {
+	content: "";
+	position: absolute;
+	inset: -3%;
+	z-index: -1;
+	background:
+		radial-gradient(ellipse 60% 45% at 50% 3%, rgba(120, 84, 32, 0.2) 0%, transparent 70%),
+		radial-gradient(ellipse 90% 80% at 50% 50%, rgba(8, 6, 4, 0.9) 40%, rgba(2, 2, 1, 0.98) 100%),
+		url('../img/board.jpg') center / cover no-repeat;
+	filter: blur(calc(0.4 * var(--u))) brightness(0.7);
+	pointer-events: none;
+}
+
+#deck-customization::before {
+	content: "";
+	position: absolute;
+	left: 8%;
+	right: 8%;
+	top: 19.5%;
+	height: 1px;
+	background: var(--hairline);
+	opacity: 0.55;
+}
+
+#faction-title {
+	position: absolute;
+	top: 6%;
+	width: 100%;
+	height: 5%;
+}
+
+#deck-customization h1 {
+	position: absolute;
+	top: -60%;
+	margin: 0;
+	padding: 0 0 0 calc(4.2 * var(--u));
+	color: var(--gold-1);
+	font-family: var(--font-display);
+	font-size: calc(1.7 * var(--u));
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	line-height: calc(3.6 * var(--u));
+	text-transform: capitalize;
+	text-shadow: 0 0 calc(1 * var(--u)) rgba(232, 182, 84, 0.35), 0 2px 2px black;
+	background-size: contain;
+	background-position: left center;
+	background-repeat: no-repeat;
+	animation: fade-up .5s var(--ease-out);
+}
+
+#faction-description {
+	position: absolute;
+	top: 9.45%;
+	left: 20.2%;
+	width: 60%;
+	margin: calc(0.6 * var(--u)) 0 0;
+	color: var(--text-dim);
+	font-family: var(--font-body);
+	font-size: calc(1 * var(--u));
+	font-style: italic;
+	text-align: center;
+}
+
+.deck-options {
+	position: absolute;
+	top: 15%;
+	width: calc(8.5 * var(--u));
+	padding: calc(0.35 * var(--u)) 0;
+	color: var(--text);
+	font-family: var(--font-display);
+	font-size: calc(0.72 * var(--u));
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-align: center;
+	text-transform: uppercase;
+	background: linear-gradient(180deg, rgba(40, 32, 22, 0.7), rgba(12, 10, 7, 0.85));
+	border: 1px solid var(--gold-line);
+	border-radius: calc(0.2 * var(--u));
+	transition: color .2s, border-color .2s, box-shadow .2s;
+}
+.deck-options:hover {
+	color: var(--gold-1);
+	border-color: var(--gold-2);
+	box-shadow: 0 0 calc(0.8 * var(--u)) var(--gold-glow);
+}
+#deck-back {
+	position: absolute;
+	top: 3%;
+	left: 1.5%;
+	padding: calc(0.45 * var(--u)) calc(1 * var(--u));
+	font-size: calc(0.75 * var(--u));
+	z-index: 1;
+}
+
+#upload-deck    { left: 36%; }
+#change-faction { left: 46%; }
+#download-deck  { left: 56%; }
+
+.card-contianer-title {
+	position: absolute;
+	top: 15%;
+	width: 34.4%;
+	margin: 0;
+	color: var(--text-dim);
+	font-family: var(--font-display);
+	font-size: calc(1.15 * var(--u));
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+#card-bank-title { left: 8.275%; text-align: left; }
+#card-deck-title { left: 58.4%; text-align: right; }
+
+.card-array {
+	position: absolute;
+	top: 22.5%;
+	width: 34.4%;
+	height: 68%;
+	overflow-y: scroll;
+	padding: calc(0.8 * var(--u)) calc(1.1 * var(--u));
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-content: flex-start;
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.25));
+	border: 1px solid var(--gold-faint);
+	border-radius: calc(0.4 * var(--u));
+	box-shadow: inset 0 0 calc(2 * var(--u)) rgba(0, 0, 0, 0.7);
+}
+#card-bank { left: 8.275%; }
+#card-deck { left: 58.4%; }
+
+.card-array .card-lg {
+	width: calc(9.4 * var(--u));
+	height: calc(17.55 * var(--u));
+	margin-bottom: calc(0.75 * var(--u));
+	border-radius: calc(0.9 * var(--u));
+	box-shadow: 0 calc(0.3 * var(--u)) calc(0.8 * var(--u)) rgba(0, 0, 0, 0.75);
+	transition: transform .15s ease-out, box-shadow .2s, translate .2s var(--ease-out);
+	animation: fade-in .35s ease-out;
+}
+.card-array .card-lg:hover {
+	translate: 0 calc(-0.25 * var(--u));
+	box-shadow: 0 0 calc(1.2 * var(--u)) var(--gold-glow), 0 calc(0.6 * var(--u)) calc(1 * var(--u)) rgba(0, 0, 0, 0.8);
+}
+.card-array .card-lg.empty { visibility: hidden; }
+
+.card-array .card-lg > div {
+	top: 82.5%;
+	left: 76%;
+	width: 20%;
+	height: 7%;
+	padding-left: calc(1.6 * var(--u));
+	color: #4a3612;
+	font-family: var(--font-display);
+	font-size: calc(1.05 * var(--u));
+	font-weight: 900;
+	background-image: url('../img/icons/preview_count.png');
+	background-position: left;
+	background-repeat: no-repeat;
+	background-size: contain;
+}
+
+#card-leader {
+	position: absolute;
+	top: 20.8%;
+	left: 46.6%;
+	width: 6.9%;
+	height: 27%;
+}
+#card-leader p {
+	margin: 9%;
+	color: var(--gold-2);
+	font-family: var(--font-display);
+	font-size: calc(0.95 * var(--u));
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	line-height: 0;
+	text-align: center;
+	text-transform: uppercase;
+}
+#card-leader > div {
+	position: relative;
+	height: 84.5%;
+	margin-top: 24.5%;
+	background-size: contain;
+	border-radius: calc(0.5 * var(--u));
+	box-shadow: 0 0 0 1px var(--gold-line), 0 calc(0.4 * var(--u)) calc(1.2 * var(--u)) rgba(0, 0, 0, 0.85);
+	transform: perspective(calc(50 * var(--u))) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+	transition: transform .15s ease-out, box-shadow .2s;
+}
+#card-leader > div:hover {
+	box-shadow: 0 0 0 1px var(--gold-1), 0 0 calc(1.2 * var(--u)) var(--gold-glow);
+}
+
+#deck-stats {
+	position: absolute;
+	top: 49.4%;
+	left: 44%;
+	width: 12%;
+	display: flex;
+	flex-direction: column;
+}
+#deck-stats > p {
+	margin: 0;
+	line-height: 1.25;
+}
+#deck-stats > p:nth-child(odd) {
+	margin-bottom: calc(0.15 * var(--u));
+	color: var(--text-mute);
+	font-family: var(--font-caps);
+	font-size: calc(0.92 * var(--u));
+	font-weight: 500;
+	letter-spacing: 0.03em;
+	text-align: center;
+}
+#deck-stats > p:nth-child(even) {
+	align-self: center;
+	margin-bottom: calc(0.55 * var(--u));
+	padding-left: calc(1.9 * var(--u));
+	color: var(--gold-1);
+	font-family: var(--font-display);
+	font-size: calc(1.1 * var(--u));
+	font-weight: 700;
+	background-repeat: no-repeat;
+	background-position: left center;
+	background-size: contain;
+}
+#deck-stats > p:last-child { margin-bottom: 0; }
+#deck-stats > p:nth-child(2)  { background-image: url('../img/icons/deck_stats_count.png'); }
+#deck-stats > p:nth-child(4)  { background-image: url('../img/icons/deck_stats_unit.png'); }
+#deck-stats > p:nth-child(6)  { background-image: url('../img/icons/deck_stats_special.png'); }
+#deck-stats > p:nth-child(8)  { background-image: url('../img/icons/deck_stats_strength.png'); }
+#deck-stats > p:nth-child(10) { background-image: url('../img/icons/deck_stats_hero.png'); }
+
+#start-game {
+	position: absolute;
+	top: 84.4%;
+	left: 44%;
+	width: 12%;
+	height: 4.2%;
+	font-size: calc(0.95 * var(--u));
+	white-space: nowrap;
+	animation: start-glow 2.6s ease-in-out infinite;
+}
+
+#opponent-preview {
+	position: absolute;
+	top: 90.3%;
+	left: 0;
+	width: 100%;
+	flex-direction: column;
+}
+#opponent-preview > div > p {
+	margin: 0 0 calc(0.25 * var(--u));
+	color: var(--text-mute);
+	font-family: var(--font-caps);
+	font-size: calc(0.9 * var(--u));
+	text-align: center;
+}
+#opponent-preview > div:nth-child(2) { gap: calc(0.5 * var(--u)); }
+
+#op-preview-faction {
+	width: calc(1.8 * var(--u));
+	height: calc(1.8 * var(--u));
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+#op-preview-leader::after {
+	left: calc(46 * var(--u));
+	bottom: calc(-1.5 * var(--u));
+}
+#op-preview-leader > p {
+	margin: calc(0.2 * var(--u));
+	color: var(--text);
+	font-family: var(--font-display);
+	font-size: calc(0.9 * var(--u));
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	transition: color .2s;
+}
+#op-preview-leader:hover > p { color: var(--gold-1); }
+
+#opponent-preview button {
+	width: calc(1.6 * var(--u));
+	height: calc(1.6 * var(--u));
+	background-color: transparent;
+	background-repeat: no-repeat;
+	background-size: contain;
+	border: none;
+	transition: filter .2s;
+}
+#op-preview-open { background-image: url("../svg/view.svg"); }
+#op-preview-open:hover { filter: drop-shadow(0 0 3px var(--gold-glow)); }
+#op-preview-clear { background-image: url("../svg/trash.svg"); }
+#op-preview-clear:hover { filter: drop-shadow(0 0 3px var(--debuff)); }
+#op-preview-open::after,
+#op-preview-clear::after { left: calc(-2.9 * var(--u)); }

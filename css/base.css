@@ -1,0 +1,218 @@
+* {
+	box-sizing: border-box;
+	cursor: url('../img/icons/cursor.png'), auto;
+}
+
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	scrollbar-width: none;
+}
+
+/* font-size 0 hides raw text nodes such as the inactive "Passed" labels */
+body {
+	font-size: 0;
+	font-family: var(--font-body);
+	color: var(--gold-2);
+	background:
+		radial-gradient(ellipse at center, rgba(60, 42, 20, 0.35) 0%, transparent 65%),
+		var(--ink);
+	-webkit-font-smoothing: antialiased;
+}
+
+body::-webkit-scrollbar { display: none; }
+
+#dimensions {
+	position: fixed;
+	width: var(--stage-w);
+	height: var(--stage-h);
+	pointer-events: none;
+}
+
+main {
+	position: absolute;
+	left: var(--stage-x);
+	top: var(--stage-y);
+	width: var(--stage-w);
+	height: var(--stage-h);
+	overflow: hidden;
+	background-image: url('../img/board.jpg');
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	box-shadow: 0 0 calc(4 * var(--u)) rgba(0, 0, 0, 0.9);
+}
+
+/* colour grade + vignette over the baked board art */
+main::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background:
+		radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.55) 100%),
+		linear-gradient(180deg, rgba(20, 12, 4, 0.18), rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0) 70%, rgba(20, 12, 4, 0.22));
+}
+
+::selection { background: transparent; }
+::-moz-selection { background: transparent; }
+
+::-webkit-scrollbar { width: calc(0.55 * var(--u)); }
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(180deg, var(--gold-3), var(--gold-4));
+	border-radius: calc(0.3 * var(--u));
+	border: calc(0.12 * var(--u)) solid rgba(0, 0, 0, 0.6);
+}
+::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.45);
+	border-radius: calc(0.3 * var(--u));
+}
+html { scrollbar-color: var(--gold-3) rgba(0, 0, 0, 0.45); }
+
+#click-background {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	z-index: 1;
+}
+
+/* YouTube requires at least a 200x200 player; keep it invisible instead of tiny */
+#youtube, #youtube-menu {
+	position: fixed;
+	height: 200px;
+	width: 200px;
+	z-index: -100;
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* ---------- settings buttons ---------- */
+
+.settings-button {
+	position: absolute;
+	width: calc(2.5 * var(--u));
+	height: calc(2.5 * var(--u));
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(30, 24, 16, 0.85) 0%, rgba(10, 8, 6, 0.85) 70%);
+	box-shadow: inset 0 0 0 calc(0.08 * var(--u)) var(--gold-line), 0 calc(0.15 * var(--u)) calc(0.5 * var(--u)) rgba(0, 0, 0, 0.6);
+	transition: box-shadow .2s, scale .2s var(--ease-back);
+}
+.settings-button > img {
+	width: 58%;
+	height: 58%;
+	filter: drop-shadow(0 0 2px black);
+	transition: opacity .2s, filter .2s;
+}
+.settings-button:hover {
+	scale: 1.08;
+	box-shadow: inset 0 0 0 calc(0.08 * var(--u)) var(--gold-2), 0 0 calc(0.9 * var(--u)) var(--gold-glow);
+}
+.settings-button:hover > img { filter: drop-shadow(0 0 3px rgba(255, 220, 150, 0.6)); }
+.settings-button.fade > img { opacity: 0.25; }
+.settings-button.fade:hover > img { opacity: 0.45; }
+
+/* in-game: row beside #exit-game, same size and faded look */
+.settings-button:not(.deck-menu) {
+	width: calc(2.3 * var(--u));
+	height: calc(2.3 * var(--u));
+	opacity: 0.55;
+	transition: opacity .2s, box-shadow .2s, scale .2s var(--ease-back);
+}
+.settings-button:not(.deck-menu):hover { opacity: 1; }
+
+#toggle-music         { top: calc(var(--stage-y) + 1.2 * var(--u)); left: calc(var(--stage-x) + 4 * var(--u)); }
+#toggle-sfx           { top: calc(var(--stage-y) + 1.2 * var(--u)); left: calc(var(--stage-x) + 7 * var(--u)); }
+#toggle-notifications { top: calc(var(--stage-y) + 1.2 * var(--u)); left: calc(var(--stage-x) + 10 * var(--u)); }
+#toggle-effects       { top: calc(var(--stage-y) + 1.2 * var(--u)); left: calc(var(--stage-x) + 13 * var(--u)); }
+
+.settings-button.deck-menu { z-index: 89; }
+#toggle-music.deck-menu   { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 45.6 * var(--u)); }
+#toggle-sfx.deck-menu     { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 48.75 * var(--u)); }
+#toggle-effects.deck-menu { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 51.9 * var(--u)); }
+#toggle-notifications.deck-menu { display: none !important; }
+
+body.title-open #toggle-music.deck-menu   { top: calc(var(--stage-y) + 37.5 * var(--u)); left: calc(var(--stage-x) + 8 * var(--u)); }
+body.title-open #toggle-sfx.deck-menu     { top: calc(var(--stage-y) + 37.5 * var(--u)); left: calc(var(--stage-x) + 11.2 * var(--u)); }
+body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + 37.5 * var(--u)); left: calc(var(--stage-x) + 14.4 * var(--u)); }
+
+/* ---------- tooltip ---------- */
+
+*[data-title]:hover::after {
+	content: attr(data-title);
+	position: absolute;
+	bottom: calc(-2.1 * var(--u));
+	left: var(--title-left);
+	padding: calc(0.15 * var(--u)) calc(0.6 * var(--u)) calc(0.2 * var(--u));
+	background: linear-gradient(180deg, rgba(30, 24, 16, 0.97), rgba(12, 10, 7, 0.97));
+	color: var(--gold-1);
+	font-family: var(--font-caps);
+	font-size: calc(1 * var(--u));
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	white-space: nowrap;
+	text-shadow: none;
+	border: 1px solid var(--gold-line);
+	border-radius: calc(0.2 * var(--u));
+	box-shadow: 0 calc(0.2 * var(--u)) calc(0.6 * var(--u)) rgba(0, 0, 0, 0.7);
+	z-index: 9999999;
+	pointer-events: none;
+}
+
+/* ---------- shared buttons ---------- */
+
+.btn-gold {
+	font-family: var(--font-display);
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: #1b1206;
+	background: var(--gold-gradient);
+	border: 1px solid var(--gold-1);
+	border-radius: calc(0.25 * var(--u));
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 calc(0.2 * var(--u)) calc(0.7 * var(--u)) rgba(0, 0, 0, 0.7);
+	text-shadow: 0 1px 0 rgba(255, 240, 200, 0.5);
+	transition: box-shadow .2s, filter .2s, translate .2s var(--ease-out);
+}
+.btn-gold:hover {
+	filter: brightness(1.12);
+	translate: 0 calc(-0.12 * var(--u));
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 0 calc(1.4 * var(--u)) var(--gold-glow);
+}
+.btn-gold:active { translate: 0 0; filter: brightness(0.95); }
+
+.btn-ghost {
+	font-family: var(--font-display);
+	font-weight: 500;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--text);
+	background: linear-gradient(180deg, rgba(40, 32, 22, 0.7), rgba(12, 10, 7, 0.85));
+	border: 1px solid var(--gold-line);
+	border-radius: calc(0.25 * var(--u));
+	box-shadow: 0 calc(0.2 * var(--u)) calc(0.6 * var(--u)) rgba(0, 0, 0, 0.6);
+	transition: color .2s, border-color .2s, box-shadow .2s;
+}
+.btn-ghost:hover {
+	color: var(--gold-1);
+	border-color: var(--gold-2);
+	box-shadow: 0 0 calc(1 * var(--u)) var(--gold-glow);
+}
+
+/* ---------- utilities ---------- */
+
+.center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.bg-contain {
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+.hide { display: none; }
+.fade:not(.settings-button) { opacity: 0.2; }
+.noclick { pointer-events: none; }

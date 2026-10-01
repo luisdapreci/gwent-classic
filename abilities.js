@@ -9,7 +9,7 @@ var ability_dict = {
 	frost: {
 		name: "Biting Frost",
 		description: "Sets the strength of all Close Combat cards to 1 for both players. ",
-		audio: "cold"
+		audio: "frost"
 	},
 	fog: {
 		name: "Impenetrable Fog",
@@ -131,7 +131,8 @@ var ability_dict = {
 			if (units.length === 0)
 				return;
 			await card.animate("muster");
-			await Promise.all( units.map( async p =>  await board.addCardToRow(p[1], p[1].row, p[1].holder, p[0])));
+			// the muster sound already covers the summoned cards
+			await Promise.all( units.map( async p =>  await board.addCardToRow(p[1], p[1].row, p[1].holder, p[0], true)));
 		}
 	},
 	spy: {

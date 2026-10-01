@@ -1,0 +1,148 @@
+#title-screen {
+	position: absolute;
+	left: var(--stage-x);
+	top: var(--stage-y);
+	width: var(--stage-w);
+	height: var(--stage-h);
+	z-index: 88;
+	overflow: hidden;
+	background: var(--ink);
+	transition: opacity .6s ease;
+}
+#title-screen.leaving {
+	opacity: 0;
+	pointer-events: none;
+}
+
+#title-screen::before {
+	content: "";
+	position: absolute;
+	inset: -4%;
+	background: url('../img/board.jpg') center / cover no-repeat;
+	filter: blur(calc(0.5 * var(--u))) brightness(0.35) saturate(0.8);
+	animation: title-pan 40s ease-in-out infinite alternate;
+}
+#title-screen::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background:
+		radial-gradient(ellipse 50% 60% at 68% 55%, rgba(232, 160, 70, 0.16) 0%, transparent 70%),
+		linear-gradient(90deg, rgba(4, 3, 2, 0.95) 0%, rgba(4, 3, 2, 0.6) 40%, rgba(4, 3, 2, 0.1) 70%, rgba(4, 3, 2, 0.5) 100%),
+		radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+#title-screen > canvas {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 3;
+	pointer-events: none;
+}
+
+.title-fan {
+	position: absolute;
+	z-index: 2;
+	left: 68%;
+	top: 50%;
+	width: 0;
+	height: 0;
+}
+.title-fan > .card-lg {
+	position: absolute;
+	left: calc(-6 * var(--u));
+	top: calc(-12 * var(--u));
+	width: calc(12 * var(--u));
+	height: calc(22.65 * var(--u));
+	border-radius: calc(1.1 * var(--u));
+	background-size: cover;
+	transform-origin: 50% 130%;
+	translate: calc(var(--i) * 5.2 * var(--u)) calc(var(--d) * 0.9 * var(--u));
+	rotate: calc(var(--i) * 8deg);
+	box-shadow: 0 calc(0.8 * var(--u)) calc(2.2 * var(--u)) rgba(0, 0, 0, 0.85);
+	transition: transform .15s ease-out, translate .35s var(--ease-out), box-shadow .3s, filter .3s;
+	filter: brightness(0.82);
+	animation: fan-in 1s var(--ease-out) backwards, fan-float 6s ease-in-out infinite;
+	animation-delay: calc(var(--d) * 0.12s), calc(var(--d) * -1.3s);
+}
+.title-fan > .card-lg:nth-child(3) {
+	z-index: 1;
+	filter: brightness(1);
+	box-shadow: 0 0 calc(2.5 * var(--u)) rgba(232, 182, 84, 0.4), 0 calc(1 * var(--u)) calc(2.5 * var(--u)) rgba(0, 0, 0, 0.9);
+}
+.title-fan > .card-lg:hover {
+	z-index: 2;
+	filter: brightness(1.05);
+	translate: calc(var(--i) * 5.2 * var(--u)) calc(var(--d) * 0.9 * var(--u) - 1.4 * var(--u));
+	box-shadow: 0 0 calc(2 * var(--u)) var(--gold-glow), 0 calc(1 * var(--u)) calc(2.5 * var(--u)) rgba(0, 0, 0, 0.9);
+}
+
+.title-menu {
+	position: absolute;
+	z-index: 4;
+	left: 8%;
+	top: 22%;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.title-logo {
+	margin: 0;
+	font-family: var(--font-display);
+	font-size: calc(7.2 * var(--u));
+	font-weight: 900;
+	letter-spacing: 0.14em;
+	line-height: 1;
+	text-transform: uppercase;
+	color: transparent;
+	background: linear-gradient(100deg, var(--gold-3) 0%, var(--gold-1) 30%, #fff6dc 42%, var(--gold-1) 54%, var(--gold-2) 75%, var(--gold-3) 100%);
+	background-size: 250% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	filter: drop-shadow(0 calc(0.3 * var(--u)) calc(0.6 * var(--u)) rgba(0, 0, 0, 0.9));
+	animation: logo-in 1.2s var(--ease-out) backwards, logo-shine 7s ease-in-out 1.2s infinite;
+}
+
+.title-sub {
+	margin: calc(0.6 * var(--u)) 0 0 calc(0.4 * var(--u));
+	color: var(--text-dim);
+	font-family: var(--font-caps);
+	font-size: calc(1.35 * var(--u));
+	font-weight: 500;
+	letter-spacing: 0.32em;
+	animation: fade-up .9s .4s var(--ease-out) backwards;
+}
+
+.title-rule {
+	width: calc(26 * var(--u));
+	height: 1px;
+	margin: calc(2.2 * var(--u)) 0 calc(2.4 * var(--u));
+	background: linear-gradient(90deg, var(--gold-2), rgba(212, 168, 79, 0));
+	animation: rule-in 1s .6s var(--ease-out) backwards;
+	transform-origin: left;
+}
+
+.title-menu > button {
+	width: calc(16 * var(--u));
+	height: calc(3.2 * var(--u));
+	margin-bottom: calc(1 * var(--u));
+	font-size: calc(1.1 * var(--u));
+	animation: fade-up .7s var(--ease-out) backwards;
+}
+#title-play { animation-delay: .8s; }
+#title-deck { animation-delay: .95s; }
+
+.title-credit {
+	position: absolute;
+	z-index: 4;
+	right: 2%;
+	bottom: 2.5%;
+	margin: 0;
+	color: var(--text-mute);
+	font-family: var(--font-body);
+	font-size: calc(0.75 * var(--u));
+	letter-spacing: 0.04em;
+}
