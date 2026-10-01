@@ -1,63 +1,134 @@
-# gwent-classic
-![cover](https://user-images.githubusercontent.com/26311830/116256903-f1599b00-a7b6-11eb-84a1-16dcb5c9bfc6.jpg)
+# Gwent Classic
 
-A browser remake of the original Gwent minigame from The Witcher 3: Wild Hunt including all cards from the DLC. For the best experience, play in fullscreen which can be toggled in most browsers with F11.
+The Gwent card game from *The Witcher 3: Wild Hunt*, rebuilt for the browser. It has every card from the base game, *Hearts of Stone*, *Blood and Wine* and the next-gen update, an AI opponent, a deck builder, and a refreshed UI with a title screen, visual effects and music that changes between menus and matches.
 
-## Running the game
-Download the repo and run `Start Gwent.bat` (Windows). It serves the folder at http://127.0.0.1:8000/ using Python (`python -m http.server`) or, as a fallback, Node.js (`npx http-server`), and opens it in your default browser. Close the server window to stop it.
+No install, no build step. It's plain HTML, CSS and JavaScript.
 
-On other platforms, serve the folder with any static web server, e.g. `python -m http.server 8000 --bind 127.0.0.1`.
+## Contents
+- [Quick start](#quick-start)
+- [How to play](#how-to-play)
+- [Factions](#factions)
+- [Card abilities](#card-abilities)
+- [Deck building](#deck-building)
+- [Settings](#settings)
+- [Project structure](#project-structure)
+- [Development notes](#development-notes)
+- [Credits](#credits)
+- [License](#license)
 
-Opening `index.html` directly from disk (`file://`) still works for gameplay, but YouTube music embeds are blocked and some browsers fail to load the larger sound effects, so running over http is recommended.
+## Quick start
+**Windows:** double-click `Start Gwent.bat`. It starts a local server at http://127.0.0.1:8000/ and opens it in your browser. It uses Python if it's installed and falls back to Node.js (`npx http-server`) if not. Close the server window to stop it.
 
-## Rules
-The game is played in the same way as the original. The player aims to win two of three rounds, where victory within a given round is determined by whoever scores the most points. 
+**Any platform:** serve the folder with a static web server and open it, for example:
 
-#### Cards and Points
-Points are obtained by placing down unit cards, each with their corresponding values. Some unit cards have special effects as denoted by a symbol on their left side. The cards and their effects can be examined by selecting them or the row they have been placed on. The game also includes a number of special cards that apply effects like negative weather conditions or boosting card points when played.
+```sh
+python -m http.server 8000 --bind 127.0.0.1
+```
 
-#### Turns
-A turn consists of playing a single card. Your opponent then does the same until either one of you passes. At this point the remaining player can continue to place cards until they decide to pass. When both players have passed the round is ended. In addition to placing cards, the player may also activate their leader ability by clicking on their leader if it is available to them.
+> Opening `index.html` directly (`file://`) runs the game, but YouTube music won't play and some browsers fail to load the larger sound effects. Use a local server for the full experience.
 
-#### Factions
-The faction you pick will affect your game in three ways. It limits the specific cards you can use to neutral cards, special cards, and the unit cards in your faction. This includes the leader card that you can pick and the corresponding leader ability. Each faction also has a special effect that is displayed when selecting a faction and at the top of the customization screen for the currently selected faction.
+Press **F11** for fullscreen. The board keeps a 16:9 aspect ratio and scales to any window size.
 
-## Features
-#### Title screen
-The game opens on a title screen with a fan of hero cards and an animated background. **Play** jumps straight into a match with your saved deck, while **Deck Builder** opens the customization screen. The **Main Menu** button in the top-left of the deck builder returns to the title screen.
+## How to play
+Win **two of three rounds**. The player with the higher total score when a round ends wins it. Each player has two gems, and a gem is lost for every round lost.
 
-#### All cards from the TW3 + DLC + NextGen
-All cards from the base games and DLC can be used by you and the AI. This includes the additions from Hearts of Stone and Skellige as a playable deck from Blood and Wine. As of the next-gen update, the Roach card is now also included, along with adding the muster ability to the Geralt and Ciri cards. The total count of cards available corresponds to the number you can find in the original game.
+1. **Start of match:** a coin toss decides who goes first (Scoia'tael players may choose). Each player then has the option to **redraw up to 2 cards** from their starting hand of 10.
+2. **Turns:** on your turn, play one card or use your **leader ability** (once per match) by clicking your leader.
+3. **Passing:** pass when you're done for the round. Your opponent keeps playing until they pass too.
+4. **End of round:** once both players have passed, scores are compared, the board is cleared to the discard piles, and the next round begins. You **do not draw** between rounds, so card advantage matters.
 
-#### Faithful to the original minigame
-This remake aims to resemble the original minigame as closely as possible from the UI layout to the notifications. Some changes have been made in the form of buttons for settings, exiting a game, and passing your current turn. The interface uses the Cinzel and Alegreya Sans fonts (loaded from Google Fonts) and scales to any window size while keeping the board at a letterboxed 16:9 ratio. The deck customization screen also includes changes to upload and download decks, including being able to upload a custom opponent deck.
+Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click a card in your hand to select it, then click a row to play it. Click a card or row on the board to inspect it.
 
-#### AI opponent
-When you start a game you will face off against a fully implemented AI opponent. The opponent uses premade decks and will make intelligent decisions based on the cards in its hand, on the table, and in the discard piles.
+## Factions
+Your faction determines which unit cards and leaders you can use (neutral and special cards are available to all) and gives you a passive perk.
 
-#### Customize, save and upload decks
-You can select a faction to play as at the top of the screen and then add and remove cards from your deck by clicking on the cards in either scroll-down menu. You can also pick a leader card by selecting the current leader and scrolling through the options for that faction. At the top of the screen there are buttons to upload and download decks to play with. These are stored in json format and are checked to see if they comply with their assigned faction and maximum card counts. At the bottom of the screen, you can also customize your opponent by uploading the deck they will play with. 
+| Faction | Perk |
+| --- | --- |
+| Northern Realms | Draw a card from your deck whenever you win a round. |
+| Nilfgaardian Empire | Wins any round that ends in a draw. |
+| Monsters | Keeps a random unit card on the board after each round. |
+| Scoia'tael | Decides who takes the first turn. |
+| Skellige | 2 random units from the graveyard return to the battlefield at the start of round 3. |
 
-#### Persistent settings
-The game has settings for toggling music, sound effects, in-game notifications and visual effects. In the deck builder they sit in the center column; in a match they are in the top-left row next to the exit button. These settings along with customizations like your faction decks are saved in the browser meaning that you can change faction, reload the page, or close the browser, and your settings will be remembered.
+Each faction has several leaders, each with its own ability.
 
-#### Music tracks
-Music is streamed from YouTube: the Kaer Morhen theme plays in the menus and the Gwent soundtrack plays during matches, with a crossfade when switching between them. Music can be toggled with the music icon. If the browser blocks autoplay, music starts on your first click or key press. YouTube embeds require the game to be served over http (see [Running the game](#running-the-game)).
+## Card abilities
+| Ability | Effect |
+| --- | --- |
+| Hero | Immune to weather, special cards and abilities. |
+| Agile | Can be placed in either Close Combat or Ranged. |
+| Medic | Revive a unit from your discard pile (not heroes or specials). |
+| Morale Boost | +1 to every other unit in its row. |
+| Muster | Summons all copies of the same card from your deck. |
+| Spy | Played on the opponent's side (counts toward their score); you draw 2 cards. |
+| Tight Bond | Strength is multiplied when placed next to copies of the same card. |
+| Scorch | Destroys the strongest card(s) on the board, or in a specific enemy row for unit variants. |
+| Commander's Horn | Doubles the strength of all units in a row (one per row). |
+| Decoy | Swap with a unit on the board to return it to your hand. |
+| Berserker / Mardroeme | Mardroeme transforms Berserkers into a stronger bear form. |
+| Avenger | Summons another card when removed from the battlefield. |
+| Biting Frost / Impenetrable Fog / Torrential Rain | Sets all Close Combat / Ranged / Siege units to 1 strength for both players. |
+| Skellige Storm | Applies both Fog and Rain. |
+| Clear Weather | Removes all weather effects. |
 
-#### Visual effects
-Card plays, scorch, weather, round wins and score changes are accompanied by particle bursts, screen shake, sunlight and pulse animations. These can be toggled with the effects button and are automatically disabled when the operating system requests reduced motion.
+## Deck building
+Open the **Deck Builder** from the title screen.
 
-#### Sound effects
-Most sound effects for gameplay and menus have been added and integrated and can be toggled off via the speaker button. Courtesy of [RandomPianist](https://github.com/RandomPianist/gwent-classic-v3.1) for providing many of the sound effects that I have since edited for this version.
+- Choose a faction at the top, then click cards in the left (collection) and right (deck) lists to add or remove them.
+- Click your leader to cycle through the leaders available for that faction.
+- A deck needs **at least 22 unit cards** and **no more than 10 special cards**. The stats column shows your counts.
+- **Download** saves your deck as `GwentDeck.json`. **Upload** loads one, checking that it matches the faction and card limits.
+- **Opponent's deck:** upload a deck for the AI to use instead of a random premade one. You can view or clear it from the same panel.
+
+Decks are saved per faction in your browser's `localStorage`, along with the last faction you used.
+
+Deck file format (`index` refers to the position of the card in `card_dict` in `cards.js`):
+
+```json
+{ "faction": "realms", "leader": 0, "cards": [[index, count], ...] }
+```
+
+Valid factions are `realms`, `nilfgaard`, `monsters`, `scoiatael` and `skellige`.
+
+## Settings
+The four toggle buttons are in the center column of the deck builder and in the top-left of the board during a match (next to the exit button). All settings are remembered between sessions.
+
+| Setting | Notes |
+| --- | --- |
+| Music | Streamed from YouTube. The Kaer Morhen theme plays in the menus and the Gwent soundtrack plays in matches, with a crossfade between them. If the browser blocks autoplay, music starts on your first click or key press. |
+| Sound effects | Card placement, abilities, weather, round and match results, menu sounds. |
+| Game messages | In-game notifications such as round start, pass and faction perks. |
+| Visual effects | Particle bursts, screen shake, sunlight, score pulses and card flips. Also disabled automatically when the OS asks for reduced motion. |
 
 ## Project structure
 | Path | Contents |
 | --- | --- |
 | `index.html` | Page markup, title screen and script/style includes |
-| `gwent.js` | Game engine, board, UI, deck builder, settings and audio |
-| `cards.js`, `decks.js`, `factions.js`, `abilities.js` | Card database, AI decks, faction perks and card abilities |
-| `fx.js` | Visual effects (particles, shake, sunlight, pulse, flash) |
+| `gwent.js` | Game engine: board, rows, players, AI, UI, deck builder, settings, audio, music |
+| `cards.js` | Card database (`card_dict`) |
+| `decks.js` | Premade decks used by the AI |
+| `factions.js` | Faction perks |
+| `abilities.js` | Card and leader abilities (`ability_dict`) |
+| `fx.js` | Visual effects API (`fx.burst`, `fx.shake`, `fx.sunlight`, `fx.pulse`, `fx.flash`) |
 | `common.js` | Shared helpers |
-| `css/` | Stylesheets split by area: `tokens`, `base`, `board`, `cards`, `overlays`, `deckbuilder`, `title`, `fx` |
-| `img/`, `svg/`, `sfx/` | Card art and board images, icons, sound effects |
-| `Start Gwent.bat` | Local http server launcher for Windows |
+| `css/` | Stylesheets: `tokens`, `base`, `board`, `cards`, `overlays`, `deckbuilder`, `title`, `fx` |
+| `img/` | Board, card art (`sm/`, `lg/`) and icons |
+| `svg/` | UI button icons |
+| `sfx/` | Sound effects (`card.animate(name)` plays `sfx/<name>.mp3`) |
+| `Start Gwent.bat` | Local server launcher for Windows |
+
+## Development notes
+- **No build tooling.** Edit the files and reload the page.
+- **Sizing:** the stage is a letterboxed 16:9 box. `var(--u)` equals 1% of the stage width; use it instead of `vw`.
+- **Board art:** row positions and score circles are baked into `img/board.jpg`. Restyle overlays freely, but don't move them.
+- **Card transforms:** `gwent.js` sets an inline `transform` on cards while moving them, so card animations in CSS should use the standalone `translate` / `scale` / `rotate` properties.
+- **Script order:** `fx.js` loads after `gwent.js`, and the YouTube IFrame API loads last.
+- **Testing audio and music:** serve over http. `file://` blocks YouTube embeds and can fail to load larger sound files.
+
+## Credits
+- Original project by [asundr](https://github.com/asundr/gwent-classic).
+- Many sound effects come from [RandomPianist's gwent-classic-v3.1](https://github.com/RandomPianist/gwent-classic-v3.1).
+- Gwent, The Witcher and all related art and music are property of CD PROJEKT RED. This is a non-commercial fan project.
+
+## License
+Released under the license in [LICENSE](LICENSE), which includes the Commons Clause: the software may not be sold.
