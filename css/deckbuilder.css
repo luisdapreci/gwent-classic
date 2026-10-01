@@ -307,3 +307,31 @@
 #op-preview-clear:hover { filter: drop-shadow(0 0 3px var(--debuff)); }
 #op-preview-open::after,
 #op-preview-clear::after { left: calc(-2.9 * var(--u)); }
+
+#opponent-preview #ai-difficulty {
+	gap: calc(0.3 * var(--u));
+	margin-top: calc(0.35 * var(--u));
+}
+#opponent-preview #ai-difficulty button {
+	width: auto;
+	height: calc(1.5 * var(--u));
+	padding: 0 calc(0.6 * var(--u));
+	color: var(--text-mute);
+	background: linear-gradient(180deg, rgba(40, 32, 22, 0.7), rgba(12, 10, 7, 0.85));
+	border: 1px solid var(--gold-faint);
+	border-radius: calc(0.2 * var(--u));
+	font-family: var(--font-caps);
+	font-size: calc(0.8 * var(--u));
+	letter-spacing: 0.05em;
+	transition: color .2s, border-color .2s, box-shadow .2s;
+}
+#opponent-preview #ai-difficulty button:hover {
+	color: var(--gold-1);
+	border-color: var(--gold-line);
+}
+#opponent-preview #ai-difficulty button[aria-checked="true"] {
+	color: #1b1206;
+	background: var(--gold-gradient);
+	border-color: var(--gold-1);
+	box-shadow: 0 0 calc(0.6 * var(--u)) var(--gold-glow);
+}

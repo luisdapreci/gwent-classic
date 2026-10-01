@@ -27,19 +27,38 @@ class Controller {}
 
 // Makes decisions for the AI opponent player
 class ControllerAI {
+	// easy: no mulligan, often plays a random viable option; normal: weighted random; hard: best option, saves cards when finishing a round
+	static difficulties = {
+		easy: {label: "Easy", redraws: 0, randomChance: 0.5},
+		normal: {label: "Normal", redraws: 2, randomChance: 0},
+		hard: {label: "Hard", redraws: 2, randomChance: 0, greedy: true}
+	};
+	
+	static difficulty() {
+		return ControllerAI.difficulties[Settings.aiDifficulty.get()] ?? ControllerAI.difficulties.normal;
+	}
+	
 	constructor(player) {
 		this.player = player;
 	}
 	
-	// Collects data and weighs options before taking a weighted random action
+	// Collects data and weighs options before taking an action chosen according to the difficulty
 	async startTurn(player){
 		if (player.opponent().passed && (player.winning || 
 				player.deck.faction === "nilfgaard" && player.total === player.opponent().total) ){
 			await player.passRound();
 			return;
 		}
+		const difficulty = ControllerAI.difficulty();
 		let data_max = this.getMaximums();
 		let data_board = this.getBoardData();
+		if (difficulty.greedy && player.opponent().passed) {
+			const finisher = this.cheapestWinningCard(data_max);
+			if (finisher) {
+				await this.playCard(finisher, data_max, data_board);
+				return;
+			}
+		}
 		let weights = player.hand.cards.map(c => 
 			({weight: this.weightCard(c, data_max, data_board), action: async () => await this.playCard(c, data_max, data_board)}) );
 		if (player.leaderAvailable)
@@ -56,14 +75,45 @@ class ControllerAI {
 			}
 			await player.passRound();
 		} else {
-			let rand = randomInt(weightTotal);
-			for (var i=0; i < weights.length; ++i) {
-				rand -= weights[i].weight;
-				if (rand < 0)
-					break;
-			}
-			await weights[i].action();
+			await this.chooseAction(weights, weightTotal, difficulty).action();
 		}
+	}
+	
+	// Picks an action from weighted options. Assumes at least one positive weight.
+	chooseAction(weights, weightTotal, difficulty) {
+		const viable = weights.filter(w => w.weight > 0);
+		if (difficulty.greedy) {
+			const best = Math.max(...viable.map(w => w.weight));
+			const top = viable.filter(w => w.weight === best);
+			return top[randomInt(top.length)];
+		}
+		if (Math.random() < difficulty.randomChance)
+			return viable[randomInt(viable.length)];
+		let rand = Math.random() * weightTotal;
+		for (const w of viable) {
+			rand -= w.weight;
+			if (rand < 0)
+				return w;
+		}
+		return viable[viable.length - 1];
+	}
+	
+	// Returns the lowest-value unit card that alone overtakes an opponent who has passed, if any
+	cheapestWinningCard(max) {
+		const op = this.player.opponent();
+		const need = op.total - this.player.total + (this.player.deck.faction === "nilfgaard" ? 0 : 1);
+		const unitRows = ["close", "ranged", "siege", "agile"];
+		const options = this.player.hand.cards
+			.filter(c => unitRows.includes(c.row) && !c.abilities.some(a => a === "spy" || a.startsWith("scorch")))
+			.map(c => {
+				const row = c.row === "agile" ? this.determineAgileRow(c) : board.getRow(c, c.row, this.player);
+				// Lower bound: ignores muster pulls and medic revives
+				const gain = ["bond", "morale", "horn"].some(a => c.abilities.includes(a)) ? this.weightRowChange(c, row) : row.calcCardScore(c);
+				return {card: c, gain: gain};
+			})
+			.filter(o => o.gain >= need)
+			.sort((a, b) => a.gain - b.gain || a.card.basePower - b.card.basePower);
+		return options[0]?.card;
 	}
 	
 	// Collects data about card with the hightest power on the board
@@ -1557,7 +1607,7 @@ class Game {
 	
 	// Allows the player to swap out up to two cards from their iniitial hand
 	async initialRedraw(){
-		for (let i=0; i< 2; i++)
+		for (let i=0; i < ControllerAI.difficulty().redraws; i++)
 			player_op.controller.redraw();
 		await ui.queueCarousel(player_me.hand, 2, async (c, i) => { 
 			AudioManager.playSFX('redraw');
@@ -1736,7 +1786,7 @@ class Game {
 	{
 		this.reset();
 		player_me.reset();
-		player_op = new Player('op', 'Player 2', dm.constructOpponentDeck(false));
+		player_op = new Player('op', DeckMaker.opponentName(), dm.constructOpponentDeck(false));
 		this.endScreen.classList.add("hide");
 		this.startGame();
 	}
@@ -2751,6 +2801,41 @@ class DeckMaker {
 		document.getElementById("add-file").addEventListener("change", () => this.uploadPlayerDeck(), false);
 		document.getElementById("start-game").addEventListener("click", () => this.startNewGame(), false);
 		document.getElementById("start-game").addEventListener("mouseenter", CLICK_EVENT_SFX, false);
+		
+		this.difficulty_buttons = [...document.querySelectorAll("#ai-difficulty > button")];
+		this.difficulty_buttons.forEach(b => {
+			b.addEventListener("click", () => this.setDifficulty(b.dataset.level));
+			b.addEventListener("mouseenter", CLICK_EVENT_SFX);
+			b.addEventListener("keydown", e => {
+				const step = {ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1}[e.key];
+				if (!step)
+					return;
+				e.preventDefault();
+				const buttons = this.difficulty_buttons;
+				const next = buttons[(buttons.indexOf(b) + step + buttons.length) % buttons.length];
+				this.setDifficulty(next.dataset.level);
+				next.focus();
+			});
+		});
+		this.setDifficulty(Settings.aiDifficulty.get(), true);
+	}
+	
+	static opponentName() {
+		return ControllerAI.difficulty().label + " AI";
+	}
+	
+	// Selects the AI difficulty used for the next game
+	setDifficulty(level, silent = false) {
+		if (!(level in ControllerAI.difficulties))
+			level = "normal";
+		if (!silent && level !== Settings.aiDifficulty.get())
+			AudioManager.playSFX("ui_card_bank");
+		Settings.aiDifficulty.set(level);
+		this.difficulty_buttons.forEach(b => {
+			const selected = b.dataset.level === level;
+			b.setAttribute("aria-checked", selected);
+			b.tabIndex = selected ? 0 : -1;
+		});
 	}
 
 	loadFactionDeck(faction, force = false)
@@ -3028,7 +3113,7 @@ class DeckMaker {
 		const op_deck = this.constructOpponentDeck(true);
 		
 		player_me = new Player(0, "Player 1", me_deck);
-		player_op = new Player(1, "Player 2", op_deck);
+		player_op = new Player(1, DeckMaker.opponentName(), op_deck);
 		
 		this.elem.classList.add("hide");
 		game.startGame();
@@ -3445,6 +3530,7 @@ class Settings
 	static soundEffects = new ToggleOption("gc-sound-effects", true);
 	static effects = new ToggleOption("gc-effects", true);
 	static lastFaction = new SavedString("gc-last-faction", "realms"); 
+	static aiDifficulty = new SavedString("gc-ai-difficulty", "normal");
 	static realmsDeck = new SavedDeck("gc-deck-realms", premade_deck[0]);
 	static nilfgaardDeck = new SavedDeck("gc-deck-nilfgaard", premade_deck[2]);
 	static monstersDeck = new SavedDeck("gc-deck-monsters", premade_deck[4]);

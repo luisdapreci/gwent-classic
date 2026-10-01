@@ -81,6 +81,7 @@ Open the **Deck Builder** from the title screen.
 - A deck needs **at least 22 unit cards** and **no more than 10 special cards**. The stats column shows your counts.
 - **Download** saves your deck as `GwentDeck.json`. **Upload** loads one, checking the faction, leader, card IDs and copy limits; you can choose to import anyway if only some entries are invalid.
 - **Opponent's deck:** upload a deck for the AI to use instead of a random premade one. It must be a legal deck (22+ units, at most 10 specials). You can view or clear it from the same panel.
+- **AI difficulty:** pick **Easy**, **Normal** or **Hard** under the opponent's deck. Easy skips its redraw and often makes random plays; Normal weighs its options with some randomness; Hard always takes its best-rated play and, once you've passed, wins the round with its cheapest sufficient card. The choice is remembered.
 
 Decks are saved per faction in your browser's `localStorage`, along with the last faction you used.
 
