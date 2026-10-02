@@ -418,7 +418,7 @@
 /* .card-container's display would otherwise override .hide */
 #field-hand > .hide { display: none; }
 
-/* local multiplayer: Player 2 can target their own (top) units with Decoy */
+/* pass and play: Player 2 can target their own (top) units with Decoy */
 body.hotseat #field-op .card:not(.noclick) { pointer-events: auto; }
 
 .row-selectable {

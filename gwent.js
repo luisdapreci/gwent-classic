@@ -534,7 +534,7 @@ class ControllerAI {
 
 // Can make actions during turns like playing cards that it owns
 class Player {
-	// id 0 is the bottom (human) player; the top player is an AI unless human is true (local multiplayer)
+	// id 0 is the bottom (human) player; the top player is an AI unless human is true (pass and play)
 	constructor(id, name, deck, human = id === 0) {
 		this.id = id;
 		this.tag = (id === 0) ? "me" : "op";
@@ -735,7 +735,7 @@ class Player {
 		this.elem_leader.children[1].classList.remove("hide");
 		
 		if (this.isHuman() && this.leader.activated.length > 0){
-			// Both leaders are clickable in local multiplayer; only the player whose turn it is may activate theirs
+			// Both leaders are clickable in pass and play; only the player whose turn it is may activate theirs
 			this.elem_leader.addEventListener("click", 
 				async () => await ui.viewCard(this.leader, game.currPlayer !== this ? undefined : async () => {
 					AudioManager.playSFX('open');
@@ -1043,7 +1043,7 @@ class HandAI extends CardContainer {
 	resize() {this.counter.innerHTML = this.cards.length; }
 }
 
-// Hand of a human player. In local multiplayer only the active player's hand is shown.
+// Hand of a human player. In pass and play only the active player's hand is shown.
 class Hand extends CardContainer {
 	constructor(elem, tag = "me"){
 		super(elem);
@@ -1425,7 +1425,7 @@ class Board {
 		return player === player_me ? player_op : player_me;
 	}
 	
-	// Screen reader labels name each side's owner; "Your"/"Opponent's" is ambiguous in local multiplayer
+	// Screen reader labels name each side's owner; "Your"/"Opponent's" is ambiguous in pass and play
 	labelRows(){
 		const hotseat = game.isHotseat();
 		this.row.forEach((r, i) => {
@@ -1622,7 +1622,7 @@ class Game {
 		this.initPlayers(player_me, player_op);
 		this.setState(GameState.PLAYING);
 		AudioManager.playSFX('game_opening');
-		// In local multiplayer hands stay hidden until their owner takes the device
+		// In pass and play hands stay hidden until their owner takes the device
 		ui.handViewer = null;
 		document.body.classList.toggle("hotseat", this.isHotseat());
 		board.labelRows();
@@ -2250,7 +2250,7 @@ class UI {
 		document.getElementById("hand-row-op").classList.toggle("hide", !player || player !== player_op);
 	}
 	
-	// Local multiplayer: covers the board until the named player confirms they have the device, then shows their hand
+	// Pass and play: covers the board until the named player confirms they have the device, then shows their hand
 	async handoff(player, message){
 		this.showHand(null);
 		this.handoff_elem.querySelector(".handoff-shield").style.backgroundImage = iconURL("deck_shield_" + player.deck.faction);
@@ -2535,7 +2535,7 @@ class UI {
 		await fadeOut(this.notif_elem, fadeSpeed);
 	}
 	
-	// Local multiplayer banner text that names the player, since "you"/"opponent" is ambiguous on a shared screen
+	// Pass and play banner text that names the player, since "you"/"opponent" is ambiguous on a shared screen
 	playerCaption(kind, player){
 		if (!game.isHotseat())
 			return undefined;
@@ -2550,7 +2550,7 @@ class UI {
 		}[kind];
 	}
 	
-	// Shows the "me-"/"op-" variant of a banner for the player, named in local multiplayer
+	// Shows the "me-"/"op-" variant of a banner for the player, named in pass and play
 	async playerNotification(kind, player, duration){
 		await this.notification(player.tag + "-" + kind, duration, this.playerCaption(kind, player));
 	}
@@ -3084,7 +3084,7 @@ class DeckMaker {
 		this.leader_elem = document.getElementById("card-leader");
 		this.leader_elem.children[1].addEventListener("click", () => this.selectLeader(), false);
 		this.leader_elem.children[1].addEventListener('mouseenter', CLICK_EVENT_SFX);
-		// Whose deck the builder is editing; Player 2 only exists in local multiplayer
+		// Whose deck the builder is editing; Player 2 only exists in pass and play
 		this.owner = "p1";
 		this.loadFactionDeck(Settings.getLastFaction(this.owner).get(), true);
 
@@ -3159,7 +3159,7 @@ class DeckMaker {
 		DeckMaker.checkRadio(this.difficulty_buttons, b => b.dataset.level === level);
 	}
 	
-	// Chooses between playing the AI and local multiplayer, where Player 2 builds their own deck
+	// Chooses between playing the AI and pass and play, where Player 2 builds their own deck
 	setGameMode(mode, silent = false) {
 		if (mode !== "hotseat")
 			mode = "ai";
@@ -3934,7 +3934,7 @@ class Settings
 	static scoiataelDeck = new SavedDeck("gc-deck-scoiatael", premade_deck[6]);
 	static skelligesDeck = new SavedDeck("gc-deck-skellige", premade_deck[8]);
 	static opponentDeckCustom = new SavedDeck("gc-deck-opponent-custom");
-	// Local multiplayer: Player 2 keeps their own deck per faction
+	// Pass and play: Player 2 keeps their own deck per faction
 	static p2Decks = Object.fromEntries(["realms", "nilfgaard", "monsters", "scoiatael", "skellige"]
 		.map((f, i) => [f, new SavedDeck("gc-p2-deck-" + f, premade_deck[2 * i])]));
 	

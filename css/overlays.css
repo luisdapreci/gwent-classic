@@ -123,7 +123,7 @@
 	line-height: 1.25;
 }
 
-/* local multiplayer names the player instead of "you"/"opponent" */
+/* pass and play names the player instead of "you"/"opponent" */
 #notification-bar > div[data-caption]::after { content: attr(data-caption); }
 
 /* ---------------- card description ---------------- */
@@ -527,7 +527,7 @@
 	animation: fade-up .5s .5s var(--ease-out) backwards;
 }
 
-/* local multiplayer winner, sits under the Victory banner */
+/* pass and play winner, sits under the Victory banner */
 #end-screen > #end-winner {
 	position: absolute;
 	top: 49.6%;
@@ -544,7 +544,7 @@
 	animation: fade-up .6s .4s var(--ease-out) backwards;
 }
 
-/* ---------------- local multiplayer handoff ---------------- */
+/* ---------------- pass and play handoff ---------------- */
 
 /* outside <main> so it stays clickable while the board is disabled; below popups (z 1000) */
 #handoff {

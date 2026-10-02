@@ -1,13 +1,13 @@
 # Gwent Classic
 
-The Gwent card game from *The Witcher 3: Wild Hunt*, rebuilt for the browser. It has every card from the base game, *Hearts of Stone*, *Blood and Wine* and the next-gen update, an AI opponent, local two-player matches on one device, a deck builder, and a refreshed UI with a title screen, visual effects and music that changes between menus and matches.
+The Gwent card game from *The Witcher 3: Wild Hunt*, rebuilt for the browser. It has every card from the base game, *Hearts of Stone*, *Blood and Wine* and the next-gen update, an AI opponent, pass-and-play matches on one device, a deck builder, and a refreshed UI with a title screen, visual effects and music that changes between menus and matches.
 
 No install, no build step. It's plain HTML, CSS and JavaScript.
 
 ## Contents
 - [Quick start](#quick-start)
 - [How to play](#how-to-play)
-- [Local multiplayer](#local-multiplayer)
+- [Pass and play](#pass-and-play)
 - [Factions](#factions)
 - [Card abilities](#card-abilities)
 - [Deck building](#deck-building)
@@ -42,10 +42,10 @@ Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click 
 
 **Keyboard:** <kbd>Tab</kbd> moves between cards, rows and buttons; <kbd>Enter</kbd> or <kbd>Space</kbd> activates the focused one. In card pickers, <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> browse, <kbd>Enter</kbd> selects and <kbd>Esc</kbd> closes. <kbd>Esc</kbd> also cancels a selected card. Game messages are announced to screen readers.
 
-## Local multiplayer
-Two people can play each other on the same device (hot-seat).
+## Pass and play
+Two people can play each other on the same device, passing it between turns.
 
-1. On the title screen choose **Local 2-Player**, or pick **Local Player 2** under *Opponent* in the deck builder.
+1. On the title screen choose **Pass and Play**, or pick **Pass and Play** under *Opponent* in the deck builder.
 2. Each player builds their own deck. Use the **Editing: Player 1 / Player 2** switch under *Opponent* to choose whose deck the builder shows; faction, leader, card changes, **Upload Deck** and **Download Deck** all apply to that player. Player 2's decks are saved separately from Player 1's, one per faction.
 3. Press **Start game**. Both decks must be legal (22+ units, at most 10 specials).
 
@@ -92,11 +92,11 @@ Open the **Deck Builder** from the title screen.
 - Click your leader to cycle through the leaders available for that faction.
 - A deck needs **at least 22 unit cards** and **no more than 10 special cards**. The stats column shows your counts.
 - **Download** saves your deck as `GwentDeck.json`. **Upload** loads one, checking the faction, leader, card IDs and copy limits; you can choose to import anyway if only some entries are invalid.
-- **Opponent:** choose **AI** or **Local Player 2** (see [Local multiplayer](#local-multiplayer)). The choice is remembered.
-- **Opponent's deck:** upload a deck for the AI to use instead of a random premade one, or click the deck icon to use one of your saved faction decks. It must be a legal deck (22+ units, at most 10 specials). You can view or clear it from the same panel. In local multiplayer this is replaced by the Player 1 / Player 2 deck switch.
+- **Opponent:** choose **AI** or **Pass and Play** (see [Pass and play](#pass-and-play)). The choice is remembered.
+- **Opponent's deck:** upload a deck for the AI to use instead of a random premade one, or click the deck icon to use one of your saved faction decks. It must be a legal deck (22+ units, at most 10 specials). You can view or clear it from the same panel. In pass and play this is replaced by the Player 1 / Player 2 deck switch.
 - **AI difficulty:** pick **Easy**, **Normal** or **Hard** under the opponent's deck (shown when playing the AI). Easy skips its redraw and often makes random plays; Normal weighs its options with some randomness; Hard always takes its best-rated play and, once you've passed, wins the round with its cheapest sufficient card. The choice is remembered.
 
-Decks are saved per faction in your browser's `localStorage`, along with the last faction you used (separately for Player 2 in local multiplayer).
+Decks are saved per faction in your browser's `localStorage`, along with the last faction you used (separately for Player 2 in pass and play).
 
 Deck file format (`index` refers to the position of the card in `card_dict` in `cards.js`):
 
@@ -120,7 +120,7 @@ The four toggle buttons are in the center column of the deck builder and in the 
 | Path | Contents |
 | --- | --- |
 | `index.html` | Page markup, title screen and script/style includes |
-| `gwent.js` | Game engine: board, rows, players, AI, local multiplayer, UI, deck builder, settings, audio, music |
+| `gwent.js` | Game engine: board, rows, players, AI, pass and play, UI, deck builder, settings, audio, music |
 | `cards.js` | Card database (`card_dict`) |
 | `decks.js` | Premade decks used by the AI |
 | `factions.js` | Faction perks |
