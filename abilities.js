@@ -118,13 +118,10 @@ var ability_dict = {
 	muster: {
 		name:"muster", 
 		description: "Find any cards with the same name in your deck and play them instantly. ",
+		// Name prefix shared by the cards a muster card summons
+		group: card => card.muster ?? (card.name.includes('-') ? card.name.substring(0, card.name.indexOf('-')) : card.name),
 		placed: async (card) => {
-			let i = card.name.indexOf('-');
-			let cardName = i === -1 ?  card.name : card.name.substring(0, i);
-			if (card['muster'])
-			{
-				cardName = card['muster'];
-			}
+			const cardName = ability_dict["muster"].group(card);
 			let pred = c => c.name.startsWith(cardName);
 			let units = card.holder.deck.getCards(pred).map( x => [card.holder.deck, x] );
 			if (units.length === 0)
@@ -178,22 +175,7 @@ var ability_dict = {
 				{
 					if (card.holder.controller instanceof ControllerAI)
 					{
-						const close = board.getRow(res, "close", player_op);
-						const ranged = board.getRow(res, "ranged", player_op);
-						const closeVirtual = close.getVirtualCopy();
-						const rangedVirtual = ranged.getVirtualCopy();
-
-						closeVirtual.cards.push(res);
-						closeVirtual.updateState(res, true);
-						rangedVirtual.cards.push(res);
-						rangedVirtual.updateState(res, true);
-
-						const closeDif = closeVirtual.calcScore() - close.calcScore();
-						const rangedDif = rangedVirtual.calcScore() - ranged.calcScore();
-						const rowName = closeDif > rangedDif ? "close" 
-							: closeDif < rangedDif ? "ranged"
-							: Math.random() < 0.5 ? "close" : "ranged";
-						selectedRow = board.getRow(res, rowName, player_op);
+						selectedRow = card.holder.controller.determineAgileRow(res);
 					}
 					else
 					{
@@ -241,12 +223,14 @@ var ability_dict = {
 		removed: async (card) => {
 			let bdf = new Card(card_dict[21], card.holder);
 			bdf.removed.push( () => setTimeout( () => {
-				if (game.isPlaying())
+				// It may have been decoyed to hand instead of sent to the grave
+				if (game.isPlaying() && bdf.holder.grave.cards.includes(bdf))
 					bdf.holder.grave.removeCard(bdf);
 			}, 1001) );
 			await board.addCardToRow(bdf, "close", card.holder);
 		},
-		weight: () => 50
+		// The summon usually arrives at the end of the round, so it's only worth something before the last one
+		weight: () => game.roundCount < 3 ? Number(card_dict[21].strength) : 0
 	},
 	avenger_kambi: {
 		name: "Avenger",
@@ -254,12 +238,12 @@ var ability_dict = {
 		removed: async card => {
 			let bdf = new Card(card_dict[196], card.holder);
 			bdf.removed.push( () => setTimeout( () => {
-				if (game.isPlaying())
+				if (game.isPlaying() && bdf.holder.grave.cards.includes(bdf))
 					bdf.holder.grave.removeCard(bdf); 
 			}, 1001) );
 			await board.addCardToRow(bdf, "close", card.holder);
 		},
-		weight: () => 50
+		weight: () => game.roundCount < 3 ? Number(card_dict[196].strength) : 0
 	},
 	foltest_king: {
 		description: "Pick an Impenetrable Fog card from your deck and play it instantly.",
@@ -309,10 +293,8 @@ var ability_dict = {
 			Carousel.curr.cancel();
 			await ui.viewCardsInContainer(container);
 		},
-		weight: card => {
-			let count = card.holder.opponent().hand.cards.length;
-			return count === 0 ? 0 : Math.max(10, 10 * (8 - count));
-		}
+		// The AI gains no information, so for it this is a free turn: worth it while ahead
+		weight: (card, ai) => card.holder.opponent().hand.cards.length && ai.pointsToLead() <= 0 ? 10 : 0
 	},
 	emhyr_whiteflame: {
 		description: "Cancel your opponent's Leader Ability."
@@ -371,18 +353,22 @@ var ability_dict = {
 			if (card.holder.controller instanceof ControllerAI) {
 				let cards = card.holder.controller.discardOrder(card).splice(0,2).filter(c => c.basePower < 7);
 				await Promise.all(cards.map(async c => await board.toGrave(c, card.holder.hand)));
-				await card.holder.deck.draw(card.holder.hand);
+				const pick = card.holder.controller.bestDeckCard();
+				if (pick)
+					await board.toHand(pick, deck);
 				return;
 			} else
 				Carousel.curr.exit();
 			await ui.queueCarousel(hand, 2, async (c,i) => await board.toGrave(c.cards[i], c), () => true);
 			await ui.queueCarousel(deck, 1, (c,i) => board.toHand(c.cards[i], deck), () => true, true);
 		},
+		// Two weak cards for the best one in the deck
 		weight: (card, ai) => {
-			let cards = ai.discardOrder(card).splice(0,2).filter(c => c.basePower < 7);
-			if (cards.length < 2)
+			const cards = ai.discardOrder(card).splice(0,2).filter(c => c.basePower < 7);
+			const pick = ai.bestDeckCard();
+			if (cards.length < 2 || !pick)
 				return 0;
-			return cards[0].abilities.includes("muster") ? 50 : 25;
+			return Math.max(0, pick.basePower - cards[0].basePower - cards[1].basePower);
 		}
 	},
 	eredin_king: {

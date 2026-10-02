@@ -48,10 +48,11 @@ var factions = {
 					hotseat ? player.name + ", would you like to go first?" : "Would you like to go first?",
 					"The Scoia'tael faction perk allows you to decide who will get to go first.", 0.55);
 				await ui.playerNotification("first", game.firstPlayer, 1200);
-			} else if (Math.random() < 0.5) {
+			} else if (!player.controller.difficulty.strategic && Math.random() < 0.5) {
 				game.firstPlayer = player;
 				await ui.notification("scoiatael", 1200);
 			} else {
+				// Going second lets a player answer every play, so Hard always lets the opponent start
 				game.firstPlayer = player.opponent();
 				await ui.playerNotification("first", game.firstPlayer, 1200);
 			}
@@ -69,7 +70,10 @@ var factions = {
 			await ui.playerNotification("skellige", player, 1200);
 			if (player.controller instanceof ControllerAI)
 			{
-				await Promise.all(player.grave.findCardsRandom(c => c.isUnit(), 2).map(c => board.toRow(c, player.grave)));
+				// One at a time: a revived medic may already have taken the other card from the grave
+				for (const card of player.grave.findCardsRandom(c => c.isUnit(), 2))
+					if (player.grave.cards.includes(card))
+						await board.toRow(card, player.grave);
 			}
 			else
 			{

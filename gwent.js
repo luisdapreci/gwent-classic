@@ -25,120 +25,161 @@ function makeAccessible(elem, label) {
 
 class Controller {}
 
-// Makes decisions for the AI opponent player
+// Makes decisions for an AI-controlled player (either side of the board)
 class ControllerAI {
-	// easy: no mulligan, often plays a random viable option; normal: weighted random; hard: best option, saves cards when finishing a round
+	// easy: no mulligan, often plays a random viable option; normal: weighted random; hard: plays for card advantage across rounds
 	static difficulties = {
 		easy: {label: "Easy", redraws: 0, randomChance: 0.5},
 		normal: {label: "Normal", redraws: 2, randomChance: 0},
-		hard: {label: "Hard", redraws: 2, randomChance: 0, greedy: true}
+		hard: {label: "Hard", redraws: 2, randomChance: 0, strategic: true}
 	};
 	
-	static difficulty() {
-		return ControllerAI.difficulties[Settings.aiDifficulty.get()] ?? ControllerAI.difficulties.normal;
+	// Leader abilities that score no points: the first return a unit to hand, the rest only reshape hands, decks or turns
+	static drawLeaders = ["emhyr_relentless", "eredin_bringer_of_death"];
+	static utilityLeaders = ["emhyr_emperor", "eredin_destroyer", "crach_an_craite"];
+	
+	static difficulty(level = Settings.aiDifficulty.get()) {
+		return ControllerAI.difficulties[level] ?? ControllerAI.difficulties.normal;
 	}
 	
-	constructor(player) {
+	// A player's close, ranged and siege rows
+	static rowsOf(player) {
+		const me = player === player_me;
+		return {close: board.row[me ? 3 : 2], ranged: board.row[me ? 4 : 1], siege: board.row[me ? 5 : 0]};
+	}
+	
+	constructor(player, level) {
 		this.player = player;
+		this.difficulty = ControllerAI.difficulty(level);
 	}
 	
-	// Collects data and weighs options before taking an action chosen according to the difficulty
+	myRows() {
+		return Object.values(ControllerAI.rowsOf(this.player));
+	}
+	
+	// Points still needed to take the lead; ties go to a Nilfgaard deck facing another faction
+	pointsToLead() {
+		const me = this.player, op = me.opponent();
+		const winsTies = me.deck.faction === "nilfgaard" && op.deck.faction !== "nilfgaard";
+		return op.total - me.total + (winsTies ? 0 : 1);
+	}
+	
+	// Rates every option, then picks one according to the difficulty
 	async startTurn(player){
-		if (player.opponent().passed && (player.winning || 
-				player.deck.faction === "nilfgaard" && player.total === player.opponent().total) ){
+		if (player.opponent().passed && this.pointsToLead() <= 0) {
 			await player.passRound();
 			return;
 		}
-		const difficulty = ControllerAI.difficulty();
-		let data_max = this.getMaximums();
-		let data_board = this.getBoardData();
-		if (difficulty.greedy && player.opponent().passed) {
-			const finisher = this.cheapestWinningCard(data_max);
-			if (finisher) {
-				await this.playCard(finisher, data_max, data_board);
-				return;
-			}
-		}
-		let weights = player.hand.cards.map(c => 
-			({weight: this.weightCard(c, data_max, data_board), action: async () => await this.playCard(c, data_max, data_board)}) );
+		const max = this.getMaximums();
+		const data = this.getBoardData();
+		const options = player.hand.cards.map(c => 
+			({...this.rateCard(c, max, data), action: async () => await this.playCard(c, max, data)}) );
 		if (player.leaderAvailable)
-			weights.push( {weight: this.weightLeader(player.leader, data_max, data_board), action: async () => await player.activateLeader()} );
-		weights.push( {weight: this.weightPass(), action: async () => await player.passRound()} );
-		let weightTotal = weights.reduce( (a,c) => a + c.weight, 0);
-		if (weightTotal === 0){
-			for (let i=0; i<player.hand.cards.length; ++i) {
-				let card = player.hand.cards[i];
-				if (card.row === "weather" && this.weightWeather(card) > -1 || card.abilities.includes("avenger")) {
-					await weights[i].action();
-					return;
-				}
-			}
-			await player.passRound();
-		} else {
-			await this.chooseAction(weights, weightTotal, difficulty).action();
-		}
+			options.push( {...this.rateLeader(player.leader, max, data), leader: true, action: async () => await player.activateLeader()} );
+		const pass = {weight: this.weightPass(options), action: async () => await player.passRound()};
+		const choice = this.difficulty.strategic ? this.chooseStrategic(options, pass) : this.chooseAction([...options, pass]);
+		await (choice ?? pass).action();
 	}
 	
-	// Picks an action from weighted options. Assumes at least one positive weight.
-	chooseAction(weights, weightTotal, difficulty) {
-		const viable = weights.filter(w => w.weight > 0);
-		if (difficulty.greedy) {
-			const best = Math.max(...viable.map(w => w.weight));
-			const top = viable.filter(w => w.weight === best);
-			return top[randomInt(top.length)];
-		}
-		if (Math.random() < difficulty.randomChance)
+	// Easy/Normal: a weighted random option, which Easy often swaps for a uniformly random one
+	chooseAction(options) {
+		const viable = options.filter(o => o.weight > 0);
+		if (!viable.length)
+			return null;
+		if (Math.random() < this.difficulty.randomChance)
 			return viable[randomInt(viable.length)];
-		let rand = Math.random() * weightTotal;
-		for (const w of viable) {
-			rand -= w.weight;
+		let rand = Math.random() * viable.reduce((a, o) => a + o.weight, 0);
+		for (const o of viable) {
+			rand -= o.weight;
 			if (rand < 0)
-				return w;
+				return o;
 		}
 		return viable[viable.length - 1];
 	}
 	
-	// Returns the lowest-value unit card that alone overtakes an opponent who has passed, if any
-	cheapestWinningCard(max) {
-		const op = this.player.opponent();
-		const need = op.total - this.player.total + (this.player.deck.faction === "nilfgaard" ? 0 : 1);
-		const unitRows = ["close", "ranged", "siege", "agile"];
-		const options = this.player.hand.cards
-			.filter(c => unitRows.includes(c.row) && !c.abilities.some(a => a === "spy" || a.startsWith("scorch")))
-			.map(c => {
-				const row = c.row === "agile" ? this.determineAgileRow(c) : board.getRow(c, c.row, this.player);
-				// Lower bound: ignores muster pulls and medic revives
-				const gain = ["bond", "morale", "horn"].some(a => c.abilities.includes(a)) ? this.weightRowChange(c, row) : row.calcCardScore(c);
-				return {card: c, gain: gain};
-			})
-			.filter(o => o.gain >= need)
-			.sort((a, b) => a.gain - b.gain || a.card.basePower - b.card.basePower);
-		return options[0]?.card;
+	// Hard: takes free cards first, spends as little as possible to win rounds and gives up the ones that cost too much
+	chooseStrategic(options, pass) {
+		const me = this.player, op = me.opponent();
+		const viable = options.filter(o => o.weight > 0);
+		if (!viable.length)
+			return pass;
+		const need = this.pointsToLead();
+		const mustWin = me.health === 1;
+		const cardAdv = me.hand.cards.length - op.hand.cards.length;
+		const advantage = viable.filter(o => o.advantage);
+		const scoring = viable.filter(o => o.points > 0);
+		const best = (list, key) => list.reduce((a, o) => o[key] > a[key] ? o : a);
+		const cheapest = list => list.reduce((a, o) => o.value < a.value || o.value === a.value && o.points < a.points ? o : a);
+		
+		if (op.passed) {
+			// Any cost is worth it when the round decides the game; otherwise keep enough cards for the next rounds
+			const affordable = plan => plan && (mustWin || op.health === 1 || plan.cards <= Math.max(1, cardAdv + 2));
+			const plan = this.cheapestPlan(scoring, need);
+			if (!affordable(plan)) {
+				if (mustWin && scoring.length)
+					return best(scoring, "points");
+				// The round is given up, but free cards are still worth taking
+				return advantage.length ? best(advantage, "weight") : pass;
+			}
+			const spy = advantage.find(o => affordable(this.cheapestPlan(scoring.filter(s => s !== o), need - o.points)));
+			return spy ?? best(plan.plays, "points");
+		}
+		// Final round: nothing left to save cards for
+		if (mustWin && op.health === 1)
+			return best(viable, "weight");
+		if (advantage.length)
+			return best(advantage, "weight");
+		const ahead = need <= 0 && me.total > 0;
+		const overtake = scoring.filter(o => o.points >= need);
+		// Lost the first round: must win this one too, so keep pace with the cheapest cards that do it
+		if (mustWin) {
+			if (ahead)
+				return cheapest(scoring.length ? scoring : viable);
+			return overtake.length ? cheapest(overtake) : best(scoring.length ? scoring : viable, "points");
+		}
+		// Won the first round: the opponent must win this one, so make them pay for it unless a card lead can end the game
+		if (op.health === 1)
+			return !ahead && cardAdv >= 1 && overtake.length ? cheapest(overtake) : pass;
+		// First round: stay ahead cheaply, and pass when the opponent would need more cards than it's worth to them
+		if (ahead)
+			return cardAdv >= 1 || -need >= 10 ? pass : cheapest(scoring.length ? scoring : viable);
+		if (overtake.length)
+			return cheapest(overtake);
+		const plan = this.cheapestPlan(scoring, need);
+		return plan && plan.cards <= 1 + Math.max(0, cardAdv) ? best(plan.plays, "points") : pass;
 	}
 	
-	// Collects data about card with the hightest power on the board
+	// The fewest cards (then least value spent) whose points together reach need; the leader costs no card
+	cheapestPlan(plays, need) {
+		plays = [...plays].sort((a, b) => b.points - a.points).slice(0, 12);
+		let plan = null;
+		for (let mask = 1; mask < 1 << plays.length; mask++) {
+			const set = plays.filter((o, i) => mask & 1 << i);
+			if (set.reduce((a, o) => a + o.points, 0) < need)
+				continue;
+			const cards = set.filter(o => !o.leader).length;
+			const value = set.reduce((a, o) => a + o.value, 0);
+			if (!plan || cards < plan.cards || cards === plan.cards && value < plan.value)
+				plan = {plays: set, cards: cards, value: value};
+		}
+		return plan;
+	}
+	
+	// Collects the strongest non-hero units of each row and of each side of the board
 	getMaximums(){
-		let rmax = board.row.map(r =>  ({row: r, cards: r.cards.filter(c => c.isUnit()).reduce( (a,c) => 
-			(!a.length|| a[0].power < c.power) ? [c] : a[0].power === c.power ? a.concat([c]) : a
-		, []) }) );
-		
-		let max = rmax.filter((r,i) => r.cards.length && i < 3).reduce((a,r) => Math.max(a, r.cards[0].power), 0);
-		let max_me = rmax.filter((r,i) => i < 3 && r.cards.length && r.cards[0].power === max).reduce((a,r) => 
-			a.concat(r.cards.map(c => ({row:r, card:c})))
-		, []);
-		
-		max = rmax.filter((r,i) => r.cards.length && i > 2).reduce((a,r) => Math.max(a, r.cards[0].power), 0);
-		let max_op = rmax.filter((r,i) => i > 2 && r.cards.length && r.cards[0].power === max).reduce((a,r) => 
-			a.concat(r.cards.map(c => ({row:r, card:c})))
-		, []);
-		
-		return {rmax: rmax, me: max_me, op: max_op};
+		const rmax = board.row.map(r => ({row: r, cards: r.maxUnits()}));
+		const mine = this.myRows();
+		const strongest = rows => {
+			const power = rows.reduce((a, r) => Math.max(a, r.cards[0]?.power ?? -1), -1);
+			return rows.filter(r => r.cards[0]?.power === power).flatMap(r => r.cards.map(c => ({row: r.row, card: c})));
+		};
+		return {rmax: rmax, me: strongest(rmax.filter(r => mine.includes(r.row))), op: strongest(rmax.filter(r => !mine.includes(r.row)))};
 	}
 	
-	// Collects data about the types of cards on the board and in each player's graves
+	// Collects data about the types of cards on this player's side of the board and in each player's grave
 	getBoardData(){
 		let data = this.countCards(new CardContainer());
-		Object.keys([0,1,2]).map(i => board.row[i]).forEach(r => this.countCards(r, data));
+		this.myRows().forEach(r => this.countCards(r, data));
 		data.grave_me = this.countCards(this.player.grave);
 		data.grave_op = this.countCards(this.player.opponent().grave);
 		return data;
@@ -211,10 +252,16 @@ class ControllerAI {
 			cards.push(...weathers);
 		}
 		
-		let normal = card.holder.hand.cards.filter(c => c.abilities.length === 0);
+		let normal = card.holder.hand.cards.filter(c => c.abilities.length === 0 && !c.hero);
 		normal.sort(Card.compare);
 		cards.push(...normal);
 		return cards;
+	}
+	
+	// The strongest non-spy unit in the deck, for abilities that pick a card from it
+	bestDeckCard() {
+		return this.player.deck.cards.filter(c => ["close", "ranged", "siege", "agile"].includes(c.row) && !c.abilities.includes("spy"))
+			.reduce((a, c) => !a || c.basePower > a.basePower ? c : a, undefined);
 	}
 	
 	// Tells the Player that this object controls to play a card
@@ -233,36 +280,15 @@ class ControllerAI {
 	
 	// Plays a Commander's Horn to the most beneficial row. Assumes at least one viable row.
 	async horn(card){
-		let rows = [0,1,2].map(i => board.row[i]).filter(r => r.special === null);
-		let max_row;
-		let max = 0;
-		for (let i=0; i<rows.length; ++i) {
-			let r = rows[i];
-			let dif = [0, 0];
-			this.calcRowPower(r, dif, true);
-			r.effects.horn++;
-			this.calcRowPower(r, dif, false);
-			r.effects.horn--;
-			let score = dif[1] - dif[0];
-			if (max < score){
-				max = score;
-				max_row = r;
-			}
-		}
-		await this.player.playCardToRow(card, max_row);
+		const rows = this.myRows();
+		const gains = rows.map(r => this.hornGain(r));
+		await this.player.playCardToRow(card, rows[gains.indexOf(Math.max(...gains))]);
 	}
 	
 	// Plays a Mardroeme to the most beneficial row. Assumes at least one viable row.
 	async mardroeme(card){
-		let row, max = 0;
-		for (let i=1; i<3; i++){
-			let curr = this.weightMardroemeRow(card, board.row[i]);
-			if (curr > max){
-				max = curr;
-				row = board.row[i];
-			}
-		}
-		await this.player.playCardToRow(card, row);
+		const {ranged, close} = ControllerAI.rowsOf(this.player);
+		await this.player.playCardToRow(card, this.weightMardroemeRow(card, ranged) > this.weightMardroemeRow(card, close) ? ranged : close);
 	}
 	
 	// Selects a card to remove from a Grave. Assumes at least one valid card.
@@ -270,11 +296,9 @@ class ControllerAI {
 		let data = this.countCards(grave);
 		let targ;
 		if (data.spy.length){
-			let min = data.spy.reduce( (a,c) => Math.min(a, c.power), Number.MAX_VALUE);
-			targ = data.spy.filter(c => c.power === min)[0];
+			targ = data.spy.reduce((a, c) => c.power < a.power ? c : a);
 		} else if (data.medic.length) {
-			let max = data.medic.reduce( (a,c) => Math.max(a, c.power), Number.MIN_VALUE);
-			targ = data.medic.filter(c => c.power === max)[0];
+			targ = data.medic.reduce((a, c) => c.power > a.power ? c : a);
 		} else if (data.scorch.length) {
 			targ = data.scorch[randomInt(data.scorch.length)];
 		} else {
@@ -284,25 +308,26 @@ class ControllerAI {
 		return targ;
 	}
 	
-	// Selects a card to return to the Hand and replaces it with a Decoy. Assumes at least one valid card.
+	// The unit a medic-like ability would take from owner's grave, if any
+	reviveTarget(owner) {
+		return owner.grave.findCard(c => c.isUnit()) ? this.medic(null, owner.grave) : undefined;
+	}
+	
+	// Picks the unit a Decoy takes back: an enemy spy, a medic or scorch unit to reuse, else one of the strongest units
+	decoyTarget(max, data) {
+		if (data.spy.length)
+			return data.spy.reduce((a, c) => c.power < a.power ? c : a);
+		if (data.medic.length && this.reviveTarget(this.player))
+			return data.medic[randomInt(data.medic.length)];
+		if (data.scorch.length)
+			return data.scorch[randomInt(data.scorch.length)];
+		return max.me[randomInt(max.me.length)]?.card;
+	}
+	
+	// Returns a unit to the Hand and replaces it with a Decoy. Assumes at least one valid card.
 	async decoy(card, max, data) {
-		let targ, row;
-		if (data.spy.length){
-			let min = data.spy.reduce( (a,c) => Math.min(a, c.power), Number.MAX_VALUE);
-			targ = data.spy.filter(c => c.power === min)[0];
-		} else if (data.medic.length) {
-			targ = data.medic[randomInt(data.medic.length)];
-		} else if (data.scorch.length) {
-			targ = data.scorch[randomInt(data.scorch.length)];
-		} else {
-			let pairs = max.rmax.filter((r,i) => i<3 && r.cards.length).reduce((a,r) => 
-				r.cards.map(c => ({r:r.row, c:c})).concat(a)
-			, []);
-			let pair = pairs[randomInt(pairs.length)];
-			targ = pair.c;
-			row = pair.r;
-		}
-		row = row ?? board.row.find(r => r.cards.includes(targ));
+		const targ = this.decoyTarget(max, data);
+		const row = board.row.find(r => r.cards.includes(targ));
 		await this.player.playCardAction(card, async () => await Promise.all([
 			board.toHand(targ, row),
 			board.moveTo(card, row, this.player.hand)
@@ -329,16 +354,20 @@ class ControllerAI {
 		return dif > 0 ? close : dif < 0 ? ranged : Math.random() >0.5 ? close : ranged; 
 	}
 
-	// Assigns a weight for how likely the conroller is to Pass the round
-	weightPass(){
+	// Assigns a weight for how likely the controller is to pass the round (Easy/Normal)
+	weightPass(options){
 		const me = this.player, op = me.opponent();
 		if (me.health === 1)
 			return 0;
 		const dif = op.total - me.total;
 		const cardAdv = me.hand.cards.length - op.hand.cards.length;
-		// Opponent passed and we're behind (startTurn already passes when ahead): concede only big deficits
-		if (op.passed)
+		if (op.passed) {
+			// Winning now ends the game, so only concede a deficit the hand can't cover
+			if (op.health === 1)
+				return dif >= options.reduce((a, o) => a + Math.max(0, o.points), 0) ? 100 : 0;
+			// startTurn already passes when ahead: concede only big deficits
 			return dif > 15 + 5 * Math.max(0, cardAdv) ? 100 : 0;
+		}
 		if (Math.abs(dif) > 30)
 			return 100;
 		if (dif <= 0)
@@ -347,28 +376,38 @@ class ControllerAI {
 		return Math.floor(cardAdv > 0 ? dif + 5 * cardAdv : dif * 0.3);
 	}
 	
-	// Assigns a weight for how likely the controller is to activate its leader ability
-	weightLeader(card, max, data) {
-		let w = ability_dict[card.abilities[0]].weight;
-		if (ability_dict[card.abilities[0]].weight) {
-			let score = w(card, this, max, data);
-			return score;
-		}
-		return 10 + (game.roundCount-1) * 15;
+	// Rates activating the leader like a card (see rateCard). It costs no card, so it's cheap to use.
+	rateLeader(card, max, data) {
+		const ability = card.abilities[0];
+		const weight = Math.max(0, ability_dict[ability].weight?.(card, this, max, data) ?? 0);
+		const draws = ControllerAI.drawLeaders.includes(ability);
+		const points = draws || ControllerAI.utilityLeaders.includes(ability) ? 0 : weight;
+		return {weight: weight, points: points, value: draws ? 0 : 3, advantage: draws && weight > 0};
 	}
 	
 	// Assigns a weight for how likely the controller will use a scorch-row card
 	weightScorchRow(card, max, row_name) {
-		let index = 3 + (row_name==="close" ? 0 : row_name==="ranged" ? 1 : 2);
-		if (board.row[index].total < 10)
+		const row = ControllerAI.rowsOf(this.player.opponent())[row_name];
+		if (row.total < 10)
 			return 0;
-		let score = max.rmax[index].cards.reduce((a,c) => a + c.power, 0);
-		return score;
+		return max.rmax[board.row.indexOf(row)].cards.reduce((a,c) => a + c.power, 0);
 	}
 	
-	// Calculates a weight for how likely the conroller will use horn on this row
+	// Calculates a weight for how likely the controller will use a horn (card or leader) on this row
 	weightHornRow(card, row){
-		return row.special !== null ? 0 : this.weightRowChange(card, row);
+		return this.hornGain(row);
+	}
+	
+	// Points a Commander's Horn effect would add to a row; one per row, so none if its special slot is taken
+	hornGain(row){
+		if (row.special !== null)
+			return 0;
+		const dif = [0, 0];
+		this.calcRowPower(row, dif, true);
+		row.effects.horn++;
+		this.calcRowPower(row, dif, false);
+		row.effects.horn--;
+		return dif[1] - dif[0];
 	}
 	
 	// Calculates weight for playing a card on a given row, min 0
@@ -388,15 +427,13 @@ class ControllerAI {
 		return dif[1] - dif[0];
 	}
 	
-	// Calculates the weight for playing a weather card
+	// Calculates the weight for playing a weather card: the opponent's loss minus this player's
 	weightWeather(card) {
-		let rows;
-		if (card.name === "Clear Weather")
-			rows = Object.values(weather.types).filter(t => t.count > 0).flatMap(t => t.rows);
-		else
-			rows = Object.values(weather.types).filter(t => t.count === 0 && t.name === card.abilities[0]).flatMap(t => t.rows);
-		if (!rows.length)
-			return 1;
+		const types = Object.values(weather.types);
+		// Skellige Storm carries several weather types
+		const rows = card.name === "Clear Weather"
+			? types.filter(t => t.count > 0).flatMap(t => t.rows)
+			: types.filter(t => t.count === 0 && card.abilities.includes(t.name)).flatMap(t => t.rows);
 		let dif = [0,0];
 		rows.forEach( r => {
 			let state = r.effects.weather;
@@ -412,20 +449,23 @@ class ControllerAI {
 	weightMardroemeRow(card, row){
 		if (card.name === "Mardroeme" && row.special !== null)
 			return 0;
-		let ermion = card.holder.hand.cards.filter(c => c.name === "Ermion").length > 0;
-		if (ermion && card.name !== "Ermion" && row === board.row[1])
+		const {ranged, close} = ControllerAI.rowsOf(card.holder);
+		const hand = card.holder.hand.cards;
+		if (card.name !== "Ermion" && row === ranged && hand.some(c => c.name === "Ermion"))
 			return 0;
-		let name = row === board.row[1] ? "Young Berserker" : "Berserker";
-		let n = row.cards.filter(c => c.name === name).length;
-		let weight = row === board.row[2] ? 10*n : 8*n*n - 2*n
-		return Math.max(1, weight);
+		const n = row.cards.filter(c => c.name === (row === ranged ? "Young Berserker" : "Berserker")).length;
+		if (!n && !hand.some(c => c.abilities.includes("berserker")))
+			return 0;
+		return Math.max(1, row === close ? 10*n : 8*n*n - 2*n);
 	}
 	
-	// Calculates the weight for cards with the medic ability
+	// Weighs reviving owner's best grave unit (to the board, or to hand for leaders) on top of the card's own score
 	weightMedic(data, score, owner){
-		let units = owner.grave.findCards(c => c.isUnit());
-		let grave = data["grave_" + owner.opponent().tag];
-		return !units.length ? Math.min(1,score) : score + (grave.spy.length ? 50 : grave.medic.length ? 15 : grave.scorch.length  ? 10 : this.player.health === 1 ? 1 : 0);
+		const targ = this.reviveTarget(owner);
+		if (!targ)
+			return Math.min(1, score);
+		const grave = owner === this.player ? data.grave_me : data.grave_op;
+		return score + targ.basePower + (grave.spy.length ? 50 : grave.medic.length ? 15 : grave.scorch.length ? 10 : 0);
 	}
 	
 	// Calculates the weight for cards with the berserker ability
@@ -446,81 +486,93 @@ class ControllerAI {
 		return Math.max(1, score);
 	}
 	
-	// Calculates the weight for a weather card if played from the deck
+	// Calculates the weight for a leader playing a weather card from the deck (Skellige Storm's first ability is "storm")
 	weightWeatherFromDeck(card, weather_id) {
-		if (card.holder.deck.findCard(c => c.abilities.includes(weather_id)) === undefined)
-			return 0;
-		return this.weightCard({abilities:[weather_id], row:"weather"});
+		const found = card.holder.deck.findCard(c => c.row === "weather" && c.abilities[0] === weather_id);
+		return found ? Math.max(0, this.weightWeather(found)) : 0;
 	}
 	
-	// Assigns a weights for how likely the controller with play a card from its hand
 	weightCard(card, max, data){
-		if (card.name === "Decoy")
-			return data.spy.length ? 50 : data.medic.length ? 15 : data.scorch.length  ? 10 : max.me.length ? 1 : 0;
-		if (card.name === "Commander's Horn") {
-			let rows = [0,1,2].map(i => board.row[i]).filter(r => r.special === null);
-			if (!rows.length)
-				return 0;
-			rows = rows.map(r => this.weightHornRow(card, r) );
-			return Math.max(...rows);
+		return this.rateCard(card, max, data).weight;
+	}
+	
+	// Rates playing a card: points = immediate change in the score difference, weight = desirability,
+	// value = what the card is worth if kept for later, advantage = it gains cards rather than points
+	rateCard(card, max, data){
+		// Specials are kept for when they swing the most, so they count as worth at least base points
+		const rated = (points, base, weight = points, advantage = false) => 
+			({points: points, value: Math.max(points, base), weight: Math.max(0, weight), advantage: advantage});
+		if (card.name === "Decoy") {
+			const targ = this.decoyTarget(max, data);
+			const weight = !targ ? 0 : data.spy.includes(targ) ? 50 : data.medic.includes(targ) ? 15 : data.scorch.includes(targ) ? 10 : 1;
+			return rated(targ ? -targ.power : 0, 8, weight, data.spy.includes(targ));
 		}
-		
-		if (card.abilities) {
-			if (card.abilities.includes("scorch")) {
-				let power_op = max.op.length ? max.op[0].card.power : 0;
-				let power_me = max.me.length ? max.me[0].card.power : 0;
-				let total_op = power_op * max.op.length;
-				let total_me = power_me * max.me.length;
-				return power_me > power_op ? 0 : power_me < power_op ? total_op : Math.max(0, total_op - total_me);
-			}
-			if (card.abilities.includes("decoy")) {
-				return data.spy.length ? 50 : data.medic.length ? 15 : data.scorch.length  ? 10 : max.me.length ? 1 : 0;
-			}
-			if (card.abilities.includes("mardroeme")) {
-				let rows = [1,2].map(i => board.row[i]);
-				return Math.max(...rows.map(r => this.weightMardroemeRow(card, r)) );
-			}
+		if (card.name === "Commander's Horn")
+			return rated(Math.max(0, ...this.myRows().map(r => this.hornGain(r))), 18);
+		if (card.name === "Scorch")
+			return rated(this.scorchGain(max), 12);
+		if (card.name === "Mardroeme") {
+			const {ranged, close} = ControllerAI.rowsOf(this.player);
+			return rated(Math.max(this.weightMardroemeRow(card, ranged), this.weightMardroemeRow(card, close)), 10);
 		}
+		if (card.row === "weather")
+			return rated(this.weightWeather(card), 8);
 		
-		if (card.row === "weather") {
-			return Math.max(0, this.weightWeather(card));
-		}
-		
-		let row;
-		if (card.row === 'agile')
-			row = this.determineAgileRow(card);
-		else
-			row = board.getRow(card, card.row === "agile" ? "close" : card.row, this.player);
-		let score = row.calcCardScore(card);
-		switch(card.abilities[card.abilities.length -1])
+		const row = card.row === "agile" ? this.determineAgileRow(card) : board.getRow(card, card.row, this.player);
+		let points = row.calcCardScore(card);
+		let weight, advantage = false, extraValue = card.hero ? 2 : 0;
+		const ability = card.abilities[card.abilities.length - 1];
+		switch(ability)
 		{
 			case "bond": 
 			case "morale":
 			case "horn":
-				score = this.weightRowChange(card, row); break;
-			case "medic": 
-				score = this.weightMedic(data, score, card.holder);	break;
-			case "spy": {
-				// score is the strength handed to the opponent; value comes from the 2 draws
-				const cardAdv = this.player.hand.cards.length - this.player.opponent().hand.cards.length;
-				score = this.player.deck.cards.length === 0 ? 1
-					: Math.max(1, 20 + 5 * Math.max(0, -cardAdv) + (game.roundCount < 3 ? 5 : 0) - score);
+				points = this.weightRowChange(card, row); break;
+			case "medic": {
+				const targ = this.reviveTarget(this.player);
+				weight = this.weightMedic(data, points, this.player);
+				// A revived spy lands on the opponent's side
+				advantage = !!targ?.abilities.includes("spy");
+				points += !targ ? 0 : advantage ? -targ.basePower : targ.basePower;
+				extraValue += 3;
 				break;
 			}
-			case "muster": score *= 3; break;
-			case "scorch_c":
-				score = Math.max(1, this.weightScorchRow(card, max, "close")); break;
-			case "scorch_r": 
-				score = Math.max(1, this.weightScorchRow(card, max, "ranged")); break;
-			case "scorch_s":
-				score = Math.max(1, this.weightScorchRow(card, max, "siege")); break;
+			case "spy": {
+				// points is the strength handed to the opponent; value comes from the 2 draws
+				const cardAdv = this.player.hand.cards.length - this.player.opponent().hand.cards.length;
+				advantage = this.player.deck.cards.length > 0;
+				weight = !advantage ? 1 : Math.max(1, 20 + 5 * Math.max(0, -cardAdv) + (game.roundCount < 3 ? 5 : 0) - points);
+				return rated(-points, 0, weight, advantage);
+			}
+			case "muster": points += this.musterPoints(card); break;
+			case "scorch": points += this.scorchGain(max); break;
+			case "scorch_c": points += this.weightScorchRow(card, max, "close"); break;
+			case "scorch_r": points += this.weightScorchRow(card, max, "ranged"); break;
+			case "scorch_s": points += this.weightScorchRow(card, max, "siege"); break;
+			case "mardroeme": points += this.weightMardroemeRow(card, row); break;
 			case "berserker":
-				score = this.weightBerserker(card, row, score); break;
-			case "avenger": case "avenger_kambi":
-				return score + ability_dict[card.abilities[card.abilities.length -1]].weight();
+				points = this.weightBerserker(card, row, points); break;
+			case "avenger": case "avenger_kambi": {
+				// Its summon arrives when it leaves the board, usually at the end of the round
+				const summon = ability_dict[ability].weight();
+				return rated(points, 0, points + summon, summon > 0);
+			}
 		}
-		
-		return score;
+		return rated(points, card.basePower + extraValue, weight ?? points, advantage);
+	}
+	
+	// Points of the units a muster card summons from the deck
+	musterPoints(card) {
+		const group = ability_dict["muster"].group(card);
+		return this.player.deck.cards.filter(c => c.name.startsWith(group))
+			.reduce((a, c) => a + board.getRow(c, c.row === "agile" ? "close" : c.row, this.player).calcCardScore(c), 0);
+	}
+	
+	// Points swing of a Scorch, which destroys the strongest non-hero units on the whole board
+	scorchGain(max) {
+		const power = max.me.concat(max.op).reduce((a, x) => Math.max(a, x.card.power), 0);
+		const burnt = side => side.filter(x => x.card.power === power).length * power;
+		return burnt(max.op) - burnt(max.me);
 	}
 	
 	// Calculates the current power of a row associated with each Player
@@ -1659,7 +1711,7 @@ class Game {
 		const session = this.session;
 		const hotseat = this.isHotseat();
 		for (const player of [player_op, player_me].filter(p => !p.isHuman()))
-			for (let i=0; i < ControllerAI.difficulty().redraws; i++)
+			for (let i=0; i < player.controller.difficulty.redraws; i++)
 				player.controller.redraw();
 		for (const player of [player_me, player_op].filter(p => p.isHuman())) {
 			if (session !== this.session)

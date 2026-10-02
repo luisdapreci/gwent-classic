@@ -94,7 +94,7 @@ Open the **Deck Builder** from the title screen.
 - **Download** saves your deck as `GwentDeck.json`. **Upload** loads one, checking the faction, leader, card IDs and copy limits; you can choose to import anyway if only some entries are invalid.
 - **Opponent:** choose **AI** or **Pass and Play** (see [Pass and play](#pass-and-play)). The choice is remembered.
 - **Opponent's deck:** upload a deck for the AI to use instead of a random premade one, or click the deck icon to use one of your saved faction decks. It must be a legal deck (22+ units, at most 10 specials). You can view or clear it from the same panel. In pass and play this is replaced by the Player 1 / Player 2 deck switch.
-- **AI difficulty:** pick **Easy**, **Normal** or **Hard** under the opponent's deck (shown when playing the AI). Easy skips its redraw and often makes random plays; Normal weighs its options with some randomness; Hard always takes its best-rated play and, once you've passed, wins the round with its cheapest sufficient card. The choice is remembered.
+- **AI difficulty:** pick **Easy**, **Normal** or **Hard** under the opponent's deck (shown when playing the AI). Easy skips its redraw and often makes random plays; Normal weighs its options with some randomness; Hard plays for card advantage: it takes free cards first (spies, decoyed spies, Avengers), answers with its cheapest card that takes the lead, passes once ahead in rounds it can afford to lose, and once you've passed it wins with the fewest cards (or gives up a round that would cost too many). The choice is remembered.
 
 Decks are saved per faction in your browser's `localStorage`, along with the last faction you used (separately for Player 2 in pass and play).
 
