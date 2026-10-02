@@ -75,8 +75,10 @@
 .deck-options {
 	position: absolute;
 	top: 15%;
-	width: calc(8.5 * var(--u));
-	padding: calc(0.35 * var(--u)) 0;
+	min-width: calc(8.5 * var(--u));
+	padding: calc(0.35 * var(--u)) calc(0.8 * var(--u));
+	translate: -50% 0;
+	white-space: nowrap;
 	color: var(--text);
 	font-family: var(--font-display);
 	font-size: max(calc(0.72 * var(--u)), 9.5px);
@@ -103,9 +105,10 @@
 	z-index: 1;
 }
 
-#upload-deck    { left: 36%; }
-#change-faction { left: 46%; }
-#download-deck  { left: 56%; }
+/* px floor keeps the floored-font buttons from touching on narrow stages */
+#upload-deck    { left: calc(50% - max(12%, 136px)); }
+#change-faction { left: 50%; }
+#download-deck  { left: calc(50% + max(12%, 136px)); }
 
 .card-contianer-title {
 	position: absolute;
@@ -376,9 +379,9 @@ body.deck-only #ai-difficulty { display: none; }
 		font-size: 10.5px;
 		letter-spacing: 0.04em;
 	}
-	#upload-deck    { left: calc(50% - 48px - 102px); }
-	#change-faction { left: calc(50% - 48px); }
-	#download-deck  { left: calc(50% - 48px + 102px); }
+	#upload-deck    { left: calc(50% - 102px); }
+	#change-faction { left: 50%; }
+	#download-deck  { left: calc(50% + 102px); }
 	/* the px-sized buttons reach past 19.5%, so the divider and leader drop below them */
 	#deck-customization::before { top: calc(14.3% + 25px); }
 	#card-leader { top: calc(20.8% + 6px); height: calc(27% - 6px); }

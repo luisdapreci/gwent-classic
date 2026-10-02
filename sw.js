@@ -1,5 +1,5 @@
 // Bump to drop old caches after changing asset files in place.
-const VERSION = "gwent-v4";
+const VERSION = "gwent-v5";
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 
@@ -22,6 +22,7 @@ const SHELL_FILES = [
 	"css/deckbuilder.css",
 	"css/title.css",
 	"css/fx.css",
+	"css/guide.css",
 	"img/board.jpg",
 	"favicon.ico",
 	"img/app/favicon-32.png",

@@ -132,11 +132,13 @@ html { scrollbar-color: var(--gold-3) rgba(0, 0, 0, 0.45); }
 #toggle-sfx           { top: calc(var(--stage-y) + 1.2 * var(--u)); left: calc(var(--stage-x) + 7 * var(--u)); }
 #toggle-notifications { top: calc(var(--stage-y) + 1.2 * var(--u)); left: calc(var(--stage-x) + 10 * var(--u)); }
 #toggle-effects       { top: calc(var(--stage-y) + 1.2 * var(--u)); left: calc(var(--stage-x) + 13 * var(--u)); }
+#open-guide           { top: calc(var(--stage-y) + 1.2 * var(--u)); left: calc(var(--stage-x) + 16 * var(--u)); }
 
 .settings-button.deck-menu { z-index: 89; }
-#toggle-music.deck-menu   { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 45.6 * var(--u)); }
-#toggle-sfx.deck-menu     { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 48.75 * var(--u)); }
-#toggle-effects.deck-menu { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 51.9 * var(--u)); }
+#toggle-music.deck-menu   { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 44.025 * var(--u)); }
+#toggle-sfx.deck-menu     { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 47.175 * var(--u)); }
+#toggle-effects.deck-menu { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 50.325 * var(--u)); }
+#open-guide.deck-menu     { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 53.475 * var(--u)); }
 #toggle-notifications.deck-menu { display: none !important; }
 
 body.title-open { --title-toggles-top: 41.7; }
@@ -144,6 +146,7 @@ body.title-open:has(#title-install:not(.hide)) { --title-toggles-top: 45.9; }
 body.title-open #toggle-music.deck-menu   { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 8 * var(--u)); }
 body.title-open #toggle-sfx.deck-menu     { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 11.2 * var(--u)); }
 body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 14.4 * var(--u)); }
+body.title-open #open-guide.deck-menu     { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 17.6 * var(--u)); }
 
 /* small (phone) stages: finger-sized buttons, spaced by their own size */
 @media (max-width: 999px), (max-height: 562px) {
@@ -153,23 +156,28 @@ body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + var(--tit
        #toggle-sfx           { top: calc(var(--stage-y) + 0.5 * var(--u)); left: calc(var(--stage-x) + 1 * var(--u) + 2 * 24px); }
        #toggle-notifications { top: calc(var(--stage-y) + 0.5 * var(--u)); left: calc(var(--stage-x) + 1 * var(--u) + 3 * 24px); }
        #toggle-effects       { top: calc(var(--stage-y) + 0.5 * var(--u)); left: calc(var(--stage-x) + 1 * var(--u) + 4 * 24px); }
+       #open-guide           { top: calc(var(--stage-y) + 0.5 * var(--u)); left: calc(var(--stage-x) + 1 * var(--u) + 5 * 24px); }
 
 	.settings-button.deck-menu { width: 26px; height: 26px; }
 	/* deck builder: top-right corner, the centre column is full */
 	#toggle-music.deck-menu,
 	#toggle-sfx.deck-menu,
-	#toggle-effects.deck-menu { top: calc(var(--stage-y) + 1.6 * var(--u)); }
-	#toggle-music.deck-menu   { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px - 64px); }
-	#toggle-sfx.deck-menu     { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px - 32px); }
-	#toggle-effects.deck-menu { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px); }
+	#toggle-effects.deck-menu,
+	#open-guide.deck-menu { top: calc(var(--stage-y) + 1.6 * var(--u)); }
+	#toggle-music.deck-menu   { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px - 96px); }
+	#toggle-sfx.deck-menu     { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px - 64px); }
+	#toggle-effects.deck-menu { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px - 32px); }
+	#open-guide.deck-menu     { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px); }
 
 	/* the floored menu buttons push the title menu down, so the toggles move to the top-left corner */
 	body.title-open #toggle-music.deck-menu,
 	body.title-open #toggle-sfx.deck-menu,
-	body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + 2 * var(--u)); }
+	body.title-open #toggle-effects.deck-menu,
+	body.title-open #open-guide.deck-menu { top: calc(var(--stage-y) + 2 * var(--u)); }
 	body.title-open #toggle-music.deck-menu   { left: calc(var(--stage-x) + 8 * var(--u)); }
 	body.title-open #toggle-sfx.deck-menu     { left: calc(var(--stage-x) + 8 * var(--u) + 32px); }
 	body.title-open #toggle-effects.deck-menu { left: calc(var(--stage-x) + 8 * var(--u) + 64px); }
+	body.title-open #open-guide.deck-menu     { left: calc(var(--stage-x) + 8 * var(--u) + 96px); }
 }
 
 /* ---------- tooltip ---------- */

@@ -28,6 +28,7 @@
 	<link rel="stylesheet" type="text/css" href="css/deckbuilder.css" />
 	<link rel="stylesheet" type="text/css" href="css/title.css" />
 	<link rel="stylesheet" type="text/css" href="css/fx.css" />
+	<link rel="stylesheet" type="text/css" href="css/guide.css" />
 </head>
 
 <body class="title-open">
@@ -337,6 +338,7 @@
 <div data-title="Toggle sound effects" id="toggle-sfx" class="center deck-menu settings-button"><img src="svg/sfx.svg" alt=""></div>
 <div data-title="Toggle game messages" id="toggle-notifications" class="center deck-menu settings-button"><img src="svg/notification.svg" alt=""></div>
 <div data-title="Toggle visual effects" id="toggle-effects" class="center deck-menu settings-button"><img src="svg/effects.svg" alt=""></div>
+<div data-title="How to play" id="open-guide" class="center deck-menu settings-button"><img src="svg/help.svg" alt=""></div>
 
 <p id="live-region" class="sr-only" aria-live="polite" role="status"></p>
 
@@ -349,6 +351,267 @@
 		<p class="handoff-hint">Your hand stays hidden until you're ready. Keep it out of your opponent's sight.</p>
 		<button id="handoff-ready" class="btn-gold">Ready</button>
 		<button id="handoff-quit" class="btn-ghost">Quit match</button>
+	</div>
+</section>
+
+<section id="guide" class="hide" role="dialog" aria-modal="true" aria-labelledby="guide-heading">
+	<div class="guide-panel">
+		<nav class="guide-nav" aria-label="Guide chapters">
+			<h2 id="guide-heading">How to Play</h2>
+		</nav>
+		<div class="guide-body">
+			<div class="guide-pages">
+
+				<article class="guide-page" data-group="Playing Gwent" data-name="The Goal" data-icon="img/icons/icon_high_score.png">
+					<h3>Win two of three rounds</h3>
+					<p class="guide-lead">Gwent is a duel of armies. Each round both players send units to the battlefield &ndash; whoever has the higher total strength when the round ends wins it.</p>
+					<div class="g-rounds">
+						<div class="g-round won"><span>Round 1</span><img src="img/icons/notif_win_round.png" alt="" loading="lazy"><p><b>42</b> : 31</p><em>Won</em></div>
+						<div class="g-round lost"><span>Round 2</span><img src="img/icons/notif_lose_round.png" alt="" loading="lazy"><p>28 : <b>35</b></p><em>Lost</em></div>
+						<div class="g-round won"><span>Round 3</span><img src="img/icons/notif_win_round.png" alt="" loading="lazy"><p><b>51</b> : 39</p><em>Won</em></div>
+						<div class="g-arrow" aria-hidden="true"></div>
+						<img class="g-banner" src="img/icons/end_win.png" alt="Victory" loading="lazy">
+					</div>
+					<div class="g-gems">
+						<figure><div><img src="img/icons/icon_gem_on.png" alt="" loading="lazy"><img src="img/icons/icon_gem_on.png" alt="" loading="lazy"></div><figcaption>You start with <b>2 gems</b></figcaption></figure>
+						<div class="g-arrow" aria-hidden="true"></div>
+						<figure><div><img src="img/icons/icon_gem_on.png" alt="" loading="lazy"><img src="img/icons/icon_gem_off.png" alt="" loading="lazy"></div><figcaption>Lose a round, <b>lose a gem</b></figcaption></figure>
+						<div class="g-arrow" aria-hidden="true"></div>
+						<figure><div><img src="img/icons/icon_gem_off.png" alt="" loading="lazy"><img src="img/icons/icon_gem_off.png" alt="" loading="lazy"></div><figcaption>No gems left = <b>defeat</b></figcaption></figure>
+					</div>
+					<ul class="g-notes">
+						<li>You draw <b>10 cards</b> at the start and rarely get more &ndash; that hand has to last all three rounds.</li>
+						<li>Winning a round by a huge margin wastes cards. Letting a round go to save your hand is often the smart play.</li>
+						<li>A drawn round costs both players a gem (Nilfgaard wins draws).</li>
+					</ul>
+				</article>
+
+				<article class="guide-page" data-name="The Battlefield" data-icon="img/icons/card_row_close.png">
+					<h3>The battlefield</h3>
+					<p class="guide-lead">The bottom half of the board is yours, the top half belongs to your opponent.</p>
+					<div class="g-split">
+						<div class="g-shot">
+							<img src="img/guide/board.jpg" alt="A match in progress" loading="lazy">
+							<span class="g-pin" style="--x:35; --y:84">1</span>
+							<span class="g-pin" style="--x:74; --y:57">2</span>
+							<span class="g-pin" style="--x:74; --y:19">3</span>
+							<span class="g-pin" style="--x:24.6; --y:45.6">4</span>
+							<span class="g-pin" style="--x:33; --y:57.5">5</span>
+							<span class="g-pin" style="--x:19; --y:47">6</span>
+							<span class="g-pin" style="--x:4.5; --y:83.5">7</span>
+							<span class="g-pin" style="--x:3.5; --y:67">8</span>
+							<span class="g-pin" style="--x:24.6; --y:84">9</span>
+							<span class="g-pin" style="--x:87.9; --y:73">10</span>
+						</div>
+						<ol class="g-legend">
+							<li><b>Your hand</b> &ndash; the cards you can play.</li>
+							<li><b>Your rows</b> &ndash; Close Combat, Ranged and Siege.</li>
+							<li><b>Opponent's rows</b> &ndash; mirrored above.</li>
+							<li><b>Row strength</b> &ndash; total of the units in that row.</li>
+							<li><b>Horn slot</b> &ndash; Commander's Horn doubles a row.</li>
+							<li><b>Weather</b> &ndash; active weather cards.</li>
+							<li><b>Leaders</b> &ndash; yours below, theirs above.</li>
+							<li><b>Total strength</b>, cards in hand and gems.</li>
+							<li><b>Pass</b> &ndash; end your round.</li>
+							<li><b>Deck &amp; discard pile</b> &ndash; click the pile to browse it.</li>
+						</ol>
+					</div>
+				</article>
+
+				<article class="guide-page" data-name="Match Flow" data-icon="img/icons/notif_me_coin.png">
+					<h3>How a match unfolds</h3>
+					<p class="guide-lead">Every match follows the same rhythm.</p>
+					<ol class="g-steps">
+						<li><div class="g-step-art"><img src="img/icons/notif_me_coin.png" alt="" loading="lazy"></div><b>Coin toss</b><p>Decides who plays first. Scoia'tael may choose.</p></li>
+						<li><div class="g-step-art"><img class="g-step-shot" src="img/guide/redraw.jpg" alt="Redraw screen" loading="lazy"></div><b>Redraw</b><p>Draw 10 cards, then swap up to 2 you don't like.</p></li>
+						<li><div class="g-step-art"><img src="img/icons/notif_me_turn.png" alt="" loading="lazy"></div><b>Take turns</b><p>Play one card per turn, alternating with your opponent.</p></li>
+						<li><div class="g-step-art"><img src="img/icons/notif_round_passed.png" alt="" loading="lazy"></div><b>Pass</b><p>Once you pass you're out for the round &ndash; your opponent may keep playing.</p></li>
+						<li><div class="g-step-art"><img src="img/icons/notif_round_start.png" alt="" loading="lazy"></div><b>Next round</b><p>When both have passed the higher total wins. The board is cleared and a new round begins.</p></li>
+					</ol>
+				</article>
+
+				<article class="guide-page" data-name="Your Turn" data-icon="img/icons/notif_me_turn.png">
+					<h3>Playing a card</h3>
+					<p class="guide-lead">Click a card, then click where it should go. The board lights up every valid spot.</p>
+					<div class="g-split">
+						<div class="g-shot">
+							<img src="img/guide/turn.jpg" alt="A card selected with its row highlighted" loading="lazy">
+							<span class="g-pin" style="--x:63.7; --y:74.5">1</span>
+							<span class="g-pin" style="--x:80.5; --y:22">2</span>
+							<span class="g-pin" style="--x:45; --y:45">3</span>
+							<span class="g-pin" style="--x:24.6; --y:84">4</span>
+						</div>
+						<ol class="g-legend">
+							<li><b>Select a card</b> from your hand.</li>
+							<li><b>Read it</b> &ndash; the preview explains its ability.</li>
+							<li><b>Click a glowing row</b> to play it. Click elsewhere or press <kbd>Esc</kbd> to cancel.</li>
+							<li><b>Or pass</b> if you'd rather save your cards.</li>
+						</ol>
+					</div>
+					<div class="g-tips">
+						<div><img src="img/icons/card_ability_spy.png" alt="" loading="lazy"><p><b>Spies</b> land on your opponent's side.</p></div>
+						<div><img src="img/icons/card_special_decoy.png" alt="" loading="lazy"><p><b>Decoy:</b> click one of your units to take it back.</p></div>
+						<div><img src="img/icons/card_weather_frost.png" alt="" loading="lazy"><p><b>Weather</b> goes in the weather slot.</p></div>
+						<div><img src="img/icons/icon_leader_active.png" alt="" loading="lazy"><p><b>Leader:</b> click your leader to use its ability once.</p></div>
+					</div>
+				</article>
+
+				<article class="guide-page" data-name="Reading a Card" data-icon="img/icons/power_normal.png">
+					<h3>Reading a card</h3>
+					<div class="g-anatomy">
+						<img src="img/lg/realms_blue_stripes.jpg" alt="Blue Stripes Commando card" loading="lazy">
+						<span class="g-call l" style="--x:14; --y:7"><span><b>Strength</b> added to your row</span><i></i></span>
+						<span class="g-call l" style="--x:14; --y:31.6"><span><b>Row</b> it can be played in</span><i></i></span>
+						<span class="g-call l" style="--x:14; --y:48.4"><span><b>Ability</b> icon</span><i></i></span>
+						<span class="g-call l" style="--x:12; --y:84"><span><b>Faction</b> banner</span><i></i></span>
+						<span class="g-call r" style="--x:72; --y:79"><i></i><span><b>Name</b> &ndash; matching names<br>can combo (Tight Bond, Muster)</span></span>
+					</div>
+					<div class="g-types">
+						<figure><img class="g-thumb" src="img/lg/realms_blue_stripes.jpg" alt="" loading="lazy"><figcaption><b>Unit</b>Adds strength, can be buffed or weakened.</figcaption></figure>
+						<figure class="gold"><img class="g-thumb" src="img/lg/neutral_geralt.jpg" alt="" loading="lazy"><figcaption><b>Hero</b>Gold frame. Immune to weather, abilities and specials.</figcaption></figure>
+						<figure><img class="g-thumb" src="img/lg/special_horn.jpg" alt="" loading="lazy"><figcaption><b>Special</b>No strength, a one-off effect.</figcaption></figure>
+						<figure><img class="g-thumb" src="img/lg/weather_frost.jpg" alt="" loading="lazy"><figcaption><b>Weather</b>Hits a row type on both sides.</figcaption></figure>
+					</div>
+				</article>
+
+				<article class="guide-page" data-name="Rows &amp; Weather" data-icon="img/icons/card_weather_rain.png">
+					<h3>Combat rows &amp; weather</h3>
+					<p class="guide-lead">Each unit belongs to one row. Weather drops every non-hero unit in that row to 1 strength &ndash; for <b>both</b> players.</p>
+					<div class="g-rows">
+						<div><img class="g-icon" src="img/icons/card_row_close.png" alt="" loading="lazy"><p><b>Close Combat</b>Front line, closest to the middle.</p><img class="g-thumb" src="img/lg/realms_blue_stripes.jpg" alt="Close combat unit" loading="lazy"><span class="g-vs" aria-hidden="true"></span><img class="g-thumb" src="img/lg/weather_frost.jpg" alt="Biting Frost" loading="lazy"><p><b>Biting Frost</b></p></div>
+						<div><img class="g-icon" src="img/icons/card_row_ranged.png" alt="" loading="lazy"><p><b>Ranged</b>Archers and mages.</p><img class="g-thumb" src="img/lg/realms_keira.jpg" alt="Ranged unit" loading="lazy"><span class="g-vs" aria-hidden="true"></span><img class="g-thumb" src="img/lg/weather_fog.jpg" alt="Impenetrable Fog" loading="lazy"><p><b>Impenetrable Fog</b></p></div>
+						<div><img class="g-icon" src="img/icons/card_row_siege.png" alt="" loading="lazy"><p><b>Siege</b>Catapults and war machines.</p><img class="g-thumb" src="img/lg/realms_ballista.jpg" alt="Siege unit" loading="lazy"><span class="g-vs" aria-hidden="true"></span><img class="g-thumb" src="img/lg/weather_rain.jpg" alt="Torrential Rain" loading="lazy"><p><b>Torrential Rain</b></p></div>
+						<div><img class="g-icon" src="img/icons/card_row_agile.png" alt="" loading="lazy"><p><b>Agile</b>Choose Close or Ranged when played.</p><img class="g-thumb" src="img/lg/neutral_olgierd.jpg" alt="Agile unit" loading="lazy"><span class="g-vs" aria-hidden="true"></span><img class="g-thumb" src="img/lg/weather_clear.jpg" alt="Clear Weather" loading="lazy"><p><b>Clear Weather</b> removes all weather</p></div>
+					</div>
+				</article>
+
+				<article class="guide-page" data-name="Special Cards" data-icon="img/icons/card_special_horn.png">
+					<h3>Special cards</h3>
+					<p class="guide-lead">Up to 10 per deck. They don't add strength but can swing a round.</p>
+					<div class="g-specials">
+						<figure><img class="g-thumb" src="img/lg/special_horn.jpg" alt="" loading="lazy"><figcaption><b>Commander's Horn</b>Doubles the strength of every unit in a row. One per row.</figcaption></figure>
+						<figure><img class="g-thumb" src="img/lg/special_scorch.jpg" alt="" loading="lazy"><figcaption><b>Scorch</b>Destroys the strongest unit(s) on the whole battlefield &ndash; yours too!</figcaption></figure>
+						<figure><img class="g-thumb" src="img/lg/special_decoy.jpg" alt="" loading="lazy"><figcaption><b>Decoy</b>Swap with one of your units to return it to your hand.</figcaption></figure>
+						<figure><img class="g-thumb" src="img/lg/special_mardroeme.jpg" alt="" loading="lazy"><figcaption><b>Mardroeme</b>Turns Berserkers in its row into bears.</figcaption></figure>
+						<figure><img class="g-thumb" src="img/lg/weather_storm.jpg" alt="" loading="lazy"><figcaption><b>Skellige Storm</b>Weather hitting both Ranged and Siege rows.</figcaption></figure>
+					</div>
+				</article>
+
+				<article class="guide-page" data-name="Abilities" data-icon="img/icons/card_ability_bond.png">
+					<h3>Unit abilities</h3>
+					<p class="guide-lead">The round icon under a unit's row tells you what it does. Click any card to read its full description.</p>
+					<div class="g-abilities">
+						<div><img src="img/icons/card_ability_bond.png" alt="" loading="lazy"><p><b>Tight Bond</b>Same-name units in a row multiply each other's strength.</p></div>
+						<div><img src="img/icons/card_ability_morale.png" alt="" loading="lazy"><p><b>Morale Boost</b>+1 to every other unit in its row.</p></div>
+						<div><img src="img/icons/card_ability_muster.png" alt="" loading="lazy"><p><b>Muster</b>Pulls every card with the same name from your deck onto the board.</p></div>
+						<div><img src="img/icons/card_ability_spy.png" alt="" loading="lazy"><p><b>Spy</b>Plays on the enemy side and draws you 2 cards.</p></div>
+						<div><img src="img/icons/card_ability_medic.png" alt="" loading="lazy"><p><b>Medic</b>Revives a unit from your discard pile (no heroes).</p></div>
+						<div><img src="img/icons/card_ability_horn.png" alt="" loading="lazy"><p><b>Horn</b>Doubles its row, like Commander's Horn.</p></div>
+						<div><img src="img/icons/card_ability_scorch.png" alt="" loading="lazy"><p><b>Scorch</b>Kills the enemy's strongest unit(s) in a row worth 10+.</p></div>
+						<div><img src="img/icons/card_ability_agile.png" alt="" loading="lazy"><p><b>Agile</b>Can go in Close or Ranged.</p></div>
+						<div><img src="img/icons/card_ability_avenger.png" alt="" loading="lazy"><p><b>Avenger</b>Summons a stronger unit when it leaves the board.</p></div>
+						<div><img src="img/icons/card_ability_berserker.png" alt="" loading="lazy"><p><b>Berserker</b>Becomes a bear when Mardroeme hits its row.</p></div>
+						<div><img src="img/icons/card_ability_mardroeme.png" alt="" loading="lazy"><p><b>Mardroeme</b>Triggers Berserkers in its row.</p></div>
+						<div><img src="img/icons/power_hero.png" alt="" loading="lazy"><p><b>Hero</b>Ignores every special card, weather and ability.</p></div>
+					</div>
+				</article>
+
+				<article class="guide-page" data-name="Factions &amp; Leaders" data-icon="img/icons/deck_shield_realms.png">
+					<h3>Factions &amp; leaders</h3>
+					<p class="guide-lead">Every deck belongs to one faction, which grants a passive perk. Neutral cards fit in any deck.</p>
+					<div class="g-factions">
+						<figure><img src="img/icons/deck_shield_realms.png" alt="" loading="lazy"><figcaption><b>Northern Realms</b>Draw a card whenever you win a round.</figcaption></figure>
+						<figure><img src="img/icons/deck_shield_nilfgaard.png" alt="" loading="lazy"><figcaption><b>Nilfgaard</b>Wins any round that ends in a draw.</figcaption></figure>
+						<figure><img src="img/icons/deck_shield_monsters.png" alt="" loading="lazy"><figcaption><b>Monsters</b>Keeps a random unit on the board after each round.</figcaption></figure>
+						<figure><img src="img/icons/deck_shield_scoiatael.png" alt="" loading="lazy"><figcaption><b>Scoia'tael</b>Decides who takes the first turn.</figcaption></figure>
+						<figure><img src="img/icons/deck_shield_skellige.png" alt="" loading="lazy"><figcaption><b>Skellige</b>Revives 2 random units at the start of round 3.</figcaption></figure>
+					</div>
+					<div class="g-leader">
+						<img class="g-thumb" src="img/lg/realms_foltest_gold.jpg" alt="Foltest leader card" loading="lazy">
+						<img class="g-icon" src="img/icons/icon_leader_active.png" alt="" loading="lazy">
+						<p><b>Leader card</b>Each deck has one leader with a powerful ability you can use <b>once per match</b>. Click your leader (bottom-left) on your turn to use it. The marker beside it shows it's still available.</p>
+					</div>
+				</article>
+
+				<article class="guide-page" data-group="Using the App" data-name="Main Menu" data-icon="img/app/favicon-32.png">
+					<h3>Main menu &amp; game modes</h3>
+					<div class="g-split">
+						<div class="g-shot">
+							<img src="img/guide/title.jpg" alt="Main menu" loading="lazy">
+							<span class="g-pin" style="--x:24.5; --y:49.8">1</span>
+							<span class="g-pin" style="--x:24.5; --y:57.3">2</span>
+							<span class="g-pin" style="--x:24.5; --y:64.7">3</span>
+							<span class="g-pin" style="--x:23; --y:76.4">4</span>
+						</div>
+						<ol class="g-legend">
+							<li><b>Play vs AI</b> &ndash; pick your deck and an AI difficulty.</li>
+							<li><b>Local 2-Player</b> &ndash; two players share one device.</li>
+							<li><b>Deck Builder</b> &ndash; edit your decks without starting a match.</li>
+							<li><b>Settings</b> &ndash; music, sound, effects and this guide.</li>
+						</ol>
+					</div>
+					<div class="g-split g-hotseat">
+						<img class="g-shot-sm" src="img/guide/handoff.jpg" alt="Pass the device screen" loading="lazy">
+						<p><b>Playing with a friend?</b> In Local 2-Player the board is covered between turns. Hand the device over, and the next player presses <b>Ready</b> to reveal their hand.</p>
+					</div>
+				</article>
+
+				<article class="guide-page" data-name="Deck Builder" data-icon="svg/deck.svg">
+					<h3>Building your deck</h3>
+					<div class="g-split">
+						<div class="g-shot">
+							<img src="img/guide/deck.jpg" alt="Deck builder" loading="lazy">
+							<span class="g-pin" style="--x:25.5; --y:55">1</span>
+							<span class="g-pin" style="--x:75.6; --y:55">2</span>
+							<span class="g-pin" style="--x:55.8; --y:30">3</span>
+							<span class="g-pin" style="--x:57; --y:62">4</span>
+							<span class="g-pin" style="--x:31; --y:16.7">5</span>
+							<span class="g-pin" style="--x:40; --y:92">6</span>
+							<span class="g-pin" style="--x:59; --y:86.5">7</span>
+						</div>
+						<ol class="g-legend">
+							<li><b>Collection</b> &ndash; click a card to add it.</li>
+							<li><b>Your deck</b> &ndash; click a card to remove it.</li>
+							<li><b>Leader</b> &ndash; click to pick another.</li>
+							<li><b>Deck stats</b> &ndash; you need at least <b>22 units</b> and at most <b>10 specials</b>.</li>
+							<li><b>Change faction</b>, or upload / download a deck file.</li>
+							<li><b>Opponent</b> &ndash; AI or a 2nd player, random or a chosen deck, and AI difficulty.</li>
+							<li><b>Start game</b> when your deck is ready.</li>
+						</ol>
+					</div>
+				</article>
+
+				<article class="guide-page" data-name="Controls" data-icon="svg/effects.svg">
+					<h3>Controls &amp; settings</h3>
+					<div class="g-controls">
+						<div><span class="g-btn"><img src="svg/music.svg" alt="" loading="lazy"></span><p><b>Music</b>on / off</p></div>
+						<div><span class="g-btn"><img src="svg/sfx.svg" alt="" loading="lazy"></span><p><b>Sound effects</b>on / off</p></div>
+						<div><span class="g-btn"><img src="svg/notification.svg" alt="" loading="lazy"></span><p><b>Game messages</b>turn &amp; round banners (in match)</p></div>
+						<div><span class="g-btn"><img src="svg/effects.svg" alt="" loading="lazy"></span><p><b>Visual effects</b>particles &amp; screen shake</p></div>
+						<div><span class="g-btn"><img src="svg/help.svg" alt="" loading="lazy"></span><p><b>Guide</b>open this help any time</p></div>
+						<div><span class="g-btn"><img src="svg/exit.svg" alt="" loading="lazy"></span><p><b>Exit</b>leave the current match</p></div>
+					</div>
+					<div class="g-keys">
+						<p><kbd>Click</kbd> / <kbd>Tap</kbd> select cards, rows and buttons</p>
+						<p><kbd>Tab</kbd> move between controls</p>
+						<p><kbd>Enter</kbd> / <kbd>Space</kbd> activate</p>
+						<p><kbd>&larr;</kbd> <kbd>&rarr;</kbd> browse card choices (or swipe)</p>
+						<p><kbd>Esc</kbd> cancel / close</p>
+					</div>
+					<ul class="g-notes">
+						<li>Click a discard pile or a leader to look at the cards; click any row to inspect what's on it.</li>
+						<li>On phones, play in landscape. Use <b>Install App</b> on the main menu to add Gwent to your home screen.</li>
+					</ul>
+				</article>
+
+			</div>
+			<footer class="guide-footer">
+				<button id="guide-prev" class="btn-ghost">&lsaquo; Back</button>
+				<span id="guide-count"></span>
+				<button id="guide-next" class="btn-gold">Next &rsaquo;</button>
+			</footer>
+		</div>
+		<button id="guide-close" aria-label="Close guide">&times;</button>
 	</div>
 </section>
 

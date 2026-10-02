@@ -2208,6 +2208,7 @@ class UI {
 		this.toggleSettings.push(this.toggleEffects_elem);
 		this.toggleEffects_elem.addEventListener('click', () => this.toggleEffects());
 		this.applyEffectsSetting();
+		this.toggleSettings.push(document.getElementById("open-guide"));
 
 		EventManager.gameOpened.bind(()=>this.toggleSettings.forEach(e=>e.classList.remove('deck-menu')));
 		EventManager.customizationOpened.bind(()=>this.toggleSettings.forEach(e=>e.classList.add('deck-menu')));
@@ -4302,6 +4303,65 @@ installButton.addEventListener("click", () => {
 });
 addMouseEnterSFXBySelector("#title-install");
 
+// How-to-play guide: the chapter list is built from the .guide-page articles (data-group/name/icon)
+const guide = {
+	elem: document.getElementById("guide"),
+	pages: [...document.querySelectorAll("#guide .guide-page")],
+	tabs: [],
+	index: 0,
+	returnFocus: null,
+	isOpen() { return !this.elem.classList.contains("hide"); },
+	open() {
+		this.returnFocus = document.activeElement;
+		this.elem.classList.remove("hide");
+		this.show(this.index);
+		this.tabs[this.index].focus();
+		AudioManager.playSFX("menu_opening");
+	},
+	close() {
+		this.elem.classList.add("hide");
+		this.returnFocus?.focus?.();
+	},
+	show(i) {
+		this.index = Math.max(0, Math.min(this.pages.length - 1, i));
+		this.pages.forEach((p, j) => p.classList.toggle("hide", j !== this.index));
+		this.tabs.forEach((t, j) => {
+			t.classList.toggle("active", j === this.index);
+			t.toggleAttribute("aria-current", j === this.index);
+		});
+		document.getElementById("guide-count").textContent = (this.index + 1) + " / " + this.pages.length;
+		document.getElementById("guide-prev").disabled = this.index === 0;
+		document.getElementById("guide-next").innerHTML = this.index === this.pages.length - 1 ? "Done" : "Next &rsaquo;";
+		this.elem.querySelector(".guide-pages").scrollTop = 0;
+	}
+};
+{
+	const nav = guide.elem.querySelector(".guide-nav");
+	guide.pages.forEach((page, i) => {
+		if (page.dataset.group) {
+			const group = document.createElement("p");
+			group.className = "guide-group";
+			group.textContent = page.dataset.group;
+			nav.appendChild(group);
+		}
+		const tab = document.createElement("button");
+		const icon = document.createElement("img");
+		icon.src = page.dataset.icon;
+		icon.alt = "";
+		tab.append(icon, page.dataset.name);
+		tab.addEventListener("click", () => guide.show(i));
+		nav.appendChild(tab);
+		guide.tabs.push(tab);
+	});
+	document.getElementById("open-guide").addEventListener("click", () => guide.open());
+	document.getElementById("guide-close").addEventListener("click", () => guide.close());
+	document.getElementById("guide-prev").addEventListener("click", () => guide.show(guide.index - 1));
+	document.getElementById("guide-next").addEventListener("click", () => guide.index === guide.pages.length - 1 ? guide.close() : guide.show(guide.index + 1));
+	// Clicking the dimmed backdrop (outside the panel) closes it
+	guide.elem.addEventListener("click", e => e.target === guide.elem && guide.close());
+	addMouseEnterSFXBySelector("#guide button");
+}
+
 
 // Touch pointerdown doesn't grant user activation (only pointerup/touchend/click do), so retry on those
 // and keep retrying until the music actually plays (player may not be ready yet on slow mobile loads).
@@ -4339,6 +4399,22 @@ document.addEventListener("click", lockLandscape, true);
 document.addEventListener("keydown", e => {
 	if (Popup.curr)
 		return;
+	if (guide.isOpen()) {
+		if (e.key === "Escape")
+			guide.close();
+		else if (e.key === "ArrowLeft" || e.key === "ArrowRight")
+			guide.show(guide.index + (e.key === "ArrowLeft" ? -1 : 1));
+		else if (e.key === "Tab") {
+			// Keep focus inside the dialog
+			const focusable = [...guide.elem.querySelectorAll("button:not(:disabled)")];
+			const i = focusable.indexOf(document.activeElement);
+			const next = (i + (e.shiftKey ? -1 : 1) + focusable.length) % focusable.length;
+			focusable[i === -1 ? 0 : next].focus();
+		} else
+			return;
+		e.preventDefault();
+		return;
+	}
 	const carousel = Carousel.curr;
 	if (carousel) {
 		const moves = {ArrowLeft: -1, ArrowRight: 1};
