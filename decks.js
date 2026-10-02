@@ -39,3 +39,4 @@ const ai_decks = {
 		{faction: "skellige", leader: 212, cards: [...hard_neutrals, [184,1],[195,1],[197,1],[187,1],[188,1],[189,1],[192,3],[209,3],[203,1],[182,1],[200,3],[1,2],[10,1],[5,1],[204,2],[4,1]]}
 	]
 };
+ai_decks.expert = ai_decks.hard;

@@ -34,11 +34,13 @@ class ControllerRemote {
 
 // Makes decisions for an AI-controlled player (either side of the board)
 class ControllerAI {
-	// easy: no mulligan, often plays a random viable option; normal: weighted random; hard: plays for card advantage across rounds
+	// easy: no mulligan, often plays a random viable option; normal: weighted random; hard: plays for card advantage across rounds;
+	// expert: hard, but caps the total unit strength and heroes of the player's deck
 	static difficulties = {
 		easy: {label: "Easy", redraws: 0, randomChance: 0.5},
 		normal: {label: "Normal", redraws: 2, randomChance: 0},
-		hard: {label: "Hard", redraws: 2, randomChance: 0, strategic: true}
+		hard: {label: "Hard", redraws: 2, randomChance: 0, strategic: true},
+		expert: {label: "Expert", redraws: 2, randomChance: 0, strategic: true, deckLimits: {strength: 120, hero: 4}}
 	};
 	
 	// Leader abilities that score no points: the first return a unit to hand, the rest only reshape hands, decks or turns
@@ -3280,6 +3282,7 @@ class DeckMaker {
 			AudioManager.playSFX("ui_card_bank");
 		Settings.aiDifficulty.set(level);
 		DeckMaker.checkRadio(this.difficulty_buttons, b => b.dataset.level === level);
+		this.updateStats();
 	}
 	
 	// Chooses between playing the AI and pass and play, where Player 2 builds their own deck
@@ -3295,6 +3298,7 @@ class DeckMaker {
 		document.getElementById("deck-owner-row").classList.toggle("hide", !hotseat);
 		this.setDeckOwner(hotseat ? this.owner : "p1", true);
 		this.updateDeckTitle();
+		this.updateStats();
 	}
 	
 	// Switches the builder between Player 1's and Player 2's saved decks
@@ -3493,11 +3497,14 @@ class DeckMaker {
 		stats.children[1].innerHTML = this.stats.total;
 		stats.children[3].innerHTML = this.stats.units +(this.stats.units < 22 ? "/22" : "");
 		stats.children[5].innerHTML = this.stats.special + "/10";
-		stats.children[7].innerHTML = this.stats.strength;
-		stats.children[9].innerHTML = this.stats.hero;
+		const limits = DeckMaker.deckLimits();
+		stats.children[7].innerHTML = this.stats.strength + (limits ? "/" + limits.strength : "");
+		stats.children[9].innerHTML = this.stats.hero + (limits ? "/" + limits.hero : "");
 		
 		stats.children[3].style.color = this.stats.units < 22 ? "red" : "";
 		stats.children[5].style.color = (this.stats.special > 10) ? "red" : "";
+		stats.children[7].style.color = limits && this.stats.strength > limits.strength ? "red" : "";
+		stats.children[9].style.color = limits && this.stats.hero > limits.hero ? "red" : "";
 	}
 	
 	// Opens a Carousel to allow the client to select a leader for their deck
@@ -3587,7 +3594,7 @@ class DeckMaker {
 		const warning = [["Player 1", p1], ["Player 2", p2]]
 			.filter(([, d]) => d && DeckMaker.ruleWarnings(d.units, d.special))
 			.map(([name, d]) => (hotseat ? name + "'s deck:\n" : "") + DeckMaker.ruleWarnings(d.units, d.special))
-			.join("\n");
+			.join("\n") || DeckMaker.limitWarnings(p1);
 		if (warning)
 			return ui.alert("Invalid deck", warning);
 		
@@ -3617,10 +3624,36 @@ class DeckMaker {
 		return {deck: {faction: faction, leader: leader, cards: cards}, ...DeckMaker.countCards(cards)};
 	}
 	
-	// Counts unit and special (incl. weather) cards in a list of {index, count}
+	// Counts unit and special (incl. weather) cards, total unit strength and heroes in a list of {index, count}
 	static countCards(cards){
-		const units = cards.filter(c => !["special", "weather"].includes(card_dict[c.index].deck)).reduce((a, c) => a + Number(c.count), 0);
-		return {units: units, special: cards.reduce((a, c) => a + Number(c.count), 0) - units};
+		const units = cards.filter(c => !["special", "weather"].includes(card_dict[c.index].deck));
+		const sum = (list, f) => list.reduce((a, c) => a + f(card_dict[c.index]) * Number(c.count), 0);
+		const unitCount = sum(units, () => 1);
+		return {
+			units: unitCount,
+			special: sum(cards, () => 1) - unitCount,
+			strength: sum(units, d => Number(d.strength) || 0),
+			hero: sum(units, d => d.ability.split(" ").includes("hero") ? 1 : 0)
+		};
+	}
+
+	// The AI difficulty's caps on the player's deck, unless playing pass and play or online
+	static deckLimits(){
+		return DeckMaker.isHotseatMode() || document.body.classList.contains("online") ? null : ControllerAI.difficulty().deckLimits ?? null;
+	}
+
+	// Describes how a deck breaks the difficulty's deck caps, or ""
+	static limitWarnings(stats){
+		const limits = DeckMaker.deckLimits();
+		if (!limits)
+			return "";
+		const label = ControllerAI.difficulty().label;
+		let warning = "";
+		if (stats.strength > limits.strength)
+			warning += label + " allows at most " + limits.strength + " total unit strength (deck has " + stats.strength + ").\n";
+		if (stats.hero > limits.hero)
+			warning += label + " allows at most " + limits.hero + " hero cards (deck has " + stats.hero + ").\n";
+		return warning;
 	}
 
 	// A random deck from the pool of the given AI difficulty

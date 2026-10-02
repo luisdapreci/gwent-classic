@@ -1127,6 +1127,7 @@ const Online = {
 		this.replayLeft = 0;
 		this.rng = Math.random;
 		document.body.classList.remove("online");
+		dm.updateStats();
 		document.getElementById("start-game").textContent = "Start game";
 		document.getElementById("start-game").classList.remove("waiting");
 		game.rematch_elem.textContent = "Rematch";
