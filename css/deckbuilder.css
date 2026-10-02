@@ -160,6 +160,7 @@
 .card-array .card-lg.empty { visibility: hidden; }
 
 .card-array .card-lg > div {
+	position: absolute;
 	top: 3%;
 	right: 4%;
 	width: 20%;
