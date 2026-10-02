@@ -172,6 +172,10 @@
 	
 	<div id="hand-op"></div>
 	
+	<div id="timer-op" class="turn-timer hide" aria-hidden="true"></div>
+	<div id="timer-me" class="turn-timer hide" aria-hidden="true"></div>
+	<p id="online-wait" class="hide" role="status"></p>
+	
 	<section class="card-preview hide">
 		<div class="card-lg"></div>
 		<div class="card-description">
@@ -331,6 +335,10 @@
 				<button role="radio" data-owner="p2">Player 2</button>
 			</div>
 		</div>
+		<div id="online-panel" class="center" role="status">
+			<p id="online-room"></p>
+			<p id="online-opponent"></p>
+		</div>
 	</div>
 </section>
 
@@ -351,6 +359,53 @@
 		<p class="handoff-hint">Your hand stays hidden until you're ready. Keep it out of your opponent's sight.</p>
 		<button id="handoff-ready" class="btn-gold">Ready</button>
 		<button id="handoff-quit" class="btn-ghost">Quit match</button>
+	</div>
+</section>
+
+<section id="lobby" class="hide" role="dialog" aria-modal="true" aria-labelledby="lobby-heading">
+	<div class="lobby-panel">
+		<h2 id="lobby-heading">Play Online</h2>
+		<label class="lobby-name">
+			<span>Your name</span>
+			<input id="lobby-name" type="text" maxlength="16" autocomplete="nickname" spellcheck="false" />
+		</label>
+		<div id="lobby-choose" class="lobby-cols">
+			<div class="lobby-col">
+				<h3>Host a game</h3>
+				<p>Create a room and share its code.</p>
+				<div id="lobby-timer" role="radiogroup" aria-label="Turn timer">
+					<button role="radio" data-timer="0">No timer</button>
+					<button role="radio" data-timer="30">30s</button>
+					<button role="radio" data-timer="60">60s</button>
+					<button role="radio" data-timer="90">90s</button>
+				</div>
+				<button id="lobby-host" class="btn-gold">Create Room</button>
+			</div>
+			<div class="lobby-col">
+				<h3>Join a game</h3>
+				<p>Enter the code from your opponent.</p>
+				<input id="lobby-code" type="text" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Room code" />
+				<button id="lobby-join" class="btn-gold">Join Room</button>
+			</div>
+		</div>
+		<div id="lobby-room" class="hide">
+			<p class="lobby-kicker">Room code</p>
+			<p id="lobby-room-code"></p>
+			<div class="lobby-copy">
+				<button id="lobby-copy-code" class="btn-ghost">Copy Code</button>
+				<button id="lobby-copy-link" class="btn-ghost">Copy Invite Link</button>
+			</div>
+		</div>
+		<p id="lobby-status" role="status"></p>
+		<button id="lobby-cancel" class="btn-ghost">Back</button>
+	</div>
+</section>
+
+<section id="online-curtain" class="hide" role="alertdialog" aria-modal="true" aria-labelledby="online-curtain-title" aria-describedby="online-curtain-desc">
+	<div class="handoff-panel">
+		<h2 id="online-curtain-title"></h2>
+		<p id="online-curtain-desc"></p>
+		<button id="online-curtain-leave" class="btn-ghost">Leave match</button>
 	</div>
 </section>
 
@@ -629,6 +684,7 @@
 		<p class="title-sub">The Witcher Card Game</p>
 		<div class="title-rule"></div>
 		<button id="title-play" class="btn-gold">Play vs AI</button>
+		<button id="title-online" class="btn-ghost">Play Online</button>
 		<button id="title-local" class="btn-ghost">Pass and Play</button>
 		<button id="title-deck" class="btn-ghost">Deck Builder</button>
 		<button id="title-install" class="btn-ghost hide">Install App</button>
@@ -647,6 +703,7 @@
 <script type="text/javascript" src="abilities.js"></script>
 <script type="text/javascript" src="factions.js"></script>
 <script type="text/javascript" src="gwent.js"></script>
+<script type="text/javascript" src="online.js"></script>
 <script type="text/javascript" src="fx.js"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>

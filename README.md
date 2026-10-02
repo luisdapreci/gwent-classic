@@ -1,12 +1,13 @@
 # Gwent Classic
 
-The Gwent card game from *The Witcher 3: Wild Hunt*, rebuilt for the browser. It has every card from the base game, *Hearts of Stone*, *Blood and Wine* and the next-gen update, an AI opponent, pass-and-play matches on one device, a deck builder, and a refreshed UI with a title screen, visual effects and music that changes between menus and matches.
+The Gwent card game from *The Witcher 3: Wild Hunt*, rebuilt for the browser. It has every card from the base game, *Hearts of Stone*, *Blood and Wine* and the next-gen update, an AI opponent, online matches with a room code, pass-and-play matches on one device, a deck builder, and a refreshed UI with a title screen, visual effects and music that changes between menus and matches.
 
 No install, no build step. It's plain HTML, CSS and JavaScript.
 
 ## Contents
 - [Quick start](#quick-start)
 - [How to play](#how-to-play)
+- [Online play](#online-play)
 - [Pass and play](#pass-and-play)
 - [Factions](#factions)
 - [Card abilities](#card-abilities)
@@ -41,6 +42,20 @@ Win **two of three rounds**. The player with the higher total score when a round
 Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click a card in your hand to select it, then click a row to play it. Click a card or row on the board to inspect it.
 
 **Keyboard:** <kbd>Tab</kbd> moves between cards, rows and buttons; <kbd>Enter</kbd> or <kbd>Space</kbd> activates the focused one. In card pickers, <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> browse, <kbd>Enter</kbd> selects and <kbd>Esc</kbd> closes. <kbd>Esc</kbd> also cancels a selected card. Game messages are announced to screen readers.
+
+## Online play
+Play someone on another device. Both players need an internet connection.
+
+1. On the title screen choose **Play Online** and enter a name (up to 16 characters; it's remembered for next time).
+2. One player picks a **turn timer** (none, 30, 60 or 90 seconds) and presses **Create Room**. Share the 5-character room code, or press **Copy Invite Link** and send the link (it opens the game with the code filled in).
+3. The other player enters the code and presses **Join Room**.
+4. Both players pick a deck in the deck builder and press **Ready**. The match starts when both are ready.
+
+During the match you only see your own hand. A countdown appears next to the player whose move it is when a timer is set; if it runs out on your turn you pass the round, and an unanswered card choice (redraw, medic, leader picks) is skipped or takes the card on show. After the match, **Rematch** (both players must accept) keeps the decks, **New Game** sends both players back to the deck builder, and **Main Menu** leaves the room. Leaving a match early counts as a forfeit.
+
+If the connection drops, the game tries to reconnect for 60 seconds. Reloading the page during a match rejoins it automatically (in the same tab). If the opponent doesn't come back in time, you win.
+
+How it works: the two browsers connect directly with WebRTC through [PeerJS](https://peerjs.com/) (its free public server is only used to find each other). Both run the same game from a shared random seed and only send each other their moves, and each turn they compare a checksum of the game state; if the games ever disagree, or a move breaks the rules, the match ends. Some strict networks (corporate firewalls, some mobile carriers) can block the connection.
 
 ## Pass and play
 Two people can play each other on the same device, passing it between turns.
@@ -121,6 +136,8 @@ The four toggle buttons are in the center column of the deck builder and in the 
 | --- | --- |
 | `index.html` | Page markup, title screen and script/style includes |
 | `gwent.js` | Game engine: board, rows, players, AI, pass and play, UI, deck builder, settings, audio, music |
+| `online.js` | Online play: lobby, PeerJS connection, move exchange, reconnects, turn timer |
+| `lib/peerjs.min.js` | PeerJS 1.5.5 (MIT), loaded only when hosting or joining a room |
 | `cards.js` | Card database (`card_dict`) |
 | `decks.js` | Premade decks used by the AI |
 | `factions.js` | Faction perks |
@@ -138,7 +155,8 @@ The four toggle buttons are in the center column of the deck builder and in the 
 - **Sizing:** the stage is a letterboxed 16:9 box. `var(--u)` equals 1% of the stage width; use it instead of `vw`.
 - **Board art:** row positions and score circles are baked into `img/board.jpg`. Restyle overlays freely, but don't move them.
 - **Card transforms:** `gwent.js` sets an inline `transform` on cards while moving them, so card animations in CSS should use the standalone `translate` / `scale` / `rotate` properties.
-- **Script order:** `fx.js` loads after `gwent.js`, and the YouTube IFrame API loads last.
+- **Script order:** `online.js` and `fx.js` load after `gwent.js`, and the YouTube IFrame API loads last.
+- **Online determinism:** online clients must make the same random choices in the same order. Game-state randomness uses the player's seeded `player.rng` (or `Online.rng` for the coin toss) and random picks from a container sort by `card.uid` first, because the two clients order hands, rows and graves differently. Player choices go through `Online.carousel` / `Online.rowChoice` / `Online.choice` so the opponent's client replays them.
 - **Testing audio and music:** serve over http. `file://` blocks YouTube embeds and can fail to load larger sound files.
 
 ## Credits

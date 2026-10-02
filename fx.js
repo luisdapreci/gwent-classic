@@ -14,7 +14,7 @@ const fx = (() => {
 	const rand = (min, max) => min + Math.random() * (max - min);
 
 	function enabled() {
-		return Settings.effects.isEnabled() && !reducedMotion.matches;
+		return Settings.effects.isEnabled() && !reducedMotion.matches && !Online.replaying;
 	}
 
 	// ---------------- particle factories ----------------

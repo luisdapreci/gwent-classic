@@ -361,6 +361,35 @@ body.deck-only #opponent-mode,
 body.deck-only #opponent-deck,
 body.deck-only #ai-difficulty { display: none; }
 
+/* online room: the opponent brings their own deck */
+body.online #opponent-mode,
+body.online #opponent-deck,
+body.online #ai-difficulty,
+body.online #deck-owner-row { display: none; }
+#online-panel { display: none; }
+body.online #online-panel {
+	display: flex;
+	flex-direction: column;
+	gap: calc(0.2 * var(--u));
+}
+#online-panel > p {
+	margin: 0;
+	color: var(--text-mute);
+	font-family: var(--font-caps);
+	font-size: max(calc(0.9 * var(--u)), var(--fs-xs));
+	text-align: center;
+}
+#online-panel > #online-opponent {
+	color: var(--text);
+	font-family: var(--font-body);
+	font-style: italic;
+}
+#online-panel > #online-opponent.ready { color: var(--gold-1); font-style: normal; }
+#start-game.waiting {
+	animation: none;
+	filter: saturate(0.6) brightness(0.85);
+}
+
 /* ---------- small (phone) stages ---------- */
 
 /* Floored text needs more room: card lists move outward to widen the centre column,

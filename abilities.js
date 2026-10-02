@@ -59,7 +59,9 @@ var ability_dict = {
 				return;
 			row.removeCard(card);
 			const cardId = card.name.indexOf("Young") === -1 ? 206 : 207;
-			await row.addCard(new Card(card_dict[cardId], card.holder));
+			const bear = new Card(card_dict[cardId], card.holder);
+			bear.uid = card.uid + "b";
+			await row.addCard(bear);
 		}
 	},
 	vildkarrl: {
@@ -156,13 +158,13 @@ var ability_dict = {
 				return;
 			let wrapper = {card : null};
 			if (game.randomRespawn) {
-				const cards = grave.findCardsRandom(c => c.isUnit());
+				const cards = grave.findCardsRandom(c => c.isUnit(), 1, card.holder.rng);
 				if (cards.length > 0)
 					wrapper.card = cards[0];
 			} else if (card.holder.controller instanceof ControllerAI)
 				wrapper.card =  card.holder.controller.medic(card, grave);
 			else
-				await ui.queueCarousel(card.holder.grave, 1, (c, i) => wrapper.card=c.cards[i], c => c.isUnit(), true);
+				await Online.carousel(card.holder, "medic", card.holder.grave, 1, (c, i) => wrapper.card=c.cards[i], c => c.isUnit(), true);
 			if (wrapper.card)
 			{
 				// move card visual to top of grave
@@ -179,7 +181,7 @@ var ability_dict = {
 					}
 					else
 					{
-						selectedRow = await ui.waitForRowSelection(wrapper.card);
+						selectedRow = await Online.rowChoice(card.holder, wrapper.card);
 						if (!selectedRow)
 						{
 							return;
@@ -221,14 +223,21 @@ var ability_dict = {
 		name: "Avenger",
 		description: "When this card is removed from the battlefield, it summons a powerful new Unit Card to take its place. ",
 		removed: async (card) => {
+			// Rows are also emptied when a game is reset
+			if (!game.isPlaying())
+				return;
 			let bdf = new Card(card_dict[21], card.holder);
-			bdf.removed.push( () => setTimeout( () => {
-				// It may have been decoyed to hand instead of sent to the grave
-				if (game.isPlaying() && bdf.holder.grave.cards.includes(bdf))
-					bdf.holder.grave.removeCard(bdf);
-			}, 1001) );
+			bdf.uid = card.uid + "a" + (card.summons = (card.summons ?? 0) + 1);
+			bdf.removed.push(() => ability_dict["avenger"].vanish(bdf));
 			await board.addCardToRow(bdf, "close", card.holder);
 		},
+		// The summon is a token: it leaves the game instead of staying in the grave
+		// (a microtask runs once the move to the grave finishes, at the same point on both online clients)
+		vanish: bdf => queueMicrotask(() => {
+			// It may have been decoyed to hand instead of sent to the grave
+			if (game.isPlaying() && bdf.holder.grave.cards.includes(bdf))
+				bdf.holder.grave.removeCard(bdf);
+		}),
 		// The summon usually arrives at the end of the round, so it's only worth something before the last one
 		weight: () => game.roundCount < 3 ? Number(card_dict[21].strength) : 0
 	},
@@ -236,11 +245,11 @@ var ability_dict = {
 		name: "Avenger",
 		description: "When this card is removed from the battlefield, it summons a powerful new Unit Card to take its place. ",
 		removed: async card => {
+			if (!game.isPlaying())
+				return;
 			let bdf = new Card(card_dict[196], card.holder);
-			bdf.removed.push( () => setTimeout( () => {
-				if (game.isPlaying() && bdf.holder.grave.cards.includes(bdf))
-					bdf.holder.grave.removeCard(bdf); 
-			}, 1001) );
+			bdf.uid = card.uid + "a" + (card.summons = (card.summons ?? 0) + 1);
+			bdf.removed.push(() => ability_dict["avenger"].vanish(bdf));
 			await board.addCardToRow(bdf, "close", card.holder);
 		},
 		weight: () => game.roundCount < 3 ? Number(card_dict[196].strength) : 0
@@ -286,11 +295,12 @@ var ability_dict = {
 	emhyr_emperor: {
 		description: "Look at 3 random cards from your opponent's hand.",
 		activated: async card => {
-			if (card.holder.controller instanceof ControllerAI)
+			// Only shown to the player who activated it, so it doesn't touch the synced online random streams
+			if (!card.holder.isHuman() || Online.replaying)
 				return;
 			let container = new CardContainer();
 			container.cards = card.holder.opponent().hand.findCardsRandom(() => true, 3);
-			Carousel.curr.cancel();
+			Carousel.curr?.cancel();
 			await ui.viewCardsInContainer(container);
 		},
 		// The AI gains no information, so for it this is a free turn: worth it while ahead
@@ -311,8 +321,8 @@ var ability_dict = {
 				await board.toHand(newCard, grave);
 				return;
 			}
-			Carousel.curr.cancel();
-			await ui.queueCarousel(grave, 1, async (c,i) => {
+			Carousel.curr?.cancel();
+			await Online.carousel(card.holder, "pick", grave, 1, async (c,i) => {
 				let newCard = c.cards[i];
 				newCard.holder = card.holder;
 				await board.toHand(newCard, grave);
@@ -337,8 +347,8 @@ var ability_dict = {
 			if (card.holder.controller instanceof ControllerAI) {
 				newCard = card.holder.controller.medic(card, card.holder.grave)
 			} else {
-				Carousel.curr.exit();
-				await ui.queueCarousel(card.holder.grave, 1, (c,i) => newCard = c.cards[i], c => c.isUnit(), false, false);
+				Carousel.curr?.exit();
+				await Online.carousel(card.holder, "pick", card.holder.grave, 1, (c,i) => newCard = c.cards[i], c => c.isUnit(), false, false);
 			}
 			if (newCard)
 				await board.toHand(newCard, card.holder.grave);
@@ -358,9 +368,9 @@ var ability_dict = {
 					await board.toHand(pick, deck);
 				return;
 			} else
-				Carousel.curr.exit();
-			await ui.queueCarousel(hand, 2, async (c,i) => await board.toGrave(c.cards[i], c), () => true);
-			await ui.queueCarousel(deck, 1, (c,i) => board.toHand(c.cards[i], deck), () => true, true);
+				Carousel.curr?.exit();
+			await Online.carousel(card.holder, "discard", hand, 2, async (c,i) => await board.toGrave(c.cards[i], c), () => true);
+			await Online.carousel(card.holder, "pick", deck, 1, (c,i) => board.toHand(c.cards[i], deck), () => true, true);
 		},
 		// Two weak cards for the best one in the deck
 		weight: (card, ai) => {
@@ -378,8 +388,8 @@ var ability_dict = {
 			if (card.holder.controller instanceof ControllerAI) {
 				await ability_dict["eredin_king"].helper(card).card.autoplay(card.holder.deck);
 			} else {
-				Carousel.curr.cancel();
-				await ui.queueCarousel(deck, 1, (c,i) => board.toWeather(c.cards[i], deck), c => c.faction === "weather", true);
+				Carousel.curr?.cancel();
+				await Online.carousel(card.holder, "pick", deck, 1, (c,i) => board.toWeather(c.cards[i], deck), c => c.faction === "weather", true);
 			}
 		},
 		weight: (card, ai, max) => ability_dict["eredin_king"].helper(card).weight,
@@ -488,9 +498,11 @@ var ability_dict = {
 		activated: async card => {
 			AudioManager.playSFX('redraw');
 			const own = card.holder.grave, other = card.holder.opponent().grave;
+			// Shuffle order must match on both online clients, whose graves are ordered differently
+			const ordered = grave => Online.active ? [...grave.cards].sort(Card.byUid) : [...grave.cards];
 			await Promise.all([
-				...[...own.cards].map(c => board.toDeck(c, own)),
-				...[...other.cards].map(c => board.toDeck(c, other))
+				...ordered(own).map(c => board.toDeck(c, own)),
+				...ordered(other).map(c => board.toDeck(c, other))
 			]);
 		},
 		weight: (card, ai, max, data) => {

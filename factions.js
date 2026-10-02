@@ -27,7 +27,9 @@ var factions = {
 				.reduce((a,r) => r.cards.filter(c => c.isUnit()).concat(a), []);
 			if (units.length === 0)
 				return false;
-			const card = units[randomInt(units.length)];
+			if (Online.active)
+				units.sort(Card.byUid);
+			const card = units[randomInt(units.length, player.rng)];
 			card.noRemove = true;
 			game.roundStart.push( async () => {
 				await ui.notification("monsters", 1200);
@@ -41,12 +43,17 @@ var factions = {
 	scoiatael: {
 		name: "Scoia'tael",
 		factionAbility: player => game.gameStart.push( async () => {
-			if (player.isHuman()) {
+			if (!(player.controller instanceof ControllerAI)) {
 				const hotseat = game.isHotseat();
-				await ui.popup("Go First", () => game.firstPlayer = player,
-					hotseat ? "Let " + player.opponent().name + " Start" : "Let Opponent Start", () => game.firstPlayer = player.opponent(),
-					hotseat ? player.name + ", would you like to go first?" : "Would you like to go first?",
-					"The Scoia'tael faction perk allows you to decide who will get to go first.", 0.55);
+				const first = await Online.choice(player, "first", async () => {
+					let goFirst = false;
+					await ui.popup("Go First", () => goFirst = true,
+						hotseat ? "Let " + player.opponent().name + " Start" : "Let Opponent Start", null,
+						hotseat ? player.name + ", would you like to go first?" : "Would you like to go first?",
+						"The Scoia'tael faction perk allows you to decide who will get to go first.", 0.55);
+					return goFirst;
+				}, d => typeof d === "boolean");
+				game.firstPlayer = first ? player : player.opponent();
 				await ui.playerNotification("first", game.firstPlayer, 1200);
 			} else if (!player.controller.difficulty.strategic && Math.random() < 0.5) {
 				game.firstPlayer = player;
@@ -71,7 +78,7 @@ var factions = {
 			if (player.controller instanceof ControllerAI)
 			{
 				// One at a time: a revived medic may already have taken the other card from the grave
-				for (const card of player.grave.findCardsRandom(c => c.isUnit(), 2))
+				for (const card of player.grave.findCardsRandom(c => c.isUnit(), 2, player.rng))
 					if (player.grave.cards.includes(card))
 						await board.toRow(card, player.grave);
 			}
@@ -84,13 +91,13 @@ var factions = {
 			return true;
 		}),
 		helper: async player => {
-			const units = player.grave.findCardsRandom(c => c.isUnit(), 1);
+			const units = player.grave.findCardsRandom(c => c.isUnit(), 1, player.rng);
 			if (units.length === 0)
 				return;
 			const card = units[0];
 			if (card.row === 'agile')
 			{
-				const selectedRow = await ui.waitForRowSelection(card);
+				const selectedRow = await Online.rowChoice(player, card);
 				if (selectedRow)
 				{
 					await board.moveTo(card, selectedRow, player.grave);

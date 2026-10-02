@@ -25,6 +25,13 @@ function makeAccessible(elem, label) {
 
 class Controller {}
 
+// Plays the moves sent by the online opponent
+class ControllerRemote {
+	async startTurn(player){
+		await Online.remoteTurn(player);
+	}
+}
+
 // Makes decisions for an AI-controlled player (either side of the board)
 class ControllerAI {
 	// easy: no mulligan, often plays a random viable option; normal: weighted random; hard: plays for card advantage across rounds
@@ -587,27 +594,32 @@ class ControllerAI {
 // Can make actions during turns like playing cards that it owns
 class Player {
 	// id 0 is the bottom (human) player; the top player is an AI unless human is true (pass and play)
-	constructor(id, name, deck, human = id === 0) {
+	// online = {seat, rng, remote}: seat is shared by both clients, rng is that seat's seeded stream
+	constructor(id, name, deck, human = id === 0, online = null) {
 		this.id = id;
 		this.tag = (id === 0) ? "me" : "op";
 		this.name = name;
-		this.controller = human ? new Controller() : new ControllerAI(this);
+		this.seat = online?.seat ?? id;
+		this.rng = online?.rng ?? Math.random;
+		this.controller = online?.remote ? new ControllerRemote() : human ? new Controller() : new ControllerAI(this);
 		
-		this.hand = !human ? new HandAI() : new Hand(document.getElementById(id === 0 ? "hand-row" : "hand-row-op"), this.tag);
+		this.hand = !this.isHuman() ? new HandAI() : new Hand(document.getElementById(id === 0 ? "hand-row" : "hand-row-op"), this.tag);
 		this.grave =  new Grave( document.getElementById("grave-" + this.tag));
 		this.deck = new Deck(deck.faction, document.getElementById("deck-" + this.tag));
+		this.deck.rng = this.rng;
 		this.deck_data = deck;
 		if (this.hand instanceof HandAI)
 			this.hand.hidden_elem.style.setProperty("--card-back", absoluteIconURL("deck_back_" + deck.faction, "jpg"));
 		
 		this.leader = new Card(deck.leader, this);
+		this.leader.uid = this.seat + "-L";
 		this.elem_leader = document.getElementById("leader-" + this.tag);
 		makeAccessible(this.elem_leader, id === 0 && !human ? "Your leader" : human ? name + "'s leader" : "Opponent's leader");
 		this.elem_leader.children[0].replaceChildren( this.leader.elem );
 
 		this.reset();
 		
-		document.getElementById("name-" + this.tag).innerHTML = name;
+		document.getElementById("name-" + this.tag).textContent = name;
 		
 		document.getElementById("deck-name-" +this.tag).innerHTML = factions[deck.faction].name;
 		document.getElementById("stats-" + this.tag).getElementsByClassName("profile-img")[0].children[0].children[0];
@@ -639,8 +651,13 @@ class Player {
 		return board.opponent(this);
 	}
 	
+	// A human playing on this device
 	isHuman(){
-		return !(this.controller instanceof ControllerAI);
+		return this.controller instanceof Controller;
+	}
+	
+	isRemote(){
+		return this.controller instanceof ControllerRemote;
 	}
 	
 	// Updates the player's total score and notifies the gamee
@@ -677,9 +694,10 @@ class Player {
 			document.getElementById("pass-button").classList.remove("noclick");
 		}
 		
-		if (this.controller instanceof ControllerAI) {
+		if (this.controller.startTurn)
 			await this.controller.startTurn(this);
-		}
+		else if (Online.active)
+			await Online.localTurn(this);
 	}
 	
 	// Passes the round and ends the turn
@@ -791,6 +809,7 @@ class Player {
 			this.elem_leader.addEventListener("click", 
 				async () => await ui.viewCard(this.leader, game.currPlayer !== this ? undefined : async () => {
 					AudioManager.playSFX('open');
+					Online.commit(this, {a: "leader"});
 					await this.activateLeader();
 		}	), false);
 			this.elem_leader.children[0].setAttribute('data-title', "Play leader");
@@ -822,15 +841,18 @@ class CardContainer {
 	}
 	
 	// Returns a list of up to n cards that satisfy the predicate. Does not modify container.
-	findCardsRandom(predicate, n){
-		let valid = predicate ? this.cards.filter(predicate) : this.cards;
+	findCardsRandom(predicate, n, rng){
+		let valid = predicate ? this.cards.filter(predicate) : [...this.cards];
 		if (valid.length === 0)
 			return [];
+		// Container order differs between the two online clients
+		if (Online.active)
+			valid.sort(Card.byUid);
 		if (!n || n === 1)
-			return [valid[randomInt(valid.length)]];
+			return [valid[randomInt(valid.length, rng)]];
 		let out = [];
 		for (let i=Math.min(n, valid.length); i>0 ; --i){
-			let index = randomInt(valid.length);
+			let index = randomInt(valid.length, rng);
 			out.push( valid.splice(index,1)[0] );
 		}
 		return out;
@@ -891,7 +913,7 @@ class CardContainer {
 	// Adds a card to a random index of the CardContainer
 	addCardRandom(card){
 		this.cards.push(card);
-		let index = randomInt(this.cards.length);
+		let index = randomInt(this.cards.length, this.rng);
 		if (index !== this.cards.length-1) {
 			let t = this.cards[this.cards.length-1];
 			this.cards[this.cards.length-1] = this.cards[index];
@@ -1017,6 +1039,7 @@ class Deck extends CardContainer {
 	initialize(card_data_list, player){
 		for (let i=0; i<card_data_list.length; ++i) {
 			let card = new Card(card_data_list[i], player);
+			card.uid = player.seat + "-" + i;
 			this.addCardRandom(card);
 			this.addCardElement();
 		}
@@ -1481,7 +1504,7 @@ class Board {
 	labelRows(){
 		const hotseat = game.isHotseat();
 		this.row.forEach((r, i) => {
-			const side = i < 3 ? (hotseat ? player_op.name + "'s" : "Opponent's") : (hotseat ? player_me.name + "'s" : "Your");
+			const side = i < 3 ? (hotseat || player_op.isRemote() ? player_op.name + "'s" : "Opponent's") : (hotseat ? player_me.name + "'s" : "Your");
 			r.elem.setAttribute("aria-label", side + " " + r.type + " row");
 			r.elem_special.setAttribute("aria-label", side + " " + r.type + " row special slot");
 		});
@@ -1587,9 +1610,12 @@ class Game {
 		this.mainMenu_elem = buttons[0];
 		this.rematch_elem = buttons[1];
 		this.newGame_elem = buttons[2];
-		this.mainMenu_elem.addEventListener("click", () => this.returnToMainMenu(), false);
-		this.rematch_elem.addEventListener("click", () => this.rematchGame(), false);
-		this.newGame_elem.addEventListener("click", () => this.newOpponentGame(), false);
+		this.mainMenu_elem.addEventListener("click", () => {
+			Online.leave();
+			this.returnToMainMenu();
+		}, false);
+		this.rematch_elem.addEventListener("click", () => Online.active ? Online.requestRematch() : this.rematchGame(), false);
+		this.newGame_elem.addEventListener("click", () => Online.active ? Online.requestNewGame() : this.newOpponentGame(), false);
 		this.state = GameState.CUSTOMIZE;
 		this.reset();
 	}
@@ -1671,7 +1697,8 @@ class Game {
 		const session = this.session;
 		EventManager.gameOpened.dispatch();
 		ui.setMusicTrack("game");
-		this.initPlayers(player_me, player_op);
+		// Online clients register hooks in seat order so effects run in the same order on both
+		this.initPlayers(...(Online.active ? Online.players() : [player_me, player_op]));
 		this.setState(GameState.PLAYING);
 		AudioManager.playSFX('game_opening');
 		// In pass and play hands stay hidden until their owner takes the device
@@ -1702,7 +1729,10 @@ class Game {
 	async coinToss(){
 		if (this.firstPlayer)
 			return;
-		this.firstPlayer = (Math.random() < 0.5) ? player_me : player_op;
+		if (Online.active)
+			this.firstPlayer = Online.players()[Online.rng() < 0.5 ? 0 : 1];
+		else
+			this.firstPlayer = (Math.random() < 0.5) ? player_me : player_op;
 		await ui.playerNotification("coin", this.firstPlayer, 3000);
 	}
 	
@@ -1710,21 +1740,28 @@ class Game {
 	async initialRedraw(){
 		const session = this.session;
 		const hotseat = this.isHotseat();
-		for (const player of [player_op, player_me].filter(p => !p.isHuman()))
+		for (const player of [player_op, player_me].filter(p => p.controller instanceof ControllerAI))
 			for (let i=0; i < player.controller.difficulty.redraws; i++)
 				player.controller.redraw();
-		for (const player of [player_me, player_op].filter(p => p.isHuman())) {
-			if (session !== this.session)
-				return;
+		const redraw = async player => {
 			if (hotseat)
 				await ui.handoff(player, "Choose up to 2 cards from your starting hand to redraw.");
-			await ui.queueCarousel(player.hand, 2, async (c, i) => { 
+			await Online.carousel(player, "redraw", player.hand, 2, async (c, i) => { 
 				AudioManager.playSFX('redraw');
 				await player.deck.swap(c, c.cards[i]);
 			}, c => true, false, true, (hotseat ? player.name + ": c" : "C") + "hoose up to 2 cards to redraw.", "skip redrawing");
-			player.hand.sort();
+			player.hand.sort?.();
 			if (hotseat)
 				ui.showHand(null);
+		};
+		const redrawing = [player_me, player_op].filter(p => !(p.controller instanceof ControllerAI));
+		// Online opponents redraw at the same time on their own devices
+		if (Online.active)
+			await Promise.all(redrawing.map(redraw));
+		else for (const player of redrawing) {
+			if (session !== this.session)
+				return;
+			await redraw(player);
 		}
 		ui.enablePlayer(false);
 	}
@@ -1774,6 +1811,8 @@ class Game {
 		}
 		if (session !== this.session)
 			return;
+		if (Online.active)
+			Online.onTurnStart();
 		ui.enablePlayer(this.currPlayer.isHuman());
 		this.currPlayer.startTurn();
 	}
@@ -1869,12 +1908,12 @@ class Game {
 		}
 	}
 	
-	// Sets up and displays the end-game screen
-	async endGame() {
+	// Sets up and displays the end-game screen. note replaces the winner line (e.g. an online forfeit).
+	async endGame(note) {
 		let endScreen = document.getElementById("end-screen");
 		let rows = endScreen.getElementsByTagName("tr");
-		rows[1].children[0].innerHTML = player_me.name;
-		rows[2].children[0].innerHTML = player_op.name;
+		rows[1].children[0].textContent = player_me.name;
+		rows[2].children[0].textContent = player_op.name;
 		
 		for (let i=1; i<4; ++i) {
 			let round = this.roundHistory[i-1];
@@ -1909,6 +1948,12 @@ class Game {
 			endScreen.children[0].classList.add("end-lose");
 			ui.announce("You lost the game");
 		}
+		if (note) {
+			winnerElem.textContent = note;
+			winnerElem.classList.remove("hide");
+			ui.announce(note);
+		}
+		Online.onGameEnd();
 		
 		fadeIn(endScreen, 300);
 		ui.enablePlayer(true);
@@ -1918,6 +1963,12 @@ class Game {
 	exitGame()
 	{
 		AudioManager.playSFX('warning');
+		if (Online.active)
+			return ui.popup(
+				"Resume", ()=>{},
+				"Leave", ()=>Online.forfeit(),
+				"Leave the match?", "You will forfeit and your opponent wins."
+			);
 		ui.popup(
 			"Resume", ()=>{},
 			"Exit", ()=>this.returnToMainMenu(),
@@ -1930,8 +1981,8 @@ class Game {
 		document.activeElement?.blur();
 		ui.closeHandoff();
 		this.reset();
-		player_me.reset();
-		player_op.reset();
+		player_me?.reset();
+		player_op?.reset();
 		EventManager.customizationOpened.dispatch();
 		this.endScreen.classList.add("hide");
 		if (showBuilder)
@@ -2115,6 +2166,11 @@ class Card {
 
 	isHero() { return this.hero; }
 
+	// Orders cards the same way on both online clients
+	static byUid(a, b){
+		return (a.uid ?? "") < (b.uid ?? "") ? -1 : (a.uid ?? "") > (b.uid ?? "") ? 1 : 0;
+	}
+
 	// Compares by type then power then name
 	static compare(a, b){
 		var dif = factionRank(a) - factionRank(b);
@@ -2227,6 +2283,7 @@ class UI {
 		document.getElementById("pass-button").addEventListener("click", () => {
 			if (!game.currPlayer?.isHuman())
 				return;
+			Online.commit(game.currPlayer, {a: "pass"});
 			game.currPlayer.passRound();
 			AudioManager.playSFX('pass');
 		}, false);
@@ -2442,6 +2499,7 @@ class UI {
 			this.showPreview(card);
 		} else if (pCard.name === "Decoy") {
 			const session = game.session;
+			Online.commit(pCard.holder, {a: "decoy", c: pCard.uid, x: card.uid, r: Online.rowCode(row)});
 			this.hidePreview(card);
 			this.enablePlayer(false);
 			await Promise.all([
@@ -2470,6 +2528,7 @@ class UI {
 		let card = this.previewCard;
 		let holder = card.holder;
 		const session = game.session;
+		Online.commit(holder, card.name === "Scorch" ? {a: "scorch", c: card.uid} : {a: "row", c: card.uid, r: Online.rowCode(row)});
 		this.hidePreview();
 		this.enablePlayer(false);
 		if (card.name === "Scorch"){
@@ -2569,6 +2628,8 @@ class UI {
 	
 	// Displayed a timed notification to the client. caption overrides the banner's built-in text.
 	async notification(name, duration, caption){
+		if (Online.replaying)
+			return;
 		this.announce(caption ?? UI.notificationText[name]);
 		if (!Settings.notifications.isEnabled())
 			return;
@@ -2587,9 +2648,9 @@ class UI {
 		await fadeOut(this.notif_elem, fadeSpeed);
 	}
 	
-	// Pass and play banner text that names the player, since "you"/"opponent" is ambiguous on a shared screen
+	// Banner text that names the player: both sides in pass and play, the opponent online
 	playerCaption(kind, player){
-		if (!game.isHotseat())
+		if (!game.isHotseat() && !player.isRemote())
 			return undefined;
 		const name = player.name;
 		return {
@@ -2625,7 +2686,7 @@ class UI {
 	// Displays a Carousel menu of filtered container items that match the predicate.
 	// Suspends gameplay until the Carousel is closed. Automatically picks random card if activated for AI player
 	async queueCarousel(container, count, action, predicate, bSort, bQuit, title, hint){
-		if (game.currPlayer && !game.currPlayer.isHuman()) {
+		if (game.currPlayer?.controller instanceof ControllerAI) {
 			for (let i=0; i<count; ++i){
 				let cards = container.cards.reduce((a,c,i) => !predicate || predicate(c) ? a.concat([i]) : a, []);
 				if (cards.length === 0)
@@ -2671,6 +2732,21 @@ class UI {
 		return accepted;
 	}
 	
+	// Rows (or weather) a card from hand can be played to; also validates online opponents' moves
+	legalRows(card){
+		if (card.faction === "weather")
+			return [weather];
+		if (card.name === "Scorch")
+			return [...board.row];
+		// board.row[0..2] belong to player_op, [3..5] to player_me
+		const own = board.row.filter((r, i) => (i >= 3) === (card.holder === player_me));
+		if (card.isSpecial())
+			return own.filter(r => r.special === null);
+		if (card.name === "Decoy")
+			return own.filter(r => r.cards.some(c => c.isUnit()));
+		return card.row === "agile" ? [board.getRow(card, "close", card.holder), board.getRow(card, "ranged", card.holder)] : [board.getRow(card, card.row, card.holder)];
+	}
+	
 	// Enables or disables selection and highlighting of rows specific to the card
 	setSelectable(card, enable){
 		if(!enable) {
@@ -2689,6 +2765,7 @@ class UI {
 			weather.elem.classList.remove("noclick");
 			return;
 		}
+		const legal = this.legalRows(card);
 		if (card.faction === "weather") {
 			for (let row of board.row){
 				row.elem.classList.add("noclick");
@@ -2700,9 +2777,6 @@ class UI {
 		
 		weather.elem.classList.add("noclick");
 		
-		// board.row[0..2] belong to player_op, [3..5] to player_me
-		const isOwnRow = i => (i >= 3) === (card.holder === player_me);
-		
 		if (card.name === "Scorch") {
 			for (let r of board.row){
 				r.elem.classList.add("row-selectable");
@@ -2711,9 +2785,8 @@ class UI {
 			return;
 		}
 		if (card.isSpecial()){
-			for (let i=0; i<6; i++){
-				let r = board.row[i];
-				if (!isOwnRow(i) || r.special !== null){
+			for (let r of board.row){
+				if (!legal.includes(r)){
 					r.elem.classList.add("noclick");
 					r.elem_special.classList.add("noclick");
 				} else {
@@ -2726,25 +2799,21 @@ class UI {
 		board.row.forEach( r => r.elem_special.classList.add("noclick") );
 		
 		if (card.name === "Decoy"){
-			for (let i=0; i<6; ++i) {
-				let r = board.row[i];
-				let units = r.cards.filter(c => c.isUnit());
-				if (!isOwnRow(i) || units.length === 0) {
+			for (let r of board.row) {
+				if (!legal.includes(r)) {
 					r.elem.classList.add("noclick");
 					r.elem_special.classList.add("noclick");
 					r.elem.classList.remove("card-selectable");
 				} else {
 					r.elem.classList.add("row-selectable");
-					units.forEach( c => c.elem.classList.remove("noclick") );
+					r.cards.filter(c => c.isUnit()).forEach( c => c.elem.classList.remove("noclick") );
 				}
 			}
 			return;
 		}
 		
-		let currRows = card.row === "agile" ? [board.getRow(card, "close", card.holder), board.getRow(card, "ranged", card.holder)] : [board.getRow(card, card.row, card.holder)];
-		for (let i=0; i<6; i++){
-			let row = board.row[i];
-			if (currRows.includes(row)) {
+		for (let row of board.row){
+			if (legal.includes(row)) {
 				row.elem.classList.add("row-selectable");
 			} else {
 				row.elem.classList.add("noclick");
@@ -2970,14 +3039,20 @@ class Carousel {
 	async select(event) {
 		(event || window.event).stopPropagation();
 		// The carousel stays current while the last action runs; repeated Enter presses must not re-run it
-		if (this.count <= 0)
+		if (this.count <= 0 || this.busy)
 			return;
 		--this.count;
 		if (this.isLastSelection())
 			this.elem.classList.add("hide");
 		if (this.count <= 0)
 			ui.enablePlayer(false);
-		await this.action(this.container, this.indices[this.index]);
+		// A second pick before the first card has left (e.g. discards) would pick the same card again
+		this.busy = true;
+		try {
+			await this.action(this.container, this.indices[this.index]);
+		} finally {
+			this.busy = false;
+		}
 		if (this.isLastSelection() && !this.cancelled)
 			return this.exit();
 		this.update();
@@ -3509,6 +3584,8 @@ class DeckMaker {
 	
 	// Verifies the decks, creates the players and their decks, then starts a new game
 	startNewGame(){
+		if (Online.connected)
+			return Online.toggleReady();
 		const hotseat = DeckMaker.isHotseatMode();
 		const p1 = this.playerDeck("p1");
 		const p2 = hotseat ? this.playerDeck("p2") : null;
@@ -3834,7 +3911,7 @@ class AudioManager
 
 	static async playSFX(key, waitTime = -1, forceWait = false)
 	{
-		if (Settings.soundEffects.isEnabled())
+		if (Settings.soundEffects.isEnabled() && !Online.replaying)
 		{
 			return await AudioManager.play(key, waitTime, forceWait);
 		}
@@ -3980,6 +4057,8 @@ class Settings
 	static p2LastFaction = new SavedString("gc-p2-last-faction", "monsters");
 	static aiDifficulty = new SavedString("gc-ai-difficulty", "normal");
 	static gameMode = new SavedString("gc-game-mode", "ai");
+	static onlineName = new SavedString("gc-online-name", "");
+	static onlineTimer = new SavedString("gc-online-timer", "60");
 	static realmsDeck = new SavedDeck("gc-deck-realms", premade_deck[0]);
 	static nilfgaardDeck = new SavedDeck("gc-deck-nilfgaard", premade_deck[2]);
 	static monstersDeck = new SavedDeck("gc-deck-monsters", premade_deck[4]);
@@ -4081,7 +4160,7 @@ async function translateTo(card, container_source, container_dest){
 	if (container_dest instanceof Row && container_dest.cards.length !== 0 && !card.isSpecial() ){
 		x += (container_dest.getSortedIndex(card) === container_dest.cards.length) ? elem.offsetWidth/2 : -elem.offsetWidth/2;
 	}
-	if (card.holder.controller instanceof ControllerAI)
+	if (card.holder.hand instanceof HandAI)
 		x += elem.offsetWidth/2;
 	if (container_source instanceof Row && container_dest instanceof Grave && !card.isSpecial()) {
 		let mid = trueOffset(container_source.elem, true) + container_source.elem.offsetWidth/2;
@@ -4165,6 +4244,7 @@ async function fadeIn(elem, duration){
 async function fade(fadeIn, elem, dur){
 	if (!elem)
 		return;
+	dur *= Online.timeScale;
 	return new Promise(res => {
 		const startingOpacity = toInteger(elem.style.opacity);
 		const endOpacity = fadeIn ? 1 : 0;
@@ -4247,9 +4327,9 @@ function asyncAudio(audio)
 	});
 }
 
-// Pauses execution until the passed number of milliseconds as expired
+// Pauses execution until the passed number of milliseconds as expired. Online replays run sped up.
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms * Online.timeScale));
   //return new Promise(resolve => setTimeout(() => {if (func) func(); return resolve();}, ms));
 }
 
@@ -4322,8 +4402,13 @@ function openTitleScreen(sfx = true) {
 	if (sfx)
 		AudioManager.playSFX("menu_opening");
 }
-document.getElementById("deck-back").addEventListener("click", () => openTitleScreen(), false);
-["#title-play", "#title-local", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
+document.getElementById("deck-back").addEventListener("click", async () => {
+	if (Online.connected && !await ui.confirm("Leave the room?", "You will be disconnected from " + Online.opponentName + ".", "Leave", "Stay"))
+		return;
+	Online.leave();
+	openTitleScreen();
+}, false);
+["#title-play", "#title-online", "#title-local", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
 
 // Chromium offers installs via beforeinstallprompt; iOS Safari only via Share > Add to Home Screen.
 const installButton = document.getElementById("title-install");
