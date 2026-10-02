@@ -595,3 +595,44 @@
 	height: calc(2.2 * var(--u));
 	font-size: calc(0.8 * var(--u));
 }
+
+/* ---------------- portrait phones ---------------- */
+
+/* --u collapses in portrait, so this overlay sizes with vmin instead */
+#rotate-hint { display: none; }
+@media (orientation: portrait) and (pointer: coarse) {
+	#rotate-hint {
+		position: fixed;
+		inset: 0;
+		z-index: 2000;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 6vmin;
+		background: radial-gradient(ellipse at 50% 45%, rgb(24, 18, 10) 0%, var(--ink) 75%);
+		color: var(--gold-1);
+		font-family: var(--font-display);
+		font-size: 5vmin;
+		letter-spacing: 0.08em;
+		text-align: center;
+	}
+	#rotate-hint small {
+		color: var(--text-dim);
+		font-family: var(--font-body);
+		font-size: 3.6vmin;
+		letter-spacing: 0.04em;
+	}
+	.rotate-phone {
+		width: 18vmin;
+		height: 30vmin;
+		border: 1.2vmin solid var(--gold-2);
+		border-radius: 3vmin;
+		box-shadow: 0 0 4vmin var(--gold-glow);
+		animation: rotate-phone 2.4s var(--ease-out) infinite;
+	}
+}
+@keyframes rotate-phone {
+	0%, 20% { rotate: 0deg; }
+	60%, 100% { rotate: -90deg; }
+}

@@ -1,0 +1,19 @@
+{
+	"id": "./",
+	"name": "Gwent Classic",
+	"short_name": "Gwent",
+	"description": "Play the original Gwent minigame from The Witcher 3, including Hearts of Stone and Blood & Wine cards.",
+	"start_url": "./",
+	"scope": "./",
+	"display": "fullscreen",
+	"display_override": ["fullscreen", "standalone"],
+	"orientation": "landscape",
+	"background_color": "#070605",
+	"theme_color": "#070605",
+	"categories": ["games", "entertainment"],
+	"icons": [
+		{ "src": "img/app/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+		{ "src": "img/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+		{ "src": "img/app/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+	]
+}

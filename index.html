@@ -9,6 +9,13 @@
 	<meta name="description" content="Play the original Gwent minigame from The Witcher 3 in your browser! Includes cards from Hearts of Stone and Blood & Wine!" />
 	<meta name="keywords" content="arun, sundaram, programmer, gwent, tw3, witcher, card, game, gamedev, play" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="theme-color" content="#070605" />
+	<meta name="mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+	<link rel="manifest" href="manifest.webmanifest" />
+	<link rel="icon" type="image/png" sizes="192x192" href="img/app/icon-192.png" />
+	<link rel="apple-touch-icon" href="img/app/icon-192.png" />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Cinzel:wght@500;700;900&display=swap" />
@@ -361,6 +368,11 @@
 	<p class="title-credit">Gwent Classic &middot; The Witcher 3: Wild Hunt</p>
 </section>
 
+<section id="rotate-hint" aria-hidden="true">
+	<div class="rotate-phone"></div>
+	<p>Rotate your device to landscape<br /><small>or tap to switch</small></p>
+</section>
+
 <script type="text/javascript" src="common.js"></script>
 <script type="text/javascript" src="cards.js"></script>
 <script type="text/javascript" src="decks.js"></script>
@@ -369,6 +381,10 @@
 <script type="text/javascript" src="gwent.js"></script>
 <script type="text/javascript" src="fx.js"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
+<script>
+	if ("serviceWorker" in navigator && location.protocol.startsWith("http"))
+		navigator.serviceWorker.register("sw.js").catch(err => console.warn("Service worker registration failed:", err));
+</script>
 </body>
 
 </html>

@@ -4118,6 +4118,21 @@ function onFirstInput() {
 }
 ["pointerdown", "keydown"].forEach(t => document.addEventListener(t, onFirstInput, true));
 
+// Touch devices: pin landscape on the first tap, and on taps while held in portrait (the rotate hint).
+// Browser tabs can only lock orientation while fullscreen; the installed app's manifest already locks it.
+let landscapeTried = false;
+function lockLandscape() {
+	if (!matchMedia("(pointer: coarse)").matches || !screen.orientation?.lock)
+		return document.removeEventListener("click", lockLandscape, true);
+	if (landscapeTried && !matchMedia("(orientation: portrait)").matches)
+		return;
+	landscapeTried = true;
+	const installed = matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches;
+	const ready = installed || document.fullscreenElement ? null : document.documentElement.requestFullscreen?.({ navigationUI: "hide" });
+	Promise.resolve(ready).then(() => screen.orientation.lock("landscape")).catch(() => {});
+}
+document.addEventListener("click", lockLandscape, true);
+
 // Keyboard controls: Enter/Space activate focused controls; arrows/Enter/Escape drive the carousel; Escape closes previews
 document.addEventListener("keydown", e => {
 	if (Popup.curr)
