@@ -9,6 +9,12 @@
 	--card-w: calc(4.45 * var(--u));
 	--card-h: calc(6.35 * var(--u));
 
+	/* Text floors: font-size: max(calc(N * var(--u)), var(--fs-*)) keeps phone-sized stages readable */
+	--fs-xs: 10px;
+	--fs-sm: 11.5px;
+	--fs-md: 13px;
+	--fs-lg: 15px;
+
 	--font-display: "Cinzel", "Trajan Pro", Georgia, serif;
 	--font-body: "Alegreya Sans", "Arial Narrow", sans-serif;
 	--font-caps: "Alegreya Sans SC", "Alegreya Sans", "Arial Narrow", sans-serif;

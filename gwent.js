@@ -654,11 +654,15 @@ class Player {
 	
 	// Shows a preview of the card being played, plays it to the board and ends the turn
 	async playCardAction(card, action){
+		const session = game.session;
 		ui.showPreviewVisuals(card);
 		await sleep(1000);
+		if (session !== game.session)
+			return;
 		ui.hidePreview(card);
 		await action();
-		this.endTurn();
+		if (session === game.session)
+			this.endTurn();
 	}
 	
 	// Handles end of turn visuals and behavior the notifies the game
@@ -695,10 +699,15 @@ class Player {
 	
 	// Use a leader's Activate ability, then disable the leader
 	async activateLeader() {
+		const session = game.session;
 		ui.showPreviewVisuals(this.leader);
 		await sleep(1500);
+		if (session !== game.session)
+			return;
 		ui.hidePreview(this.leader);
 		await this.leader.activated[0](this.leader, this);
+		if (session !== game.session)
+			return;
 		this.disableLeader();
 		this.endTurn();
 	}
@@ -1523,10 +1532,10 @@ class Game {
 	constructor() {
 		this.endScreen = document.getElementById("end-screen");
 		let buttons = this.endScreen.getElementsByTagName("button");
-		this.customize_elem = buttons[0];
+		this.mainMenu_elem = buttons[0];
 		this.rematch_elem = buttons[1];
 		this.newGame_elem = buttons[2];
-		this.customize_elem.addEventListener("click", () => this.returnToCustomization(), false);
+		this.mainMenu_elem.addEventListener("click", () => this.returnToMainMenu(), false);
 		this.rematch_elem.addEventListener("click", () => this.rematchGame(), false);
 		this.newGame_elem.addEventListener("click", () => this.newOpponentGame(), false);
 		this.state = GameState.CUSTOMIZE;
@@ -1534,6 +1543,8 @@ class Game {
 	}
 	
 	reset() {
+		// Async turn flows capture this and bail out once a game is quit or restarted
+		this.session = (this.session ?? 0) + 1;
 		this.firstPlayer = null;
 		this.currPlayer = null;
 		
@@ -1605,6 +1616,7 @@ class Game {
 	
 	// Sets initializes player abilities, player hands and redraw
 	async startGame() {
+		const session = this.session;
 		EventManager.gameOpened.dispatch();
 		ui.setMusicTrack("game");
 		this.initPlayers(player_me, player_op);
@@ -1617,13 +1629,19 @@ class Game {
 		ui.showHand(this.isHotseat() ? null : player_me);
 		await this.runEffects(this.gameStart);
 		await this.coinToss();
+		if (session !== this.session)
+			return;
 		AudioManager.playSFX('redraw');
 		const openingDraw = p => p.hand.isVisible()
 			? p.deck.cards.slice(0, 10).map(c => board.toHand(c, p.deck))
 			: Array.from({length: 10}, () => p.deck.draw(p.hand));
 		await Promise.all([...openingDraw(player_me), ...openingDraw(player_op)]);
+		if (session !== this.session)
+			return;
 		AudioManager.playSFX("game_start");
 		await this.initialRedraw();
+		if (session !== this.session)
+			return;
 		this.currPlayer = this.firstPlayer;
 		this.startRound();
 	}
@@ -1638,17 +1656,20 @@ class Game {
 	
 	// Allows each human player to swap out up to two cards from their initial hand
 	async initialRedraw(){
+		const session = this.session;
 		const hotseat = this.isHotseat();
 		for (const player of [player_op, player_me].filter(p => !p.isHuman()))
 			for (let i=0; i < ControllerAI.difficulty().redraws; i++)
 				player.controller.redraw();
 		for (const player of [player_me, player_op].filter(p => p.isHuman())) {
+			if (session !== this.session)
+				return;
 			if (hotseat)
 				await ui.handoff(player, "Choose up to 2 cards from your starting hand to redraw.");
 			await ui.queueCarousel(player.hand, 2, async (c, i) => { 
 				AudioManager.playSFX('redraw');
 				await player.deck.swap(c, c.cards[i]);
-			}, c => true, false, true, (hotseat ? player.name + ": c" : "C") + "hoose up to 2 cards to redraw.");
+			}, c => true, false, true, (hotseat ? player.name + ": c" : "C") + "hoose up to 2 cards to redraw.", "skip redrawing");
 			player.hand.sort();
 			if (hotseat)
 				ui.showHand(null);
@@ -1658,12 +1679,15 @@ class Game {
 	
 	// Initiates a new round of the game
 	async startRound(){
+		const session = this.session;
 		this.firstPlayer = this.currPlayer;
 		this.roundCount++;
 		EventManager.roundStarted.dispatch(this.roundCount, this.currPlayer);
 		if (this.roundCount === 1)
 			AudioManager.playSFX("round1_start");
 		await this.runEffects(this.roundStart);
+		if (session !== this.session)
+			return;
 		
 		if ( !player_me.canPlay() )
 			player_me.setPassed(true);
@@ -1677,13 +1701,18 @@ class Game {
 			this.currPlayer = this.currPlayer.opponent();
 		
 		await ui.notification("round-start", 1200);
+		if (session !== this.session)
+			return;
 		AudioManager.playSFX(this.currPlayer === player_me ? "turn_me" : "turn_op");
 		await ui.playerNotification("turn", this.currPlayer, 1200);
+		if (session !== this.session)
+			return;
 		this.startTurn();
 	}
 	
 	// Starts a new turn. Enables client interraction in client's turn.
 	async startTurn() {
+		const session = this.session;
 		await this.runEffects(this.turnStart);
 		if (this.isHotseat()) {
 			if (ui.handViewer === this.currPlayer)
@@ -1691,12 +1720,15 @@ class Game {
 			else
 				await ui.handoff(this.currPlayer, "It's your turn.");
 		}
+		if (session !== this.session)
+			return;
 		ui.enablePlayer(this.currPlayer.isHuman());
 		this.currPlayer.startTurn();
 	}
 	
 	// Ends the current turn and may end round. Disables client interraction in client's turn.
 	async endTurn() {
+		const session = this.session;
 		if (this.currPlayer.isHuman())
 			ui.enablePlayer(false);
 		// Keep the hand up only if the same player is about to continue (opponent already passed)
@@ -1705,6 +1737,8 @@ class Game {
 		await this.runEffects(this.turnEnd);
 		if (this.currPlayer.passed)
 			await ui.playerNotification("pass", this.currPlayer, 1200);
+		if (session !== this.session)
+			return;
 		if (player_op.passed && player_me.passed)
 			this.endRound();
 		else
@@ -1714,6 +1748,8 @@ class Game {
 				this.currPlayer = this.currPlayer.opponent();
 				AudioManager.playSFX(this.currPlayer === player_me ? "turn_me" : "turn_op");
 				await ui.playerNotification("turn", this.currPlayer, 1200);
+				if (session !== this.session)
+					return;
 			}
 			await this.startTurn();
 		}
@@ -1730,7 +1766,10 @@ class Game {
 		let verdict = {winner: winner, score_me: player_me.total, score_op: player_op.total}
 		this.roundHistory.push(verdict);
 		
+		const session = this.session;
 		await this.runEffects(this.roundEnd);
+		if (session !== this.session)
+			return;
 		
 		player_me.endRound( dif > 0);
 		player_op.endRound( dif < 0);
@@ -1765,6 +1804,8 @@ class Game {
 			board.clearRound(),
 			ui.notification(notificationKey, 1200, caption)
 		]);
+		if (session !== this.session)
+			return;
 
 		EventManager.roundEnded.dispatch(this.roundCount, player_me.total, player_op.total);
 		if (player_me.health === 0 || player_op.health === 0)
@@ -1827,13 +1868,13 @@ class Game {
 		AudioManager.playSFX('warning');
 		ui.popup(
 			"Resume", ()=>{},
-			"Exit", ()=>this.returnToCustomization(),
-			"Quit curent game?" , "This will return you to the deck customization menu."
+			"Exit", ()=>this.returnToMainMenu(),
+			"Quit current game?" , "This will return you to the main menu."
 		); 
 	}
 	
 	// Returns the client to the deck customization screen
-	returnToCustomization(){
+	returnToCustomization(showBuilder = true){
 		document.activeElement?.blur();
 		ui.closeHandoff();
 		this.reset();
@@ -1841,10 +1882,17 @@ class Game {
 		player_op.reset();
 		EventManager.customizationOpened.dispatch();
 		this.endScreen.classList.add("hide");
-		document.getElementById("deck-customization").classList.remove("hide");
+		if (showBuilder)
+			document.getElementById("deck-customization").classList.remove("hide");
 		AudioManager.playSFX('menu_opening');
 		ui.setMusicTrack("menu");
 		this.setState(GameState.CUSTOMIZE);
+	}
+
+	// The builder stays hidden so it doesn't show through the title's fade-in; closeTitleScreen reveals it
+	returnToMainMenu(){
+		openTitleScreen(false);
+		this.returnToCustomization(false);
 	}
 
 	newOpponentGame()
@@ -2167,7 +2215,7 @@ class UI {
 		[	'.settings-button',
 			'.deck-options',
 			'#pass-button',
-			'#end-screen>button',
+			'#end-buttons>button',
 			'#handoff button',
 			'#op-preview-leader',
 			'#opponent-preview button'
@@ -2340,13 +2388,15 @@ class UI {
 			this.setSelectable(null, false);
 			this.showPreview(card);
 		} else if (pCard.name === "Decoy") {
+			const session = game.session;
 			this.hidePreview(card);
 			this.enablePlayer(false);
 			await Promise.all([
 				board.toHand(card, row),
 				board.moveTo(pCard, row, pCard.holder.hand)
 			]);
-			pCard.holder.endTurn();
+			if (session === game.session)
+				pCard.holder.endTurn();
 		}
 	}
 	
@@ -2366,6 +2416,7 @@ class UI {
 			return;
 		let card = this.previewCard;
 		let holder = card.holder;
+		const session = game.session;
 		this.hidePreview();
 		this.enablePlayer(false);
 		if (card.name === "Scorch"){
@@ -2376,7 +2427,8 @@ class UI {
 		} else {
 			await board.moveTo(card, row, card.holder.hand);
 		}
-		holder.endTurn();
+		if (session === game.session)
+			holder.endTurn();
 	}
 	
 	// Called when the client cancels out of a card-preview
@@ -2519,7 +2571,7 @@ class UI {
 	
 	// Displays a Carousel menu of filtered container items that match the predicate.
 	// Suspends gameplay until the Carousel is closed. Automatically picks random card if activated for AI player
-	async queueCarousel(container, count, action, predicate, bSort, bQuit, title){
+	async queueCarousel(container, count, action, predicate, bSort, bQuit, title, hint){
 		if (game.currPlayer && !game.currPlayer.isHuman()) {
 			for (let i=0; i<count; ++i){
 				let cards = container.cards.reduce((a,c,i) => !predicate || predicate(c) ? a.concat([i]) : a, []);
@@ -2529,7 +2581,7 @@ class UI {
 			}
 			return;
 		}
-		let carousel = new Carousel(container, count, action, predicate, bSort, bQuit, title);
+		let carousel = new Carousel(container, count, action, predicate, bSort, bQuit, title, hint);
 		if (Carousel.curr === undefined || Carousel.curr === null)
 			carousel.start();
 		else {
@@ -2676,7 +2728,7 @@ class UI {
 // Clicking the middle card performs the action on that card "count" times
 // Clicking adejacent cards shifts the menu to focus on that card
 class Carousel {
-	constructor(container, count, action, predicate, bSort, bExit = false, title) {
+	constructor(container, count, action, predicate, bSort, bExit = false, title, hint = "close") {
 		if (count <= 0 || !container || !action || container.cards.length === 0)
 			return ;
 		this.container = container;
@@ -2688,11 +2740,18 @@ class Carousel {
 		this.index = 0;
 		this.bExit = bExit;
 		this.title = title;
+		this.hint = hint;
 		this.cancelled = false;
 		
 		if (!Carousel.elem) {
 			Carousel.elem = document.getElementById("carousel");
-			Carousel.elem.children[0].addEventListener("click", () => Carousel.curr?.cancel(), false);
+			// Card clicks stop propagation, so anything else in the overlay (backdrop, title, hint) dismisses it
+			Carousel.elem.addEventListener("click", () => Carousel.curr?.cancel(), false);
+			// Letterbox bars around the 16:9 stage (wide phones) count as outside too
+			document.addEventListener("click", e => {
+				if ((e.target === document.body || e.target === document.documentElement) && Carousel.curr && !Carousel.elem.classList.contains("hide"))
+					Carousel.curr.cancel();
+			}, false);
 			[...Carousel.elem.children[0].children].forEach((e, i) => {
 				const offset = i - 2;
 				e.addEventListener("click", evt => offset === 0 ? Carousel.curr?.select(evt) : Carousel.curr?.shift(evt, offset));
@@ -2708,6 +2767,7 @@ class Carousel {
 		this.previews = this.elem.getElementsByClassName("card-lg");
 		this.desc = this.elem.getElementsByClassName("card-description")[0];
 		this.title_elem = this.elem.children[2];
+		this.hint_elem = document.getElementById("carousel-hint");
 		this.elem.children[0].style.setProperty('--carousel-trans-time', "0.25s");
 	}
 	
@@ -2730,6 +2790,11 @@ class Carousel {
 		} else {
 			this.title_elem.classList.add("hide");
 		}
+		if (this.bExit) {
+			const touch = matchMedia("(pointer: coarse)").matches;
+			this.hint_elem.textContent = (touch ? "Tap anywhere outside the cards to " : "Click outside the cards or press Esc to ") + this.hint;
+		}
+		this.hint_elem.classList.toggle("hide", !this.bExit);
 		AudioManager.playSFX('open');
 		this.elem.classList.remove("hide");
 		ui.enablePlayer(true);
@@ -4171,33 +4236,40 @@ const titleScreen = document.getElementById("title-screen");
 let titleHideTimer;
 function closeTitleScreen() {
 	userInteracted = true;
+	document.getElementById("deck-customization").classList.remove("hide");
 	document.body.classList.remove("title-open");
 	titleScreen.classList.add("leaving");
 	titleHideTimer = setTimeout(() => titleScreen.classList.add("hide"), 600);
 }
+// Both play modes open the deck builder so decks (and the AI opponent) can be set before starting
 document.getElementById("title-play").addEventListener("click", () => {
 	closeTitleScreen();
+	document.body.classList.remove("deck-only");
 	dm.setGameMode("ai", true);
-	dm.startNewGame();
+	AudioManager.playSFX("menu_opening");
 }, false);
-// Local multiplayer opens the deck builder so both decks can be chosen before starting
 document.getElementById("title-local").addEventListener("click", () => {
 	closeTitleScreen();
+	document.body.classList.remove("deck-only");
 	dm.setGameMode("hotseat", true);
 	AudioManager.playSFX("menu_opening");
 }, false);
+// Deck Builder from the title is for editing only: opponent options and Start game are hidden (css: body.deck-only)
 document.getElementById("title-deck").addEventListener("click", () => {
 	closeTitleScreen();
+	document.body.classList.add("deck-only");
 	AudioManager.playSFX("menu_opening");
 }, false);
-document.getElementById("deck-back").addEventListener("click", () => {
+function openTitleScreen(sfx = true) {
 	document.body.classList.add("title-open");
 	clearTimeout(titleHideTimer);
 	titleScreen.classList.remove("hide");
 	void titleScreen.offsetWidth; // reflow so the opacity transition runs
 	titleScreen.classList.remove("leaving");
-	AudioManager.playSFX("menu_opening");
-}, false);
+	if (sfx)
+		AudioManager.playSFX("menu_opening");
+}
+document.getElementById("deck-back").addEventListener("click", () => openTitleScreen(), false);
 ["#title-play", "#title-local", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
 
 // Chromium offers installs via beforeinstallprompt; iOS Safari only via Share > Add to Home Screen.

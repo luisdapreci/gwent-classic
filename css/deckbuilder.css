@@ -47,7 +47,7 @@
 	padding: 0 0 0 calc(4.2 * var(--u));
 	color: var(--gold-1);
 	font-family: var(--font-display);
-	font-size: calc(1.7 * var(--u));
+	font-size: max(calc(1.7 * var(--u)), 16px);
 	font-weight: 700;
 	letter-spacing: 0.08em;
 	line-height: calc(3.6 * var(--u));
@@ -67,7 +67,7 @@
 	margin: calc(0.6 * var(--u)) 0 0;
 	color: var(--text-dim);
 	font-family: var(--font-body);
-	font-size: calc(1 * var(--u));
+	font-size: max(calc(1 * var(--u)), var(--fs-sm));
 	font-style: italic;
 	text-align: center;
 }
@@ -79,7 +79,7 @@
 	padding: calc(0.35 * var(--u)) 0;
 	color: var(--text);
 	font-family: var(--font-display);
-	font-size: calc(0.72 * var(--u));
+	font-size: max(calc(0.72 * var(--u)), 9.5px);
 	font-weight: 700;
 	letter-spacing: 0.1em;
 	text-align: center;
@@ -99,7 +99,7 @@
 	top: 3%;
 	left: 1.5%;
 	padding: calc(0.45 * var(--u)) calc(1 * var(--u));
-	font-size: calc(0.75 * var(--u));
+	font-size: max(calc(0.75 * var(--u)), var(--fs-xs));
 	z-index: 1;
 }
 
@@ -114,7 +114,7 @@
 	margin: 0;
 	color: var(--text-dim);
 	font-family: var(--font-display);
-	font-size: calc(1.15 * var(--u));
+	font-size: max(calc(1.15 * var(--u)), 12px);
 	font-weight: 700;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
@@ -164,7 +164,7 @@
 	padding-left: calc(1.6 * var(--u));
 	color: #4a3612;
 	font-family: var(--font-display);
-	font-size: calc(1.05 * var(--u));
+	font-size: max(calc(1.05 * var(--u)), var(--fs-xs));
 	font-weight: 900;
 	background-image: url('../img/icons/preview_count.png');
 	background-position: left;
@@ -183,7 +183,7 @@
 	margin: 9%;
 	color: var(--gold-2);
 	font-family: var(--font-display);
-	font-size: calc(0.95 * var(--u));
+	font-size: max(calc(0.95 * var(--u)), var(--fs-xs));
 	font-weight: 700;
 	letter-spacing: 0.12em;
 	line-height: 0;
@@ -220,7 +220,7 @@
 	margin-bottom: calc(0.15 * var(--u));
 	color: var(--text-mute);
 	font-family: var(--font-caps);
-	font-size: calc(0.92 * var(--u));
+	font-size: max(calc(0.92 * var(--u)), var(--fs-xs));
 	font-weight: 500;
 	letter-spacing: 0.03em;
 	text-align: center;
@@ -231,7 +231,7 @@
 	padding-left: calc(1.9 * var(--u));
 	color: var(--gold-1);
 	font-family: var(--font-display);
-	font-size: calc(1.1 * var(--u));
+	font-size: max(calc(1.1 * var(--u)), 12px);
 	font-weight: 700;
 	background-repeat: no-repeat;
 	background-position: left center;
@@ -250,7 +250,7 @@
 	left: 44%;
 	width: 12%;
 	height: 4.2%;
-	font-size: calc(0.95 * var(--u));
+	font-size: max(calc(0.95 * var(--u)), 11px);
 	white-space: nowrap;
 	animation: start-glow 2.6s ease-in-out infinite;
 }
@@ -266,7 +266,7 @@
 	margin: 0 0 calc(0.25 * var(--u));
 	color: var(--text-mute);
 	font-family: var(--font-caps);
-	font-size: calc(0.9 * var(--u));
+	font-size: max(calc(0.9 * var(--u)), var(--fs-xs));
 	text-align: center;
 }
 #opponent-preview > div:nth-child(2) { gap: calc(0.5 * var(--u)); }
@@ -285,7 +285,7 @@
 	margin: calc(0.2 * var(--u));
 	color: var(--text);
 	font-family: var(--font-display);
-	font-size: calc(0.9 * var(--u));
+	font-size: max(calc(0.9 * var(--u)), var(--fs-xs));
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	transition: color .2s;
@@ -333,7 +333,7 @@
 	border: 1px solid var(--gold-faint);
 	border-radius: calc(0.2 * var(--u));
 	font-family: var(--font-caps);
-	font-size: calc(0.8 * var(--u));
+	font-size: max(calc(0.8 * var(--u)), var(--fs-xs));
 	letter-spacing: 0.05em;
 	transition: color .2s, border-color .2s, box-shadow .2s;
 }
@@ -350,4 +350,75 @@
 	background: var(--gold-gradient);
 	border-color: var(--gold-1);
 	box-shadow: 0 0 calc(0.6 * var(--u)) var(--gold-glow);
+}
+
+/* opened from the title's Deck Builder: deck editing only */
+body.deck-only #start-game,
+body.deck-only #opponent-mode,
+body.deck-only #opponent-deck,
+body.deck-only #ai-difficulty { display: none; }
+
+/* ---------- small (phone) stages ---------- */
+
+/* Floored text needs more room: card lists move outward to widen the centre column,
+   deck stats become label/value rows and the opponent options share one row. */
+@media (max-width: 999px), (max-height: 562px) {
+	#card-bank, #card-bank-title { left: 2.5%; }
+	#card-deck, #card-deck-title { left: 63.1%; }
+
+	.card-contianer-title { font-size: 11px; }
+
+	.deck-options {
+		top: 14.3%;
+		width: 96px;
+		padding: 4px 0;
+		font-family: var(--font-caps);
+		font-size: 10.5px;
+		letter-spacing: 0.04em;
+	}
+	#upload-deck    { left: calc(50% - 48px - 102px); }
+	#change-faction { left: calc(50% - 48px); }
+	#download-deck  { left: calc(50% - 48px + 102px); }
+	/* the px-sized buttons reach past 19.5%, so the divider and leader drop below them */
+	#deck-customization::before { top: calc(14.3% + 25px); }
+	#card-leader { top: calc(20.8% + 6px); height: calc(27% - 6px); }
+
+	#deck-stats {
+		left: 38%;
+		width: 24%;
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-items: center;
+		column-gap: 6px;
+		row-gap: 3px;
+	}
+	#deck-stats > p:nth-child(odd),
+	#deck-stats > p:nth-child(even) { margin: 0; }
+	#deck-stats > p:nth-child(odd) { text-align: left; line-height: 1.1; }
+	#deck-stats > p:nth-child(even) { justify-self: end; padding-left: 16px; }
+
+	#start-game {
+		top: 80%;
+		left: calc(50% - 70px);
+		width: 140px;
+		height: max(4.2%, 28px);
+	}
+
+	#opponent-preview {
+		top: 91.5%;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 4px 18px;
+	}
+	#opponent-preview > div > p { margin: 0; }
+	#opponent-preview #ai-difficulty,
+	#deck-owner-row { margin-top: 0; }
+	#opponent-preview #game-mode button,
+	#opponent-preview #deck-owner button,
+	#opponent-preview #ai-difficulty button {
+		height: 24px;
+		padding: 0 8px;
+		font-size: 11px;
+	}
+	#opponent-preview button { width: 20px; height: 20px; }
 }

@@ -35,6 +35,8 @@
 		radial-gradient(circle, rgba(30, 24, 16, 0.85) 0%, rgba(10, 8, 6, 0.85) 70%);
 	box-shadow: inset 0 0 0 calc(0.08 * var(--u)) var(--gold-line), 0 calc(0.15 * var(--u)) calc(0.5 * var(--u)) rgba(0, 0, 0, 0.6);
 	opacity: 0.55;
+	/* opacity/scale make this a stacking context, so its tooltip needs the whole button above the leader card */
+	z-index: 10;
 	transition: opacity .2s, box-shadow .2s, scale .2s var(--ease-back);
 }
 #exit-game:hover {
@@ -172,7 +174,7 @@
 	margin-bottom: -12%;
 	color: #120c04;
 	font-family: var(--font-display);
-	font-size: calc(2 * var(--u));
+	font-size: max(calc(2 * var(--u)), 14px);
 	font-weight: 900;
 	text-shadow: 0 0 calc(0.3 * var(--u)) rgba(255, 245, 220, 0.9);
 	background-size: contain;
@@ -210,7 +212,7 @@
 	padding-left: 7%;
 	color: var(--gold-1);
 	font-family: var(--font-display);
-	font-size: calc(1.45 * var(--u));
+	font-size: max(calc(1.45 * var(--u)), var(--fs-md));
 	font-weight: 700;
 	text-shadow: 0 0 calc(0.3 * var(--u)) black;
 	background-image: url('../img/icons/icon_card_count.png');
@@ -243,12 +245,13 @@
 	width: 41.5%;
 	height: 20%;
 	margin-bottom: -6%;
-	overflow: hidden;
+	/* clip (not hidden) lets taller floored text overflow the short box vertically */
+	overflow: clip visible;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	color: var(--gold-1);
 	font-family: var(--font-display);
-	font-size: calc(0.95 * var(--u));
+	font-size: max(calc(0.95 * var(--u)), 12px);
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-shadow: 0 1px 2px black;
@@ -261,13 +264,15 @@
 	width: 41.5%;
 	height: 20%;
 	margin-bottom: -6%;
-	overflow: hidden;
+	overflow: clip visible;
 	white-space: nowrap;
+	text-overflow: ellipsis;
 	text-transform: capitalize;
 	color: var(--text-dim);
 	font-family: var(--font-body);
 	font-style: italic;
-	font-size: calc(0.9 * var(--u));
+	/* the 10px floor yields to 1.25u so "Nilfgaardian Empire" always fits the plate */
+	font-size: max(calc(0.9 * var(--u)), min(var(--fs-xs), calc(1.25 * var(--u))));
 }
 #deck-name-me { top: 80%; }
 
@@ -278,7 +283,7 @@
 	top: 87%;
 	color: var(--parchment);
 	font-family: var(--font-display);
-	font-size: calc(1.3 * var(--u));
+	font-size: max(calc(1.3 * var(--u)), var(--fs-md));
 	font-weight: 700;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
@@ -290,11 +295,11 @@
 #pass-button {
 	top: 82%;
 	left: 63%;
-	width: 20%;
-	height: 4%;
+	width: max(20%, 58px);
+	height: max(4%, 26px);
 	color: var(--gold-1);
 	font-family: var(--font-display);
-	font-size: calc(1.25 * var(--u));
+	font-size: max(calc(1.25 * var(--u)), var(--fs-md));
 	font-weight: 700;
 	letter-spacing: 0.14em;
 	text-transform: uppercase;
@@ -351,7 +356,7 @@
 	margin-bottom: -12.65%;
 	color: #120c04;
 	font-family: var(--font-display);
-	font-size: calc(1.5 * var(--u));
+	font-size: max(calc(1.5 * var(--u)), 12px);
 	font-weight: 900;
 	text-shadow: 0 0 calc(0.3 * var(--u)) rgba(255, 245, 220, 0.95);
 }
@@ -468,11 +473,11 @@ body.hotseat #field-op .card:not(.noclick) { pointer-events: auto; }
 .deck-counter {
 	position: relative;
 	z-index: 1;
-	width: calc(3 * var(--u));
-	height: calc(1.8 * var(--u));
+	width: max(calc(3 * var(--u)), 26px);
+	height: max(calc(1.8 * var(--u)), 17px);
 	color: var(--gold-1);
 	font-family: var(--font-display);
-	font-size: calc(1.1 * var(--u));
+	font-size: max(calc(1.1 * var(--u)), var(--fs-sm));
 	font-weight: 700;
 	background: linear-gradient(180deg, rgba(30, 24, 16, 0.92), rgba(8, 6, 4, 0.92));
 	border: 1px solid var(--gold-line);
@@ -487,4 +492,20 @@ body.hotseat #field-op .card:not(.noclick) { pointer-events: auto; }
 .cardpile > .card {
 	top: -5%;
 	margin-top: -108.5%;
+}
+
+/* ------------------------ small (phone) stages ------------------------ */
+
+@media (max-width: 999px), (max-height: 562px) {
+	/* matches the enlarged in-game settings buttons (base.css) */
+	#exit-game { top: calc(0.5 * var(--u)); width: 20px; height: 20px; }
+	/* Cinzel is too wide for the plates at a readable size */
+	.name { font-family: var(--font-caps); letter-spacing: 0.02em; }
+
+	/* floored text outgrows the %-sized boxes: keep the faction line a fixed 13px under the name
+	   (only `top` may change - the boxes are in flow, so heights/margins would shift their siblings) */
+	.deck-name    { top: calc(6% + 13px); }
+	#deck-name-me { top: 75%; }
+	#name-me      { top: calc(75% - 13px); }
+	.hand-count { display: flex; align-items: center; }
 }

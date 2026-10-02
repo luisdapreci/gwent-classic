@@ -71,6 +71,12 @@ main::before {
 }
 html { scrollbar-color: var(--gold-3) rgba(0, 0, 0, 0.45); }
 
+/* phones scroll by touch; the bars only eat width */
+@media (max-width: 999px), (max-height: 562px), (pointer: coarse) {
+	* { scrollbar-width: none; }
+	::-webkit-scrollbar { display: none; }
+}
+
 #click-background {
 	position: fixed;
 	width: 100%;
@@ -139,6 +145,33 @@ body.title-open #toggle-music.deck-menu   { top: calc(var(--stage-y) + var(--tit
 body.title-open #toggle-sfx.deck-menu     { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 11.2 * var(--u)); }
 body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 14.4 * var(--u)); }
 
+/* small (phone) stages: finger-sized buttons, spaced by their own size */
+@media (max-width: 999px), (max-height: 562px) {
+/* 20px keeps the row clear of the opponent's leader card below */
+       .settings-button:not(.deck-menu) { width: 20px; height: 20px; }
+       #toggle-music         { top: calc(var(--stage-y) + 0.5 * var(--u)); left: calc(var(--stage-x) + 1 * var(--u) + 1 * 24px); }
+       #toggle-sfx           { top: calc(var(--stage-y) + 0.5 * var(--u)); left: calc(var(--stage-x) + 1 * var(--u) + 2 * 24px); }
+       #toggle-notifications { top: calc(var(--stage-y) + 0.5 * var(--u)); left: calc(var(--stage-x) + 1 * var(--u) + 3 * 24px); }
+       #toggle-effects       { top: calc(var(--stage-y) + 0.5 * var(--u)); left: calc(var(--stage-x) + 1 * var(--u) + 4 * 24px); }
+
+	.settings-button.deck-menu { width: 26px; height: 26px; }
+	/* deck builder: top-right corner, the centre column is full */
+	#toggle-music.deck-menu,
+	#toggle-sfx.deck-menu,
+	#toggle-effects.deck-menu { top: calc(var(--stage-y) + 1.6 * var(--u)); }
+	#toggle-music.deck-menu   { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px - 64px); }
+	#toggle-sfx.deck-menu     { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px - 32px); }
+	#toggle-effects.deck-menu { left: calc(var(--stage-x) + 98.5 * var(--u) - 26px); }
+
+	/* the floored menu buttons push the title menu down, so the toggles move to the top-left corner */
+	body.title-open #toggle-music.deck-menu,
+	body.title-open #toggle-sfx.deck-menu,
+	body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + 2 * var(--u)); }
+	body.title-open #toggle-music.deck-menu   { left: calc(var(--stage-x) + 8 * var(--u)); }
+	body.title-open #toggle-sfx.deck-menu     { left: calc(var(--stage-x) + 8 * var(--u) + 32px); }
+	body.title-open #toggle-effects.deck-menu { left: calc(var(--stage-x) + 8 * var(--u) + 64px); }
+}
+
 /* ---------- tooltip ---------- */
 
 *[data-title]:hover::after,
@@ -151,7 +184,7 @@ body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + var(--tit
 	background: linear-gradient(180deg, rgba(30, 24, 16, 0.97), rgba(12, 10, 7, 0.97));
 	color: var(--gold-1);
 	font-family: var(--font-caps);
-	font-size: calc(1 * var(--u));
+	font-size: max(calc(1 * var(--u)), var(--fs-sm));
 	font-weight: 500;
 	letter-spacing: 0.04em;
 	white-space: nowrap;
