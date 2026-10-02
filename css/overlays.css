@@ -231,6 +231,10 @@
 	--magnitude: 0;
 	translate: calc(var(--magnitude) * var(--u));
 	transition: translate calc(var(--carousel-trans-time) - 0.1s) ease-in;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
 }
 
 #carousel .card-lg {
@@ -245,9 +249,11 @@
 	filter: brightness(0.62) saturate(0.85);
 	transition: translate var(--carousel-trans-time) ease-in, box-shadow .15s, filter .2s, transform .15s ease-out;
 }
-#carousel > :nth-child(1) > :not(:nth-child(3)):hover {
-	filter: brightness(0.95);
-	box-shadow: 0 0 calc(1.2 * var(--u)) var(--gold-glow);
+@media (hover: hover) {
+	#carousel > :nth-child(1) > :not(:nth-child(3)):hover {
+		filter: brightness(0.95);
+		box-shadow: 0 0 calc(1.2 * var(--u)) var(--gold-glow);
+	}
 }
 
 /* focused card */
@@ -259,9 +265,11 @@
 	transition: box-shadow .15s, transform .15s ease-out, translate calc(var(--carousel-trans-time) - 0.05s);
 	animation: focus-glow 2.4s ease-in-out infinite;
 }
-#carousel > :nth-child(1) > :nth-child(3):hover {
-	animation: none;
-	box-shadow: 0 0 calc(2 * var(--u)) var(--gold-1), 0 calc(0.8 * var(--u)) calc(2 * var(--u)) rgba(0, 0, 0, 0.9);
+@media (hover: hover) {
+	#carousel > :nth-child(1) > :nth-child(3):hover {
+		animation: none;
+		box-shadow: 0 0 calc(2 * var(--u)) var(--gold-1), 0 calc(0.8 * var(--u)) calc(2 * var(--u)) rgba(0, 0, 0, 0.9);
+	}
 }
 
 #carousel > :nth-child(1) > :nth-child(2n) {

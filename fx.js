@@ -366,6 +366,7 @@ const fx = (() => {
 	}));
 
 	document.addEventListener("pointermove", onPointerMove, {passive: true});
+	["pointerup", "pointercancel"].forEach(t => document.addEventListener(t, e => e.pointerType !== "mouse" && resetTilt(), {passive: true}));
 	document.documentElement.addEventListener("mouseleave", resetTilt);
 	requestAnimationFrame(frame);
 

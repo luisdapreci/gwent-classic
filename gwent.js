@@ -2696,9 +2696,10 @@ class Carousel {
 			[...Carousel.elem.children[0].children].forEach((e, i) => {
 				const offset = i - 2;
 				e.addEventListener("click", evt => offset === 0 ? Carousel.curr?.select(evt) : Carousel.curr?.shift(evt, offset));
-				e.addEventListener("mouseover", () => Carousel.curr?.nudge(offset));
-				e.addEventListener("mouseout", () => Carousel.curr?.nudge(0));
+				e.addEventListener("pointerover", evt => evt.pointerType === "mouse" && Carousel.curr?.nudge(offset));
+				e.addEventListener("pointerout", evt => evt.pointerType === "mouse" && Carousel.curr?.nudge(0));
 			});
+			Carousel.initSwipe(Carousel.elem.children[0]);
 		}
 		this.elem = Carousel.elem;
 		document.getElementsByTagName("main")[0].classList.remove("noclick");
@@ -2737,9 +2738,97 @@ class Carousel {
 	// Called by the client to cycle cards displayed by n
 	shift(event, n){
 		(event || window.event).stopPropagation();
-		this.index = Math.max(0, Math.min(this.indices.length-1, this.index+n));
+		this.scroll(n);
+	}
+
+	// Moves the focus by n cards; returns false if already at that end
+	scroll(n){
+		const index = Math.max(0, Math.min(this.indices.length-1, this.index+n));
+		if (index === this.index)
+			return false;
+		this.index = index;
 		AudioManager.playSFX('ui_card');
 		this.update();
+		return true;
+	}
+
+	// Touch/pen: slide a finger across the cards to scroll through them; a quick flick keeps going
+	static initSwipe(strip) {
+		let drag = null, suppressClick = false;
+		// A drag must not also count as a tap on whatever card it ends on
+		Carousel.elem.addEventListener("click", e => {
+			if (suppressClick) {
+				suppressClick = false;
+				e.stopPropagation();
+			}
+		}, true);
+
+		strip.addEventListener("pointerdown", e => {
+			if (e.pointerType === "mouse" || !Carousel.curr || drag)
+				return;
+			Carousel.stopFling();
+			suppressClick = false;
+			const a = strip.children[1].getBoundingClientRect(), b = strip.children[2].getBoundingClientRect();
+			const slot = (b.left + b.width / 2) - (a.left + a.width / 2);
+			drag = {id: e.pointerId, x0: e.clientX, anchor: e.clientX, lastX: e.clientX, lastT: e.timeStamp, vx: 0, moved: false, step: Math.max(30, slot * 0.6)};
+		});
+
+		strip.addEventListener("pointermove", e => {
+			const c = Carousel.curr;
+			if (!drag || e.pointerId !== drag.id || !c)
+				return;
+			if (!drag.moved) {
+				if (Math.abs(e.clientX - drag.x0) < 10)
+					return;
+				drag.moved = true;
+				strip.setPointerCapture(e.pointerId);
+				strip.style.transition = "none";
+				c.nudge(0);
+			}
+			const dt = e.timeStamp - drag.lastT;
+			if (dt > 0)
+				drag.vx = 0.7 * (e.clientX - drag.lastX) / dt + 0.3 * drag.vx;
+			drag.lastX = e.clientX;
+			drag.lastT = e.timeStamp;
+
+			const half = drag.step / 2;
+			let off = e.clientX - drag.anchor;
+			while (Math.abs(off) >= half && c.scroll(-Math.sign(off))) {
+				drag.anchor += Math.sign(off) * drag.step;
+				off = e.clientX - drag.anchor;
+			}
+			// Rubber-band past either end
+			const k = 0.4;
+			const shown = Math.abs(off) <= half ? off * k : Math.sign(off) * (half + (Math.abs(off) - half) * 0.3) * k;
+			strip.style.translate = shown + "px";
+		});
+
+		const end = e => {
+			if (!drag || e.pointerId !== drag.id)
+				return;
+			const d = drag;
+			drag = null;
+			strip.style.removeProperty("translate");
+			strip.style.removeProperty("transition");
+			if (!d.moved)
+				return;
+			suppressClick = e.type === "pointerup";
+			const speed = Math.abs(d.vx);
+			if (e.type === "pointerup" && speed > 0.5 && e.timeStamp - d.lastT < 100)
+				Carousel.fling(-Math.sign(d.vx), Math.min(10, Math.round(speed * 3)));
+		};
+		strip.addEventListener("pointerup", end);
+		strip.addEventListener("pointercancel", end);
+	}
+
+	static fling(dir, count, delay = 45) {
+		if (count <= 0 || !Carousel.curr?.scroll(dir))
+			return;
+		Carousel.flingTimer = setTimeout(() => Carousel.fling(dir, count - 1, delay * 1.2), delay);
+	}
+
+	static stopFling() {
+		clearTimeout(Carousel.flingTimer);
 	}
 
 	// called when mousing over/out of one of the carousel cards
@@ -2819,6 +2908,7 @@ class Carousel {
 	
 	// Clears and quits the current carousel
 	exit() {
+		Carousel.stopFling();
 		for (let x of this.previews)
 			x.style.backgroundImage = "";
 		this.elem.classList.add("hide");
