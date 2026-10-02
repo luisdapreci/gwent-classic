@@ -1735,7 +1735,6 @@ class Game {
 			this.firstPlayer = Online.players()[Online.rng() < 0.5 ? 0 : 1];
 		else
 			this.firstPlayer = (Math.random() < 0.5) ? player_me : player_op;
-		AudioManager.playSFX("coin");
 		await ui.playerNotification("coin", this.firstPlayer, 3000);
 	}
 	
@@ -2653,7 +2652,11 @@ class UI {
 			banner.dataset.caption = caption;
 		else
 			delete banner.dataset.caption;
-		await fadeIn(this.notif_elem, fadeSpeed);
+		const shown = fadeIn(this.notif_elem, fadeSpeed);
+		// fadeIn unhides the bar synchronously, so this lines up with the coin flip starting
+		if (name.endsWith("-coin"))
+			AudioManager.playSFX("coin");
+		await shown;
 		await sleep(duration);
 		await fadeOut(this.notif_elem, fadeSpeed);
 	}
