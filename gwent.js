@@ -2453,6 +2453,9 @@ class UI {
 	
 	// Called when client toggles the music
 	toggleMusic(){
+		// While autoplay is still blocked the music is "on" but silent, so this click should start it, not mute it
+		if (Settings.music.isEnabled() && !this.music[this.musicTrack]?.playing)
+			return this.applyMusicSetting();
 		Settings.music.toggle();
 		this.applyMusicSetting();
 	}
