@@ -160,8 +160,8 @@
 .card-array .card-lg.empty { visibility: hidden; }
 
 .card-array .card-lg > div {
-	top: 82.5%;
-	left: 76%;
+	top: 3%;
+	right: 4%;
 	width: 20%;
 	height: 7%;
 	padding-left: calc(1.6 * var(--u));
