@@ -4110,6 +4110,32 @@ document.getElementById("deck-back").addEventListener("click", () => {
 }, false);
 ["#title-play", "#title-local", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
 
+// Chromium offers installs via beforeinstallprompt; iOS Safari only via Share > Add to Home Screen.
+const installButton = document.getElementById("title-install");
+let installPrompt = null;
+const runningAsApp = matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches || navigator.standalone;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+installButton.classList.toggle("hide", runningAsApp || !isIOS);
+window.addEventListener("beforeinstallprompt", e => {
+	e.preventDefault();
+	installPrompt = e;
+	installButton.classList.remove("hide");
+});
+window.addEventListener("appinstalled", () => {
+	installPrompt = null;
+	installButton.classList.add("hide");
+});
+installButton.addEventListener("click", () => {
+	if (!installPrompt)
+		return ui.alert("Install Gwent", "Tap the Share button in Safari, then choose \"Add to Home Screen\".");
+	const prompt = installPrompt;
+	// A prompt can only be shown once; the browser fires a fresh beforeinstallprompt if it is dismissed.
+	installPrompt = null;
+	installButton.classList.add("hide");
+	prompt.prompt();
+});
+addMouseEnterSFXBySelector("#title-install");
+
 
 function onFirstInput() {
 	userInteracted = true;
