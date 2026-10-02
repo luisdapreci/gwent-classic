@@ -243,6 +243,8 @@
 	background-position: center;
 	box-shadow: 0 calc(0.6 * var(--u)) calc(1.6 * var(--u)) rgba(0, 0, 0, 0.85);
 }
+/* empty slots keep their space in the strip */
+#carousel .card-lg.hide { visibility: hidden; }
 
 #carousel > :nth-child(1) > .card-lg {
 	translate: calc(var(--magnitude) * var(--u));
