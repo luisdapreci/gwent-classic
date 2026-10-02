@@ -2417,7 +2417,7 @@ class UI {
 		this.toggleMusic_elem.classList.toggle("fade", !enabled);
 		for (const [name, track] of Object.entries(this.music)) {
 			const on = enabled && name === this.musicTrack;
-			this.fadeMusic(track, on ? 1 : 0, enabled ? 3000 : 600);
+			this.fadeMusic(track, on ? 0.6 : 0, enabled ? 3000 : 600);
 		}
 	}
 
