@@ -582,22 +582,21 @@
 					<div class="g-split">
 						<div class="g-shot">
 							<img src="img/guide/title.jpg" alt="Main menu" loading="lazy">
-							<span class="g-pin" style="--x:24.5; --y:49.8">1</span>
-							<span class="g-pin" style="--x:24.5; --y:57.3">2</span>
-							<span class="g-pin" style="--x:24.5; --y:64.7">3</span>
-							<span class="g-pin" style="--x:23; --y:76.4">4</span>
+							<span class="g-pin" style="--x:26.5; --y:50">1</span>
+							<span class="g-pin" style="--x:26.5; --y:57.4">2</span>
+							<span class="g-pin" style="--x:26.5; --y:64.9">3</span>
+							<span class="g-pin" style="--x:22.6; --y:76.4">4</span>
 						</div>
 						<ol class="g-legend">
-							<li><b>Play vs AI</b> &ndash; pick your deck and an AI difficulty.</li>
-							<li><b>Pass and Play</b> &ndash; two players share one device.</li>
+							<li><b>Local Play</b> &ndash; opens the deck builder. Choose your opponent there: the <b>AI</b> (Easy to Expert) or <b>Pass and Play</b> with a friend on this device. Your last choice is remembered.</li>
+							<li><b>Online</b> &ndash; play a friend on another device.</li>
 							<li><b>Deck Builder</b> &ndash; edit your decks without starting a match.</li>
 							<li><b>Settings</b> &ndash; music, sound, effects and this guide.</li>
 						</ol>
 					</div>
-					<div class="g-split g-hotseat">
-						<img class="g-shot-sm" src="img/guide/handoff.jpg" alt="Pass the device screen" loading="lazy">
-						<p><b>Playing with a friend?</b> In Pass and Play the board is covered between turns. Hand the device over, and the next player presses <b>Ready</b> to reveal their hand.</p>
-					</div>
+					<ul class="g-notes">
+						<li>On phones and tablets, <b>Install App</b> appears here to add Gwent to your home screen and play full screen.</li>
+					</ul>
 				</article>
 
 				<article class="guide-page" data-name="Deck Builder" data-icon="svg/deck.svg">
@@ -608,21 +607,85 @@
 							<span class="g-pin" style="--x:25.5; --y:55">1</span>
 							<span class="g-pin" style="--x:75.6; --y:55">2</span>
 							<span class="g-pin" style="--x:55.8; --y:30">3</span>
-							<span class="g-pin" style="--x:57; --y:62">4</span>
-							<span class="g-pin" style="--x:31; --y:16.7">5</span>
-							<span class="g-pin" style="--x:40; --y:92">6</span>
-							<span class="g-pin" style="--x:59; --y:86.5">7</span>
+							<span class="g-pin" style="--x:42; --y:66">4</span>
+							<span class="g-pin" style="--x:29.8; --y:16.7">5</span>
+							<span class="g-pin" style="--x:60; --y:91.6">6</span>
+							<span class="g-pin" style="--x:39; --y:95.3">7</span>
+							<span class="g-pin" style="--x:41.6; --y:86">8</span>
 						</div>
 						<ol class="g-legend">
 							<li><b>Collection</b> &ndash; click a card to add it.</li>
 							<li><b>Your deck</b> &ndash; click a card to remove it.</li>
 							<li><b>Leader</b> &ndash; click to pick another.</li>
-							<li><b>Deck stats</b> &ndash; you need at least <b>22 units</b> and at most <b>10 specials</b>.</li>
-							<li><b>Change faction</b>, or upload / download a deck file.</li>
-							<li><b>Opponent</b> &ndash; AI or a 2nd player, and AI difficulty (harder AIs also bring stronger decks; Expert caps your deck's unit strength and heroes).</li>
+							<li><b>Deck stats</b> &ndash; you need at least <b>22 units</b> and at most <b>10 specials</b>. Numbers turn red when a limit is broken.</li>
+							<li><b>Change faction</b>, or upload / download a deck file. Each faction keeps its own saved deck.</li>
+							<li><b>Opponent</b> &ndash; AI or Pass and Play.</li>
+							<li><b>AI difficulty</b> &ndash; Easy, Normal, Hard or Expert (see <i>AI Difficulty</i>).</li>
 							<li><b>Start game</b> when your deck is ready.</li>
 						</ol>
 					</div>
+				</article>
+
+				<article class="guide-page" data-name="AI Difficulty" data-icon="img/icons/notif_op_turn.png">
+					<h3>AI difficulty</h3>
+					<p class="guide-lead">Pick a difficulty under <b>Opponent</b> in the deck builder. Each level has its own decks and play style, and the choice is remembered.</p>
+					<div class="g-levels">
+						<figure><div class="g-level" data-n="1"><i></i><i></i><i></i><i></i></div><figcaption><b>Easy</b><span>Weak starter decks.</span>Keeps its opening hand and often makes random plays. Good for learning the rules.</figcaption></figure>
+						<figure><div class="g-level" data-n="2"><i></i><i></i><i></i><i></i></div><figcaption><b>Normal</b><span>The classic premade decks.</span>Weighs its options, with a little randomness.</figcaption></figure>
+						<figure><div class="g-level" data-n="3"><i></i><i></i><i></i><i></i></div><figcaption><b>Hard</b><span>Lean decks full of heroes, spies, medics and the strongest leaders.</span>Plays for card advantage: grabs free cards first, takes the lead with its cheapest card, passes when it can afford to lose a round, and finishes with as few cards as possible once you've passed.</figcaption></figure>
+						<figure class="expert"><div class="g-level" data-n="4"><i></i><i></i><i></i><i></i></div><figcaption><b>Expert</b><span>Hard AI and Hard decks &ndash; but your deck is capped.</span>Your deck may have at most <b class="g-inline">120</b> total unit strength and <b class="g-inline">4</b> heroes. The deck stats show both limits, and the game won't start until you're within them.</figcaption></figure>
+					</div>
+					<ul class="g-notes">
+						<li>Every AI deck comes with a fixed leader, so expect a different opponent each match.</li>
+						<li>The AI never cheats &ndash; it sees only its own hand, just like you.</li>
+					</ul>
+				</article>
+
+				<article class="guide-page" data-name="Pass and Play" data-icon="img/icons/notif_me_coin.png">
+					<h3>Pass and Play</h3>
+					<p class="guide-lead">Two players, one device. Choose <b>Local Play</b>, then <b>Pass and Play</b> under <i>Opponent</i>.</p>
+					<div class="g-split">
+						<div class="g-shot">
+							<img src="img/guide/hotseat.jpg" alt="Deck builder in Pass and Play mode" loading="lazy">
+							<span class="g-pin" style="--x:29.2; --y:79.6">1</span>
+							<span class="g-pin" style="--x:68.7; --y:87.8">2</span>
+						</div>
+						<ol class="g-legend">
+							<li><b>Opponent</b> &ndash; switch to <b>Pass and Play</b>.</li>
+							<li><b>Editing</b> &ndash; choose whose deck the builder shows. Each player builds their own deck; Player 2's decks are saved separately.</li>
+						</ol>
+					</div>
+					<div class="g-split g-hotseat">
+						<img class="g-shot-sm" src="img/guide/handoff.jpg" alt="Pass the device screen" loading="lazy">
+						<ul class="g-notes">
+							<li><b>Hidden hands</b> &ndash; Player 1 plays the bottom half, Player 2 the top. Between turns the board is covered: hand the device over and the next player presses <b>Ready</b>.</li>
+							<li>Once one player passes, the other keeps playing without the handoff screen.</li>
+							<li><b>Quit match</b> returns to the deck builder. Expert's deck limits don't apply here.</li>
+						</ul>
+					</div>
+				</article>
+
+				<article class="guide-page" data-name="Online Play" data-icon="img/icons/notif_op_coin.png">
+					<h3>Playing online</h3>
+					<div class="g-split">
+						<div class="g-shot">
+							<img src="img/guide/lobby.jpg" alt="Online lobby" loading="lazy">
+							<span class="g-pin" style="--x:72.5; --y:26">1</span>
+							<span class="g-pin" style="--x:15.5; --y:58">2</span>
+							<span class="g-pin" style="--x:81.5; --y:60">3</span>
+						</div>
+						<ol class="g-legend">
+							<li><b>Your name</b> &ndash; up to 16 characters, remembered for next time.</li>
+							<li><b>Host</b> &ndash; pick a turn timer (none, 30, 60 or 90s) and <b>Create Room</b>. Share the 5-letter code or <b>Copy Invite Link</b>.</li>
+							<li><b>Join</b> &ndash; enter your friend's code and press <b>Join Room</b>.</li>
+						</ol>
+					</div>
+					<ul class="g-notes">
+						<li>Both players pick a deck and press <b>Ready</b>; the match starts when both are ready.</li>
+						<li>With a timer, running out on your turn passes the round.</li>
+						<li>Lost connection? The game retries for 60 seconds, and reloading the page rejoins the match. Leaving early counts as a forfeit.</li>
+						<li>After the match: <b>Rematch</b> (both must accept), <b>New Game</b> (back to the deck builder) or <b>Main Menu</b>.</li>
+					</ul>
 				</article>
 
 				<article class="guide-page" data-name="Controls" data-icon="svg/effects.svg">
@@ -672,9 +735,8 @@
 		<h1 class="title-logo">Gwent</h1>
 		<p class="title-sub">The Witcher Card Game</p>
 		<div class="title-rule"></div>
-		<button id="title-play" class="btn-gold">Play vs AI</button>
-		<button id="title-online" class="btn-ghost">Play Online</button>
-		<button id="title-local" class="btn-ghost">Pass and Play</button>
+		<button id="title-play" class="btn-gold">Local Play</button>
+		<button id="title-online" class="btn-ghost">Online</button>
 		<button id="title-deck" class="btn-ghost">Deck Builder</button>
 		<button id="title-install" class="btn-ghost hide">Install App</button>
 	</div>

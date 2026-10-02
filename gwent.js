@@ -4312,17 +4312,11 @@ function closeTitleScreen() {
 	titleScreen.classList.add("leaving");
 	titleHideTimer = setTimeout(() => titleScreen.classList.add("hide"), 600);
 }
-// Both play modes open the deck builder so decks (and the AI opponent) can be set before starting
+// Local Play opens the deck builder in the last used mode; AI or Pass and Play is picked there
 document.getElementById("title-play").addEventListener("click", () => {
 	closeTitleScreen();
 	document.body.classList.remove("deck-only");
-	dm.setGameMode("ai", true);
-	AudioManager.playSFX("menu_opening");
-}, false);
-document.getElementById("title-local").addEventListener("click", () => {
-	closeTitleScreen();
-	document.body.classList.remove("deck-only");
-	dm.setGameMode("hotseat", true);
+	dm.setGameMode(Settings.gameMode.get(), true);
 	AudioManager.playSFX("menu_opening");
 }, false);
 // Deck Builder from the title is for editing only: opponent options and Start game are hidden (css: body.deck-only)
@@ -4346,7 +4340,7 @@ document.getElementById("deck-back").addEventListener("click", async () => {
 	Online.leave();
 	openTitleScreen();
 }, false);
-["#title-play", "#title-online", "#title-local", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
+["#title-play", "#title-online", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
 
 // Chromium offers installs via beforeinstallprompt; iOS Safari only via Share > Add to Home Screen.
 const installButton = document.getElementById("title-install");

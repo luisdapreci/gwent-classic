@@ -46,7 +46,7 @@ Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click 
 ## Online play
 Play someone on another device. Both players need an internet connection.
 
-1. On the title screen choose **Play Online** and enter a name (up to 16 characters; it's remembered for next time).
+1. On the title screen choose **Online** and enter a name (up to 16 characters; it's remembered for next time).
 2. One player picks a **turn timer** (none, 30, 60 or 90 seconds) and presses **Create Room**. Share the 5-character room code, or press **Copy Invite Link** and send the link (it opens the game with the code filled in).
 3. The other player enters the code and presses **Join Room**.
 4. Both players pick a deck in the deck builder and press **Ready**. The match starts when both are ready.
@@ -60,7 +60,7 @@ How it works: the two browsers connect directly with WebRTC through [PeerJS](htt
 ## Pass and play
 Two people can play each other on the same device, passing it between turns.
 
-1. On the title screen choose **Pass and Play**, or pick **Pass and Play** under *Opponent* in the deck builder.
+1. On the title screen choose **Local Play**, then pick **Pass and Play** under *Opponent* in the deck builder.
 2. Each player builds their own deck. Use the **Editing: Player 1 / Player 2** switch under *Opponent* to choose whose deck the builder shows; faction, leader, card changes, **Upload Deck** and **Download Deck** all apply to that player. Player 2's decks are saved separately from Player 1's, one per faction.
 3. Press **Start game**. Both decks must be legal (22+ units, at most 10 specials).
 
