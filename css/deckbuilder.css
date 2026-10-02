@@ -273,47 +273,6 @@
 	font-size: max(calc(0.9 * var(--u)), var(--fs-xs));
 	text-align: center;
 }
-#opponent-preview > div:nth-child(2) { gap: calc(0.5 * var(--u)); }
-
-#op-preview-faction {
-	width: calc(1.8 * var(--u));
-	height: calc(1.8 * var(--u));
-	background-size: contain;
-	background-repeat: no-repeat;
-}
-#op-preview-leader::after {
-	left: calc(46 * var(--u));
-	bottom: calc(-1.5 * var(--u));
-}
-#op-preview-leader > p {
-	margin: calc(0.2 * var(--u));
-	color: var(--text);
-	font-family: var(--font-display);
-	font-size: max(calc(0.9 * var(--u)), var(--fs-xs));
-	font-weight: 700;
-	letter-spacing: 0.06em;
-	transition: color .2s;
-}
-#op-preview-leader:hover > p { color: var(--gold-1); }
-
-#opponent-preview button {
-	width: calc(1.6 * var(--u));
-	height: calc(1.6 * var(--u));
-	background-color: transparent;
-	background-repeat: no-repeat;
-	background-size: contain;
-	border: none;
-	transition: filter .2s;
-}
-#op-preview-open { background-image: url("../svg/view.svg"); }
-#op-preview-open:hover { filter: drop-shadow(0 0 3px var(--gold-glow)); }
-#op-preview-clear { background-image: url("../svg/trash.svg"); }
-#op-preview-clear:hover { filter: drop-shadow(0 0 3px var(--debuff)); }
-#op-preview-open::after,
-#op-preview-clear::after { left: calc(-2.9 * var(--u)); }
-#op-preview-saved { background-image: url("../svg/deck.svg"); }
-#op-preview-saved:hover { filter: drop-shadow(0 0 3px var(--gold-glow)); }
-#op-preview-saved::after { left: calc(-3.6 * var(--u)); }
 
 #opponent-mode, #deck-owner-row { gap: calc(0.5 * var(--u)); }
 #opponent-mode > p, #deck-owner-row > p { margin: 0; }
@@ -359,12 +318,10 @@
 /* opened from the title's Deck Builder: deck editing only */
 body.deck-only #start-game,
 body.deck-only #opponent-mode,
-body.deck-only #opponent-deck,
 body.deck-only #ai-difficulty { display: none; }
 
 /* online room: the opponent brings their own deck */
 body.online #opponent-mode,
-body.online #opponent-deck,
 body.online #ai-difficulty,
 body.online #deck-owner-row { display: none; }
 #online-panel { display: none; }
@@ -453,5 +410,4 @@ body.online #online-panel {
 		padding: 0 8px;
 		font-size: 11px;
 	}
-	#opponent-preview button { width: 20px; height: 20px; }
 }

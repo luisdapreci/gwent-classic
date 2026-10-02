@@ -2003,7 +2003,7 @@ class Game {
 		const hotseat = this.isHotseat();
 		this.reset();
 		player_me.reset();
-		player_op = new Player(1, hotseat ? player_op.name : DeckMaker.opponentName(), dm.constructOpponentDeck(false), hotseat);
+		player_op = new Player(1, hotseat ? player_op.name : DeckMaker.opponentName(), dm.constructOpponentDeck(hotseat ? "normal" : undefined), hotseat);
 		this.endScreen.classList.add("hide");
 		this.startGame();
 	}
@@ -2327,14 +2327,13 @@ class UI {
 			'#pass-button',
 			'#end-buttons>button',
 			'#handoff button',
-			'#op-preview-leader',
 			'#opponent-preview button'
 		].forEach(addMouseEnterSFXBySelector);
 		
 		this.live_elem = document.getElementById("live-region");
 		[
 			'#exit-game', '#pass-button', '#grave-me', '#grave-op', '.settings-button',
-			'#change-faction', '#download-deck', '#upload-deck', '#op-preview-leader', '#card-leader > div', '#carousel .card-lg'
+			'#change-faction', '#download-deck', '#upload-deck', '#card-leader > div', '#carousel .card-lg'
 		].forEach(selector => document.querySelectorAll(selector).forEach(e => makeAccessible(e, e.dataset.title || e.textContent.trim())));
 		document.querySelector('#card-leader > div').setAttribute("aria-label", "Choose leader");
 	}
@@ -3220,13 +3219,6 @@ class DeckMaker {
 		this.owner = "p1";
 		this.loadFactionDeck(Settings.getLastFaction(this.owner).get(), true);
 
-		this.opponentData = Settings.opponentDeckCustom.get();
-		this.updatedCustomOpponent();
-		document.getElementById('op-preview-clear').addEventListener('click', () => this.clearOpponentDeck());
-		document.getElementById('op-preview-open').addEventListener('click', ()=>this.viewOponentCards());
-		document.getElementById("add-opponent").addEventListener("change", () => this.uploadOpponentDeck(), false);
-
-
 		this.change_elem = document.getElementById("change-faction");
 		this.change_elem.addEventListener("click", () => this.selectFaction(), false);
 		
@@ -3244,7 +3236,6 @@ class DeckMaker {
 		this.owner_buttons = [...document.querySelectorAll("#deck-owner > button")];
 		DeckMaker.bindRadioGroup(this.owner_buttons, b => this.setDeckOwner(b.dataset.owner));
 		this.setGameMode(Settings.gameMode.get(), true);
-		document.getElementById("op-preview-saved").addEventListener("click", () => this.selectSavedOpponentDeck());
 	}
 	
 	// Click and arrow-key selection for a role=radiogroup of buttons
@@ -3301,7 +3292,6 @@ class DeckMaker {
 		DeckMaker.checkRadio(this.mode_buttons, b => b.dataset.mode === mode);
 		const hotseat = mode === "hotseat";
 		document.getElementById("ai-difficulty").classList.toggle("hide", hotseat);
-		document.getElementById("opponent-deck").classList.toggle("hide", hotseat);
 		document.getElementById("deck-owner-row").classList.toggle("hide", !hotseat);
 		this.setDeckOwner(hotseat ? this.owner : "p1", true);
 		this.updateDeckTitle();
@@ -3602,7 +3592,7 @@ class DeckMaker {
 			return ui.alert("Invalid deck", warning);
 		
 		player_me = new Player(0, "Player 1", p1.deck);
-		player_op = hotseat ? new Player(1, "Player 2", p2.deck, true) : new Player(1, DeckMaker.opponentName(), this.constructOpponentDeck(true));
+		player_op = hotseat ? new Player(1, "Player 2", p2.deck, true) : new Player(1, DeckMaker.opponentName(), this.constructOpponentDeck());
 		
 		this.elem.classList.add("hide");
 		game.startGame();
@@ -3633,24 +3623,12 @@ class DeckMaker {
 		return {units: units, special: cards.reduce((a, c) => a + Number(c.count), 0) - units};
 	}
 
-	constructOpponentDeck(useCustom = true)
+	// A random deck from the pool of the given AI difficulty
+	constructOpponentDeck(level = Settings.aiDifficulty.get())
 	{
-		let op_deck;
-		if (!useCustom || isEmpty(dm.opponentData))
-		{
-			op_deck = JSON.parse( premade_deck[randomInt(Object.keys(premade_deck).length)] );
-			op_deck.cards = op_deck.cards.map(c => ({index:c[0], count:c[1]}) );
-			const leaders = card_dict.filter(c => c.row === "leader" && c.deck === op_deck.faction);
-			op_deck.leader = leaders[randomInt(leaders.length)];
-		}
-		else
-		{
-			op_deck = {};
-			op_deck.cards = dm.opponentData.cards;
-			op_deck.leader = card_dict[dm.opponentData.leader];
-			op_deck.faction = op_deck.leader.deck;
-		}
-		return op_deck;
+		const pool = ai_decks[level] ?? ai_decks.normal;
+		const deck = pool[randomInt(pool.length)];
+		return {faction: deck.faction, leader: card_dict[deck.leader], cards: deck.cards.map(([index, count]) => ({index: index, count: count}))};
 	}
 	
 	// Converts the current deck to a JSON string
@@ -3697,11 +3675,6 @@ class DeckMaker {
 		this.uploadDeck("add-file", deck => this.loadPlayerDeck(deck, false));
 	}
 
-	uploadOpponentDeck()
-	{
-		this.uploadDeck('add-opponent', deck => this.loadOpponentDeck(deck, false));
-	}
-	
 	// Returns a description of deck-building rule violations, or "" if the deck is legal
 	static ruleWarnings(units, special){
 		let warning = "";
@@ -3792,74 +3765,6 @@ class DeckMaker {
 		const saved = Settings.getFactionSettings(this.faction, this.owner);
 		saved.setLeader(this.leader);
 		saved.setCards(this.deck.filter(x => x.count > 0));
-	}
-
-	async loadOpponentDeck(deck, silent = true)
-	{
-		const loadedDeck = await this.loadDeck(deck, silent, true);
-		if (!loadedDeck)
-			return;
-		this.opponentData = loadedDeck;
-		Settings.opponentDeckCustom.set(loadedDeck);
-		this.updatedCustomOpponent();
-	}
-
-	async clearOpponentDeck()
-	{
-		Settings.opponentDeckCustom.clear();
-		this.opponentData = Settings.opponentDeckCustom.get();
-		this.updatedCustomOpponent();
-	}
-	
-	// Lets the client pick one of their saved faction decks as the AI opponent's deck
-	selectSavedOpponentDeck()
-	{
-		const container = new CardContainer();
-		container.cards = Object.keys(factions).map(f => ({abilities: [f], filename: f, desc_name: factions[f].name, desc: "Use your saved " + factions[f].name + " deck.", faction: "faction"}));
-		const current = isEmpty(this.opponentData) ? this.faction : this.opponentData.faction;
-		ui.queueCarousel(container, 1, async (c, i) => {
-			const faction = c.cards[i].filename;
-			const saved = Settings.getFactionSettings(faction).get();
-			const deck = {faction: faction, leader: saved.leader, cards: (saved.cards ?? []).map(x => [x.index, x.count])};
-			await this.loadOpponentDeck(deck, false);
-		}, () => true, false, true, "Choose the opponent's deck");
-		Carousel.curr.index = Math.max(0, container.cards.findIndex(c => c.filename === current));
-		Carousel.curr.update();
-	}
-
-	updatedCustomOpponent()
-	{
-		const factionElem = document.getElementById('op-preview-faction');
-		const leaderElem = document.getElementById('op-preview-leader');
-		const buttons = ['op-preview-clear', 'op-preview-open'].map(id=>document.getElementById(id));
-		if (!isEmpty(this.opponentData) && card_dict[this.opponentData.leader]?.row !== "leader")
-		{
-			Settings.opponentDeckCustom.clear();
-			this.opponentData = {};
-		}
-		if (isEmpty(this.opponentData))
-		{
-			leaderElem.children[1].innerHTML = "Random";
-			[factionElem, ...buttons].forEach(e=>e.classList.add('hide'));
-		}
-		else
-		{
-			factionElem.style.setProperty('background-image', iconURL('deck_shield_' + this.opponentData.faction));
-			leaderElem.children[1].innerHTML = card_dict[this.opponentData.leader].name;
-			[factionElem, ...buttons].forEach(e=>e.classList.remove('hide'));
-		}
-	}
-
-	viewOponentCards()
-	{
-		if (isEmpty(this.opponentData))
-			return;
-		// const leader = card_dict[this.opponentData.leader];
-		const leader = {index: this.opponentData.leader, count:1};
-		const container = new CardContainer();
-		//container.cards = [leader, ...Card.this.opponentData.cards];
-		container.cards = Card.getCardsFromIdCounts([leader, ...this.opponentData.cards]);
-		ui.queueCarousel(container, 1, ()=>{}, ()=>true, false, true, "Oponent's deck");
 	}
 }
 
@@ -4069,7 +3974,6 @@ class Settings
 	static monstersDeck = new SavedDeck("gc-deck-monsters", premade_deck[4]);
 	static scoiataelDeck = new SavedDeck("gc-deck-scoiatael", premade_deck[6]);
 	static skelligesDeck = new SavedDeck("gc-deck-skellige", premade_deck[8]);
-	static opponentDeckCustom = new SavedDeck("gc-deck-opponent-custom");
 	// Pass and play: Player 2 keeps their own deck per faction
 	static p2Decks = Object.fromEntries(["realms", "nilfgaard", "monsters", "scoiatael", "skellige"]
 		.map((f, i) => [f, new SavedDeck("gc-p2-deck-" + f, premade_deck[2 * i])]));
