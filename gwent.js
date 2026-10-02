@@ -40,7 +40,7 @@ class ControllerAI {
 		easy: {label: "Easy", redraws: 0, randomChance: 0.5},
 		normal: {label: "Normal", redraws: 2, randomChance: 0},
 		hard: {label: "Hard", redraws: 2, randomChance: 0, strategic: true},
-		expert: {label: "Expert", redraws: 2, randomChance: 0, strategic: true, deckLimits: {strength: 120, hero: 4}}
+		expert: {label: "Expert", redraws: 2, randomChance: 0, strategic: true, deckLimits: {strength: 120, hero: 3}}
 	};
 	
 	// Leader abilities that score no points: the first return a unit to hand, the rest only reshape hands, decks or turns
@@ -1735,6 +1735,7 @@ class Game {
 			this.firstPlayer = Online.players()[Online.rng() < 0.5 ? 0 : 1];
 		else
 			this.firstPlayer = (Math.random() < 0.5) ? player_me : player_op;
+		AudioManager.playSFX("coin");
 		await ui.playerNotification("coin", this.firstPlayer, 3000);
 	}
 	
@@ -3816,7 +3817,7 @@ class AudioManager
 			'horn', 'spy', 'medic', 'morale', 'scorch', 'bond', 'decoy', "mardroeme", 'muster',
 			'hero', 'common_close', 'common_ranged', 'common_siege', 'redraw', 'discard',
 			'pass', 'warning', 'menu_opening', 'game_opening', 'game_start', 'round1_start',
-			'round_win', 'round_lose', 'game_win', 'game_lose'
+			'round_win', 'round_lose', 'game_win', 'game_lose', 'coin'
 		].forEach(s => {
 			const audio = getAudio(s);
 			audio.preload = "auto";
