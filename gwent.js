@@ -4231,12 +4231,19 @@ installButton.addEventListener("click", () => {
 addMouseEnterSFXBySelector("#title-install");
 
 
+// Touch pointerdown doesn't grant user activation (only pointerup/touchend/click do), so retry on those
+// and keep retrying until the music actually plays (player may not be ready yet on slow mobile loads).
+const activationEvents = ["pointerdown", "pointerup", "touchend", "click", "keydown"];
 function onFirstInput() {
 	userInteracted = true;
+	const track = ui.music[ui.musicTrack];
+	if (Settings.music.isEnabled() && track?.ready && track.player.getPlayerState() === YT.PlayerState.PLAYING) {
+		activationEvents.forEach(t => document.removeEventListener(t, onFirstInput, true));
+		return;
+	}
 	ui.applyMusicSetting();
-	["pointerdown", "keydown"].forEach(t => document.removeEventListener(t, onFirstInput, true));
 }
-["pointerdown", "keydown"].forEach(t => document.addEventListener(t, onFirstInput, true));
+activationEvents.forEach(t => document.addEventListener(t, onFirstInput, true));
 
 // Touch devices: pin landscape on the first tap, and on taps while held in portrait (the rotate hint).
 // Browser tabs can only lock orientation while fullscreen; the installed app's manifest already locks it.
