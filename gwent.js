@@ -4222,7 +4222,11 @@ installButton.addEventListener("click", () => {
 	// A prompt can only be shown once; the browser fires a fresh beforeinstallprompt if it is dismissed.
 	installPrompt = null;
 	installButton.classList.add("hide");
-	prompt.prompt();
+	prompt.prompt().catch(err => {
+		console.warn("Install prompt failed:", err);
+		installPrompt = prompt;
+		installButton.classList.remove("hide");
+	});
 });
 addMouseEnterSFXBySelector("#title-install");
 
@@ -4237,9 +4241,12 @@ function onFirstInput() {
 // Touch devices: pin landscape on the first tap, and on taps while held in portrait (the rotate hint).
 // Browser tabs can only lock orientation while fullscreen; the installed app's manifest already locks it.
 let landscapeTried = false;
-function lockLandscape() {
+function lockLandscape(e) {
 	if (!matchMedia("(pointer: coarse)").matches || !screen.orientation?.lock)
 		return document.removeEventListener("click", lockLandscape, true);
+	// requestFullscreen consumes the tap's user activation, which the install prompt needs.
+	if (e.target.closest?.("#title-install"))
+		return;
 	if (landscapeTried && !matchMedia("(orientation: portrait)").matches)
 		return;
 	landscapeTried = true;
