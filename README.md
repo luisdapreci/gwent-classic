@@ -27,7 +27,7 @@ No install, no build step. It's plain HTML, CSS and JavaScript.
 python -m http.server 8000 --bind 127.0.0.1
 ```
 
-> Opening `index.html` directly (`file://`) runs the game, but YouTube music won't play and some browsers fail to load the larger sound effects. Use a local server for the full experience.
+> Opening `index.html` directly (`file://`) runs the game, but some browsers fail to load the music and larger sound effects. Use a local server for the full experience.
 
 Press **F11** for fullscreen. The board keeps a 16:9 aspect ratio and scales to any window size.
 
@@ -126,7 +126,7 @@ The four toggle buttons are in the center column of the deck builder and in the 
 
 | Setting | Notes |
 | --- | --- |
-| Music | Streamed from YouTube. The Kaer Morhen theme plays in the menus and the Gwent soundtrack plays in matches, with a crossfade between them. If the browser blocks autoplay, music starts on your first click or key press. |
+| Music | Local MP3s in `sfx/music/`. The Kaer Morhen theme plays in the menus and the Gwent soundtrack plays in matches, with a crossfade between them. If the browser blocks autoplay, music starts on your first click or key press. |
 | Sound effects | Card placement, abilities, weather, round and match results, menu sounds. |
 | Game messages | In-game notifications such as round start, pass and faction perks. |
 | Visual effects | Particle bursts, screen shake, sunlight, score pulses and card flips. Also disabled automatically when the OS asks for reduced motion. |
@@ -155,9 +155,9 @@ The four toggle buttons are in the center column of the deck builder and in the 
 - **Sizing:** the stage is a letterboxed 16:9 box. `var(--u)` equals 1% of the stage width; use it instead of `vw`.
 - **Board art:** row positions and score circles are baked into `img/board.jpg`. Restyle overlays freely, but don't move them.
 - **Card transforms:** `gwent.js` sets an inline `transform` on cards while moving them, so card animations in CSS should use the standalone `translate` / `scale` / `rotate` properties.
-- **Script order:** `online.js` and `fx.js` load after `gwent.js`, and the YouTube IFrame API loads last.
+- **Script order:** `online.js` and `fx.js` load after `gwent.js`.
 - **Online determinism:** online clients must make the same random choices in the same order. Game-state randomness uses the player's seeded `player.rng` (or `Online.rng` for the coin toss) and random picks from a container sort by `card.uid` first, because the two clients order hands, rows and graves differently. Player choices go through `Online.carousel` / `Online.rowChoice` / `Online.choice` so the opponent's client replays them.
-- **Testing audio and music:** serve over http. `file://` blocks YouTube embeds and can fail to load larger sound files.
+- **Testing audio and music:** serve over http. `file://` can fail to load larger sound and music files.
 
 ## Credits
 - Original project by [asundr](https://github.com/asundr/gwent-classic).

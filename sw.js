@@ -1,5 +1,5 @@
 // Bump to drop old caches after changing asset files in place.
-const VERSION = "gwent-v6";
+const VERSION = "gwent-v7";
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 
@@ -52,6 +52,9 @@ self.addEventListener("fetch", event => {
 	const url = new URL(req.url);
 
 	if (url.origin === self.location.origin) {
+		// Long music files stream with Range requests; caching them whole would delay playback (and Safari needs 206s).
+		if (url.pathname.includes("/sfx/music/"))
+			return;
 		if (req.mode === "navigate" || /\.(js|css|html|webmanifest)$/.test(url.pathname))
 			event.respondWith(networkFirst(req));
 		else
@@ -59,7 +62,7 @@ self.addEventListener("fetch", event => {
 	} else if (url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com") {
 		event.respondWith(cacheFirst(req));
 	}
-	// Anything else (YouTube music) goes straight to the network.
+	// Anything else goes straight to the network.
 });
 
 // Code: fresh when online, cached when offline.

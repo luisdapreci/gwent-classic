@@ -2380,25 +2380,28 @@ class UI {
 		this.handoff_elem.classList.add("hide");
 	}
 	
-	// Initializes the youtube background music players (menu: Kaer Morhen, game: Gwent mix)
-	initYouTube(){
-		const tracks = { menu: ["youtube-menu", "TJuPBBw-l-M"], game: ["youtube", "UE9fPWy1_o4"] };
-		for (const [name, [elemId, videoId]] of Object.entries(tracks)) {
-			const track = { ready: false, volume: 0, target: 0, timer: null };
-			track.player = new YT.Player(elemId, {
-				videoId: videoId,
-				playerVars:  { "autoplay" : 0, "controls" : 0, "loop" : 1, "playlist" : videoId, "rel" : 0, "playsinline" : 1 },
-				events: {
-					onReady: () => {
-						track.ready = true;
-						track.player.setVolume(0);
-						this.applyMusicSetting();
-					},
-					onError: e => console.warn(`YouTube ${name} music error:`, e.data)
-				}
-			});
+	// Initializes the background music (menu: Kaer Morhen, game: Gwent mix)
+	initMusic(){
+		const tracks = {
+			menu: "The Witcher 3_ Wild Hunt - Kaer Morhen Extended.mp3",
+			game: "The Witcher 3_ Wild Hunt Soundtrack - Gwent Full Mix.mp3"
+		};
+		for (const [name, file] of Object.entries(tracks)) {
+			const audio = new Audio("sfx/music/" + encodeURIComponent(file));
+			audio.loop = true;
+			audio.preload = "metadata";
+			audio.volume = 0;
+			const track = { audio, playing: false, volume: 0, target: 0, timer: null };
+			audio.addEventListener("playing", () => track.playing = true);
+			audio.addEventListener("pause", () => track.playing = false);
+			audio.addEventListener("error", () => console.warn(`Music ${name} failed to load:`, audio.error));
 			this.music[name] = track;
 		}
+		// iOS ignores volume changes, so tracks there switch instantly instead of crossfading
+		const probe = new Audio();
+		probe.volume = 0.5;
+		this.musicVolumeControl = probe.volume === 0.5;
+		this.applyMusicSetting();
 	}
 
 	// Switches between "menu" and "game" music with a crossfade
@@ -2413,19 +2416,21 @@ class UI {
 		this.toggleMusic_elem.classList.toggle("fade", !enabled);
 		for (const [name, track] of Object.entries(this.music)) {
 			const on = enabled && name === this.musicTrack;
-			this.fadeMusic(track, on ? 100 : 0, enabled ? 3000 : 600);
+			this.fadeMusic(track, on ? 1 : 0, enabled ? 3000 : 600);
 		}
 	}
 
 	// Ramps a track's volume to target over ms; pauses it once silent
 	fadeMusic(track, target, ms){
-		if (!track.ready)
+		const audio = track.audio;
+		// play() rejects while autoplay is blocked; the first user input retries it
+		if (target > 0 && audio.paused)
+			audio.play().catch(() => {});
+		if (!this.musicVolumeControl) {
+			track.volume = track.target = target;
+			if (target === 0 && !audio.paused)
+				audio.pause();
 			return;
-		if (target > 0) {
-			// YouTube may auto-mute or stay paused when autoplay was blocked
-			track.player.unMute();
-			if (track.player.getPlayerState() !== YT.PlayerState.PLAYING)
-				track.player.playVideo();
 		}
 		if (track.target === target && (track.timer || track.volume === target))
 			return;
@@ -2435,13 +2440,13 @@ class UI {
 		track.timer = setInterval(() => {
 			const t = Math.min(1, (performance.now() - start) / ms);
 			track.volume = from + (target - from) * t;
-			track.player.setVolume(Math.round(track.volume));
+			audio.volume = Math.min(1, Math.max(0, track.volume));
 			if (t < 1)
 				return;
 			clearInterval(track.timer);
 			track.timer = null;
 			if (target === 0)
-				track.player.pauseVideo();
+				audio.pause();
 		}, 50);
 	}
 	
@@ -4345,17 +4350,13 @@ function sleepUntil(predicate, ms) {
 	});
 }
 
-// Initializes the interractive YouTube object
-function onYouTubeIframeAPIReady() {
-	ui.initYouTube();
-}
-
 /*----------------------------------------------------*/
 
 
 const eventManager = new EventManager(); 
 let userInteracted = false;
 var ui = new UI();
+ui.initMusic();
 var board = new Board();
 var weather = new Weather();
 var game = new Game();
@@ -4501,12 +4502,12 @@ const guide = {
 
 
 // Touch pointerdown doesn't grant user activation (only pointerup/touchend/click do), so retry on those
-// and keep retrying until the music actually plays (player may not be ready yet on slow mobile loads).
+// and keep retrying until the music actually plays.
 const activationEvents = ["pointerdown", "pointerup", "touchend", "click", "keydown"];
 function onFirstInput() {
 	userInteracted = true;
 	const track = ui.music[ui.musicTrack];
-	if (Settings.music.isEnabled() && track?.ready && track.player.getPlayerState() === YT.PlayerState.PLAYING) {
+	if (Settings.music.isEnabled() && track?.playing) {
 		activationEvents.forEach(t => document.removeEventListener(t, onFirstInput, true));
 		return;
 	}

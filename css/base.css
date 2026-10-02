@@ -84,15 +84,6 @@ html { scrollbar-color: var(--gold-3) rgba(0, 0, 0, 0.45); }
 	z-index: 1;
 }
 
-/* YouTube requires at least a 200x200 player; keep it invisible instead of tiny */
-#youtube, #youtube-menu {
-	position: fixed;
-	height: 200px;
-	width: 200px;
-	z-index: -100;
-	opacity: 0;
-	pointer-events: none;
-}
 
 /* ---------- settings buttons ---------- */
 
