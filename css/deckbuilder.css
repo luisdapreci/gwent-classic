@@ -158,6 +158,9 @@
 	box-shadow: 0 0 calc(1.2 * var(--u)) var(--gold-glow), 0 calc(0.6 * var(--u)) calc(1 * var(--u)) rgba(0, 0, 0, 0.8);
 }
 .card-array .card-lg.empty { visibility: hidden; }
+/* forbidden by the online room's deck rules */
+.card-array .card-lg.banned { filter: grayscale(1) brightness(0.5); }
+#card-deck .card-lg.banned { box-shadow: 0 0 0 2px #c0392b, 0 calc(0.3 * var(--u)) calc(0.8 * var(--u)) rgba(0, 0, 0, 0.75); }
 
 .card-array .card-lg > div {
 	position: absolute;

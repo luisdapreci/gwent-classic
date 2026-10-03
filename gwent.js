@@ -40,7 +40,7 @@ class ControllerAI {
 		easy: {label: "Easy", redraws: 0, randomChance: 0.5},
 		normal: {label: "Normal", redraws: 2, randomChance: 0},
 		hard: {label: "Hard", redraws: 2, randomChance: 0, strategic: true},
-		expert: {label: "Expert", redraws: 2, randomChance: 0, strategic: true, deckLimits: {strength: 120, hero: 3}}
+		expert: {label: "Expert", redraws: 2, randomChance: 0, strategic: true, deckLimits: {strength: 130, hero: 3}}
 	};
 	
 	// Leader abilities that score no points: the first return a unit to hand, the rest only reshape hands, decks or turns
@@ -2387,22 +2387,22 @@ class UI {
 			menu: "The Witcher 3_ Wild Hunt - Kaer Morhen Extended.mp3",
 			game: "The Witcher 3_ Wild Hunt Soundtrack - Gwent Full Mix.mp3"
 		};
-		for (const [name, file] of Object.entries(tracks)) {
-			const audio = new Audio("sfx/music/" + encodeURIComponent(file));
-			audio.loop = true;
-			audio.preload = "metadata";
-			audio.volume = 0;
-			const track = { audio, playing: false, volume: 0, target: 0, timer: null };
-			audio.addEventListener("playing", () => track.playing = true);
-			audio.addEventListener("pause", () => track.playing = false);
-			audio.addEventListener("error", () => console.warn(`Music ${name} failed to load:`, audio.error));
-			this.music[name] = track;
-		}
-		// iOS ignores volume changes, so tracks there switch instantly instead of crossfading
-		const probe = new Audio();
-		probe.volume = 0.5;
-		this.musicVolumeControl = probe.volume === 0.5;
+		// No <audio> elements: media elements make the OS show a media notification
+		const ctx = this.musicContext = new (window.AudioContext || window.webkitAudioContext)();
+		for (const [name, file] of Object.entries(tracks))
+			this.music[name] = new MusicTrack(ctx, "sfx/music/" + encodeURIComponent(file), ctx.destination);
+		document.addEventListener("visibilitychange", () => {
+			if (document.hidden)
+				ctx.suspend().catch(() => {});
+			else
+				this.applyMusicSetting();
+		});
 		this.applyMusicSetting();
+	}
+
+	// Tracks are scheduled even while the context is suspended (silent), so both must be running
+	isMusicPlaying(){
+		return !!this.music[this.musicTrack]?.playing && this.musicContext.state === "running";
 	}
 
 	// Switches between "menu" and "game" music with a crossfade
@@ -2421,40 +2421,32 @@ class UI {
 		}
 	}
 
-	// Ramps a track's volume to target over ms; pauses it once silent
+	// Ramps a track's gain to target over ms; stops it once silent
 	fadeMusic(track, target, ms){
-		const audio = track.audio;
-		// play() rejects while autoplay is blocked; the first user input retries it
-		if (target > 0 && audio.paused)
-			audio.play().catch(() => {});
-		if (!this.musicVolumeControl) {
-			track.volume = track.target = target;
-			if (target === 0 && !audio.paused)
-				audio.pause();
-			return;
+		const ctx = this.musicContext;
+		if (target > 0) {
+			// resume() stays blocked until a user gesture; the first user input retries it
+			if (ctx.state !== "running" && !document.hidden)
+				ctx.resume().catch(() => {});
+			track.start();
 		}
-		if (track.target === target && (track.timer || track.volume === target))
+		if (track.target === target)
 			return;
-		clearInterval(track.timer);
 		track.target = target;
-		const from = track.volume, start = performance.now();
-		track.timer = setInterval(() => {
-			const t = Math.min(1, (performance.now() - start) / ms);
-			track.volume = from + (target - from) * t;
-			audio.volume = Math.min(1, Math.max(0, track.volume));
-			if (t < 1)
-				return;
-			clearInterval(track.timer);
-			track.timer = null;
-			if (target === 0)
-				audio.pause();
-		}, 50);
+		clearTimeout(track.timer);
+		track.timer = null;
+		const gain = track.gain.gain, now = ctx.currentTime;
+		gain.cancelScheduledValues(now);
+		gain.setValueAtTime(gain.value, now);
+		gain.linearRampToValueAtTime(target, now + ms / 1000);
+		if (target === 0)
+			track.timer = setTimeout(() => track.target === 0 && track.stop(), ms);
 	}
 	
 	// Called when client toggles the music
 	toggleMusic(){
 		// While autoplay is still blocked the music is "on" but silent, so this click should start it, not mute it
-		if (Settings.music.isEnabled() && !this.music[this.musicTrack]?.playing)
+		if (Settings.music.isEnabled() && !this.isMusicPlaying())
 			return this.applyMusicSetting();
 		Settings.music.toggle();
 		this.applyMusicSetting();
@@ -3217,6 +3209,17 @@ class Popup {
 
 // Screen used to customize, import and export deck contents
 class DeckMaker {
+	// Deck rules an online host can enable; ban(card data) marks cards the rule forbids
+	static RULES = {
+		expert: {label: "Expert Limits", desc: "At most 130 total unit strength and 3 hero cards"},
+		noHeroes: {label: "No Heroes", desc: "Hero cards are not allowed", ban: c => c.ability.split(" ").includes("hero")},
+		noNeutral: {label: "No Neutrals", desc: "Neutral cards are not allowed", ban: c => c.deck === "neutral"},
+		noSpecial: {label: "No Specials", desc: "Special cards (Decoy, Horn, Scorch, Mardroeme) are not allowed", ban: c => c.deck === "special"},
+		noWeather: {label: "No Weather", desc: "Weather cards are not allowed", ban: c => c.deck === "weather"}
+	};
+	// Rules of the online room the builder is in
+	static onlineRules = [];
+
 	constructor() {
 		this.elem = document.getElementById("deck-customization");
 		this.bank_elem = document.getElementById("card-bank");
@@ -3512,6 +3515,14 @@ class DeckMaker {
 		stats.children[5].style.color = (this.stats.special > 10) ? "red" : "";
 		stats.children[7].style.color = limits && this.stats.strength > limits.strength ? "red" : "";
 		stats.children[9].style.color = limits && this.stats.hero > limits.hero ? "red" : "";
+
+		const rules = document.body.classList.contains("online") ? DeckMaker.onlineRules : [];
+		for (const x of [...(this.bank ?? []), ...(this.deck ?? [])])
+			x.elem.classList.toggle("banned", DeckMaker.isBanned(card_dict[x.index], rules));
+	}
+
+	static isBanned(card, rules){
+		return rules.some(r => DeckMaker.RULES[r]?.ban?.(card));
 	}
 	
 	// Opens a Carousel to allow the client to select a leader for their deck
@@ -3644,22 +3655,36 @@ class DeckMaker {
 		};
 	}
 
-	// The AI difficulty's caps on the player's deck, unless playing pass and play or online
+	// The AI difficulty's caps on the player's deck (online: the room's Expert Limits rule), none in pass and play
 	static deckLimits(){
-		return DeckMaker.isHotseatMode() || document.body.classList.contains("online") ? null : ControllerAI.difficulty().deckLimits ?? null;
+		if (document.body.classList.contains("online"))
+			return DeckMaker.onlineRules.includes("expert") ? ControllerAI.difficulties.expert.deckLimits : null;
+		return DeckMaker.isHotseatMode() ? null : ControllerAI.difficulty().deckLimits ?? null;
 	}
 
 	// Describes how a deck breaks the difficulty's deck caps, or ""
-	static limitWarnings(stats){
-		const limits = DeckMaker.deckLimits();
+	static limitWarnings(stats, limits = DeckMaker.deckLimits(), label = ControllerAI.difficulty().label){
 		if (!limits)
 			return "";
-		const label = ControllerAI.difficulty().label;
 		let warning = "";
 		if (stats.strength > limits.strength)
 			warning += label + " allows at most " + limits.strength + " total unit strength (deck has " + stats.strength + ").\n";
 		if (stats.hero > limits.hero)
 			warning += label + " allows at most " + limits.hero + " hero cards (deck has " + stats.hero + ").\n";
+		return warning;
+	}
+
+	// Describes how a list of {index, count} breaks an online room's deck rules, or ""
+	static onlineRuleWarnings(cards, rules = DeckMaker.onlineRules){
+		let warning = "";
+		for (const id of rules) {
+			const rule = DeckMaker.RULES[id];
+			const names = new Set(cards.filter(c => c.count > 0 && rule?.ban?.(card_dict[c.index])).map(c => card_dict[c.index].name));
+			if (names.size)
+				warning += rule.label + ": remove " + [...names].join(", ") + ".\n";
+		}
+		if (rules.includes("expert"))
+			warning += DeckMaker.limitWarnings(DeckMaker.countCards(cards), ControllerAI.difficulties.expert.deckLimits, DeckMaker.RULES.expert.label);
 		return warning;
 	}
 
@@ -3805,6 +3830,192 @@ class DeckMaker {
 		const saved = Settings.getFactionSettings(this.faction, this.owner);
 		saved.setLeader(this.leader);
 		saved.setCards(this.deck.filter(x => x.count > 0));
+	}
+}
+
+// Streams an MPEG-1 Layer III file through Web Audio in short decoded chunks (whole tracks would be ~500 MB of PCM).
+// Each chunk is decoded with a few extra frames on both sides and trimmed by frame count, so the seams line up.
+class MusicTrack {
+	static FRAME = 1152;
+	static CHUNK = 208;
+	static OVERLAP = 4;
+	static AHEAD = 12;
+
+	constructor(ctx, url, output){
+		this.ctx = ctx;
+		this.url = url;
+		this.gain = ctx.createGain();
+		this.gain.gain.value = 0;
+		this.gain.connect(output);
+		this.target = 0;
+		this.timer = null;
+		this.bytes = new Uint8Array(0);
+		this.size = 0;
+		this.scan = -1;
+		this.frames = [];
+		this.framesEnd = 0;
+		this.sampleRate = 0;
+		this.done = false;
+		this.failed = false;
+		this.loading = null;
+		this.waiters = [];
+		this.playing = false;
+		this.frame = 0;
+		this.nextTime = 0;
+		this.queue = [];
+		this.session = 0;
+		this.pumping = false;
+		this.pumpTimer = null;
+	}
+
+	load(){
+		return this.loading ??= this.download().catch(e => {
+			console.warn(`Music ${this.url} failed to load:`, e);
+			this.failed = this.done = true;
+			this.notify();
+		});
+	}
+
+	async download(){
+		const res = await fetch(this.url);
+		if (!res.ok)
+			throw new Error("HTTP " + res.status);
+		this.bytes = new Uint8Array(Number(res.headers.get("content-length")) || 1 << 22);
+		const reader = res.body.getReader();
+		for (;;) {
+			const { done, value } = await reader.read();
+			if (done)
+				break;
+			if (this.size + value.length > this.bytes.length) {
+				const grown = new Uint8Array(Math.max(this.bytes.length * 2, this.size + value.length));
+				grown.set(this.bytes.subarray(0, this.size));
+				this.bytes = grown;
+			}
+			this.bytes.set(value, this.size);
+			this.size += value.length;
+			this.parse();
+			this.notify();
+		}
+		this.done = true;
+		this.notify();
+	}
+
+	notify(){
+		this.waiters.splice(0).forEach(resolve => resolve());
+	}
+
+	// Indexes the byte offset of every audio frame, skipping the ID3 tag and the Xing/Info header frame
+	parse(){
+		const b = this.bytes;
+		if (this.scan < 0) {
+			if (this.size < 10)
+				return;
+			const id3 = b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33;
+			this.scan = id3 ? 10 + ((b[6] & 127) << 21 | (b[7] & 127) << 14 | (b[8] & 127) << 7 | (b[9] & 127)) : 0;
+		}
+		while (this.scan + 4 <= this.size) {
+			const i = this.scan;
+			const bitrate = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320][b[i + 2] >> 4];
+			const rate = [44100, 48000, 32000][(b[i + 2] >> 2) & 3];
+			if (b[i] !== 0xFF || (b[i + 1] & 0xFE) !== 0xFA || !bitrate || !rate) {
+				this.scan++;
+				continue;
+			}
+			const length = Math.floor(144000 * bitrate / rate) + ((b[i + 2] >> 1) & 1);
+			if (i + length > this.size)
+				break;
+			this.scan += length;
+			if (!this.sampleRate) {
+				this.sampleRate = rate;
+				const tag = i + 4 + ((b[i + 3] >> 6) === 3 ? 17 : 32);
+				if (["Xing", "Info"].includes(String.fromCharCode(...b.subarray(tag, tag + 4))))
+					continue;
+			}
+			this.frames.push(i);
+			this.framesEnd = i + length;
+		}
+	}
+
+	start(){
+		if (this.playing)
+			return;
+		this.playing = true;
+		this.load();
+		this.pump();
+		this.pumpTimer = setInterval(() => this.pump(), 1000);
+	}
+
+	// Stops playback; the next start() resumes from the chunk that was audible
+	stop(){
+		if (!this.playing)
+			return;
+		this.playing = false;
+		this.session++;
+		clearInterval(this.pumpTimer);
+		const now = this.ctx.currentTime;
+		const current = this.queue.find(c => c.end > now);
+		if (current)
+			this.frame = current.frame;
+		this.queue.forEach(c => c.source.stop());
+		this.queue = [];
+	}
+
+	// Keeps AHEAD seconds of decoded chunks scheduled back to back
+	async pump(){
+		if (this.pumping)
+			return;
+		this.pumping = true;
+		const session = this.session;
+		try {
+			while (this.playing && session === this.session) {
+				const now = this.ctx.currentTime;
+				this.queue = this.queue.filter(c => c.end > now);
+				if (this.queue.length && this.nextTime - now > MusicTrack.AHEAD)
+					break;
+				const first = this.frame;
+				const chunk = await this.decode(first);
+				if (!chunk || session !== this.session)
+					break;
+				if (!this.queue.length)
+					this.nextTime = this.ctx.currentTime + 0.05;
+				const source = this.ctx.createBufferSource();
+				source.buffer = chunk.buffer;
+				source.connect(this.gain);
+				source.start(this.nextTime);
+				this.nextTime += chunk.buffer.duration;
+				this.queue.push({ source, frame: chunk.first, end: this.nextTime });
+				this.frame = chunk.next;
+			}
+		} catch (e) {
+			console.warn(`Music ${this.url} failed to decode:`, e);
+		} finally {
+			this.pumping = false;
+			if (this.playing && session !== this.session)
+				this.pump();
+		}
+	}
+
+	// Decodes CHUNK frames from `first` (wrapping to the start at the end of the file)
+	async decode(first){
+		const { FRAME, CHUNK, OVERLAP } = MusicTrack;
+		while (!this.done && this.frames.length < first + CHUNK + OVERLAP)
+			await new Promise(resolve => this.waiters.push(resolve));
+		if (this.failed || !this.frames.length)
+			return null;
+		if (first >= this.frames.length)
+			first = 0;
+		const last = Math.min(first + CHUNK, this.frames.length);
+		const from = Math.max(0, first - OVERLAP), to = Math.min(this.frames.length, last + OVERLAP);
+		const bytes = this.bytes.slice(this.frames[from], to < this.frames.length ? this.frames[to] : this.framesEnd);
+		// Decoding at the file's own rate keeps samples aligned to frames
+		this.decoder ??= new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(2, 1, this.sampleRate);
+		const decoded = await this.decoder.decodeAudioData(bytes.buffer);
+		const skip = (first - from) * FRAME;
+		const count = Math.min((last - first) * FRAME, decoded.length - skip);
+		const buffer = this.ctx.createBuffer(decoded.numberOfChannels, count, decoded.sampleRate);
+		for (let ch = 0; ch < decoded.numberOfChannels; ch++)
+			buffer.copyToChannel(decoded.getChannelData(ch).subarray(skip, skip + count), ch);
+		return { buffer, first, next: last };
 	}
 }
 
@@ -4009,6 +4220,7 @@ class Settings
 	static gameMode = new SavedString("gc-game-mode", "ai");
 	static onlineName = new SavedString("gc-online-name", "");
 	static onlineTimer = new SavedString("gc-online-timer", "60");
+	static onlineRules = new SavedString("gc-online-rules", "");
 	static realmsDeck = new SavedDeck("gc-deck-realms", premade_deck[0]);
 	static nilfgaardDeck = new SavedDeck("gc-deck-nilfgaard", premade_deck[2]);
 	static monstersDeck = new SavedDeck("gc-deck-monsters", premade_deck[4]);
@@ -4444,8 +4656,7 @@ const guide = {
 const activationEvents = ["pointerdown", "pointerup", "touchend", "click", "keydown"];
 function onFirstInput() {
 	userInteracted = true;
-	const track = ui.music[ui.musicTrack];
-	if (Settings.music.isEnabled() && track?.playing) {
+	if (Settings.music.isEnabled() && ui.isMusicPlaying()) {
 		activationEvents.forEach(t => document.removeEventListener(t, onFirstInput, true));
 		return;
 	}

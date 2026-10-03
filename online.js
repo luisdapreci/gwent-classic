@@ -4,7 +4,7 @@
 // from a shared seed and only exchange player inputs, which reference cards by uid and rows by seat.
 // Seat 0 hosts the room, seat 1 joins it. Each seat's inputs form a log that is resent after a reconnect
 // and replayed to rebuild the match after a page reload.
-const ONLINE_PROTOCOL = 1;
+const ONLINE_PROTOCOL = 2;
 const PEER_PREFIX = "gwent-classic-";
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 5;
@@ -46,6 +46,15 @@ function hashString(str) {
 	return (h >>> 0).toString(36);
 }
 
+// Known deck rule ids from untrusted input, in canonical order
+function cleanRules(rules) {
+	return Array.isArray(rules) ? Object.keys(DeckMaker.RULES).filter(r => rules.includes(r)) : [];
+}
+
+function rulesText(rules) {
+	return rules.length ? "Rules: " + rules.map(r => DeckMaker.RULES[r].label).join(", ") : "Standard deck rules";
+}
+
 const Online = {
 	// ---- match (engine) state ----
 	active: false,
@@ -77,6 +86,7 @@ const Online = {
 	name: "",
 	opponentName: "",
 	timerSetting: 60,
+	rulesSetting: [],
 	ready: false,
 	opponentReady: false,
 	myDeck: null,
@@ -373,7 +383,7 @@ const Online = {
 	// log (after a page reload) is replayed at high speed to catch up with the opponent.
 	async beginMatch(start, log) {
 		const decks = await Promise.all(start.decks.map(d => dm.loadDeck(d, true, true)));
-		if (decks.includes(null))
+		if (decks.includes(null) || decks.some(d => DeckMaker.onlineRuleWarnings(d.cards, start.rules)))
 			return this.fail("A deck in the match is invalid.");
 		this.active = true;
 		this.start = start;
@@ -522,7 +532,7 @@ const Online = {
 			return;
 		sessionStorage.setItem(SESSION_KEY, JSON.stringify({
 			code: this.code, role: this.role, seat: this.seat, token: this.token,
-			name: this.name, opponent: this.opponentName, timer: this.timerSetting, at: Date.now()
+			name: this.name, opponent: this.opponentName, timer: this.timerSetting, rules: this.rulesSetting, at: Date.now()
 		}));
 	},
 
@@ -535,6 +545,7 @@ const Online = {
 		document.getElementById("deck-customization").classList.remove("hide");
 		document.body.classList.remove("deck-only");
 		document.body.classList.add("online");
+		DeckMaker.onlineRules = this.rulesSetting;
 		dm.setGameMode("ai", true);
 		this.ready = false;
 		this.opponentInBuilder = false;
@@ -544,6 +555,7 @@ const Online = {
 	updatePanel() {
 		const timer = this.timerSetting ? this.timerSetting + "s turn timer" : "No turn timer";
 		document.getElementById("online-room").textContent = "Room " + this.code + " · " + timer;
+		document.getElementById("online-rules").textContent = rulesText(this.rulesSetting);
 		document.getElementById("online-opponent").textContent = !this.connected ? "Opponent disconnected"
 			: this.opponentName + (this.opponentReady ? " is ready" : " is choosing a deck");
 		document.getElementById("online-opponent").classList.toggle("ready", this.connected && this.opponentReady);
@@ -559,7 +571,7 @@ const Online = {
 			return this.updatePanel();
 		}
 		const p1 = dm.playerDeck("p1");
-		const warning = DeckMaker.ruleWarnings(p1.units, p1.special);
+		const warning = DeckMaker.ruleWarnings(p1.units, p1.special) + DeckMaker.onlineRuleWarnings(p1.deck.cards, this.rulesSetting);
 		if (warning)
 			return ui.alert("Invalid deck", warning);
 		AudioManager.playSFX("ui_card_bank");
@@ -578,7 +590,7 @@ const Online = {
 	// Host: validates both decks and starts a match with a fresh seed
 	async hostStart(decks) {
 		const valid = await Promise.all(decks.map(d => dm.loadDeck(d, true, true)));
-		if (valid.includes(null)) {
+		if (valid.includes(null) || valid.some(d => DeckMaker.onlineRuleWarnings(d.cards, this.rulesSetting))) {
 			this.ready = this.opponentReady = false;
 			this.send({t: "ready", deck: null, reset: true});
 			this.updatePanel();
@@ -588,6 +600,7 @@ const Online = {
 			id: randomId(8),
 			seed: randomId(16),
 			timer: this.timerSetting,
+			rules: this.rulesSetting,
 			names: [this.name, this.opponentName],
 			decks: valid.map(d => ({faction: d.faction, leader: d.leader, cards: d.cards.map(c => [c.index, c.count])}))
 		};
@@ -598,6 +611,7 @@ const Online = {
 	validStart(s) {
 		return s && typeof s === "object" && typeof s.id === "string" && s.id.length <= 32
 			&& typeof s.seed === "string" && s.seed.length <= 64 && TIMER_CHOICES.includes(s.timer)
+			&& Array.isArray(s.rules) && cleanRules(s.rules).length === s.rules.length
 			&& Array.isArray(s.names) && s.names.length === 2 && s.names.every(n => cleanName(n) === n && n)
 			&& Array.isArray(s.decks) && s.decks.length === 2;
 	},
@@ -866,7 +880,7 @@ const Online = {
 			this.guestJoined = true;
 			this.opponentName = name;
 			this.adopt(conn);
-			this.send({t: "welcome", v: ONLINE_PROTOCOL, name: this.name, token: this.token, timer: this.timerSetting});
+			this.send({t: "welcome", v: ONLINE_PROTOCOL, name: this.name, token: this.token, timer: this.timerSetting, rules: this.rulesSetting});
 			this.onConnected();
 		} else if (m.t === "resume") {
 			if (!this.token || m.token !== this.token)
@@ -917,6 +931,7 @@ const Online = {
 				this.opponentName = cleanName(m.name) || "Opponent";
 				this.token = String(m.token ?? "").slice(0, 64);
 				this.timerSetting = TIMER_CHOICES.includes(m.timer) ? m.timer : 0;
+				this.rulesSetting = cleanRules(m.rules);
 				this.guestJoined = true;
 				return this.onConnected();
 			case "reject":
@@ -1110,7 +1125,7 @@ const Online = {
 
 	// Leaves the room and resets everything online
 	leave() {
-		if (!this.peer && !this.active && !this.connected)
+		if (!this.peer && !this.active && !this.connected && !document.body.classList.contains("online"))
 			return;
 		this.send({t: "bye"});
 		this.dropConnection();
@@ -1126,6 +1141,8 @@ const Online = {
 		this.pending = [[], []];
 		this.replayLeft = 0;
 		this.rng = Math.random;
+		this.rulesSetting = [];
+		DeckMaker.onlineRules = [];
 		document.body.classList.remove("online");
 		dm.updateStats();
 		document.getElementById("start-game").textContent = "Start game";
@@ -1149,6 +1166,7 @@ const Online = {
 		this.name = cleanName(s.name);
 		this.opponentName = cleanName(s.opponent);
 		this.timerSetting = TIMER_CHOICES.includes(s.timer) ? s.timer : 0;
+		this.rulesSetting = cleanRules(s.rules);
 		this.guestJoined = true;
 		this.connected = true;
 		this.saveSession();
@@ -1183,6 +1201,37 @@ const Lobby = {
 	nameInput: document.getElementById("lobby-name"),
 	codeInput: document.getElementById("lobby-code"),
 	timerButtons: [...document.querySelectorAll("#lobby-timer > button")],
+	ruleButtons: [],
+
+	// One toggle per deck rule, built from DeckMaker.RULES
+	initRules() {
+		const box = document.getElementById("lobby-rules");
+		this.ruleButtons = Object.entries(DeckMaker.RULES).map(([id, rule]) => {
+			const b = document.createElement("button");
+			b.dataset.rule = id;
+			b.textContent = rule.label;
+			b.title = rule.desc;
+			b.addEventListener("click", () => this.toggleRule(id));
+			box.appendChild(b);
+			return b;
+		});
+	},
+
+	savedRules() {
+		return cleanRules(Settings.onlineRules.get().split(","));
+	},
+
+	showRules() {
+		const rules = this.savedRules();
+		this.ruleButtons.forEach(b => b.setAttribute("aria-pressed", rules.includes(b.dataset.rule)));
+	},
+
+	toggleRule(id) {
+		AudioManager.playSFX("ui_card_bank");
+		const rules = this.savedRules();
+		Settings.onlineRules.set(cleanRules(rules.includes(id) ? rules.filter(r => r !== id) : [...rules, id]).join(","));
+		this.showRules();
+	},
 
 	open(code = "") {
 		document.activeElement?.blur();
@@ -1192,6 +1241,7 @@ const Lobby = {
 		this.nameInput.value = Settings.onlineName.get();
 		this.codeInput.value = code;
 		this.setTimer(Settings.onlineTimer.get(), true);
+		this.showRules();
 		this.status("");
 		this.setBusy(false);
 		(!this.nameInput.value ? this.nameInput : code ? document.getElementById("lobby-join") : document.getElementById("lobby-host")).focus();
@@ -1244,6 +1294,7 @@ const Lobby = {
 		this.setBusy(true);
 		this.status("Creating room…");
 		Online.timerSetting = Number(Settings.onlineTimer.get());
+		Online.rulesSetting = this.savedRules();
 		try {
 			await Online.host();
 		} catch (err) {
@@ -1310,6 +1361,7 @@ Lobby.elem.addEventListener("keydown", e => {
 		Lobby.cancel();
 	}
 });
+Lobby.initRules();
 addMouseEnterSFXBySelector("#lobby button");
 document.getElementById("online-curtain-leave").addEventListener("click", () => Online.forfeit());
 

@@ -769,11 +769,15 @@
 }
 .lobby-col .btn-gold:disabled { filter: grayscale(0.8) brightness(0.7); }
 
-#lobby-timer {
+#lobby-timer, #lobby-rules {
 	display: flex;
 	gap: calc(0.3 * var(--u));
 }
-#lobby-timer button {
+#lobby-rules {
+	flex-wrap: wrap;
+	justify-content: center;
+}
+#lobby-timer button, #lobby-rules button {
 	height: max(calc(1.7 * var(--u)), 24px);
 	padding: 0 calc(0.6 * var(--u));
 	color: var(--text-mute);
@@ -784,8 +788,8 @@
 	font-size: max(calc(0.85 * var(--u)), var(--fs-sm));
 	transition: color .2s, border-color .2s;
 }
-#lobby-timer button:hover { color: var(--gold-1); border-color: var(--gold-line); }
-#lobby-timer button[aria-checked="true"] {
+#lobby-timer button:hover, #lobby-rules button:hover { color: var(--gold-1); border-color: var(--gold-line); }
+#lobby-timer button[aria-checked="true"], #lobby-rules button[aria-pressed="true"] {
 	color: #1b1206;
 	background: var(--gold-gradient);
 	border-color: var(--gold-1);
