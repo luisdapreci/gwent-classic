@@ -346,8 +346,8 @@
 	position: absolute;
 	width: 100%;
 	height: var(--stage-h);
-	/* above #end-screen (1000) */
-	z-index: 1001;
+	/* above #end-screen (1000) and #online-curtain (1001) */
+	z-index: 1002;
 	background-color: rgba(6, 5, 4, .92);
 	animation: fade-in .2s ease-out;
 }
@@ -642,7 +642,7 @@
 
 /* ---------------- online: lobby, reconnect curtain, timers ---------------- */
 
-/* like #handoff: outside <main>, above the title screen (z 88), below popups (z 1000) */
+/* like #handoff: outside <main>, above the title screen (z 88), below popups (z 1002) */
 #lobby, #online-curtain {
 	position: absolute;
 	left: var(--stage-x);
@@ -657,7 +657,8 @@
 	backdrop-filter: blur(calc(0.4 * var(--u)));
 	animation: fade-in .3s ease-out;
 }
-#online-curtain { z-index: 97; }
+/* a drop can happen on the end screen (z 1000) */
+#online-curtain { z-index: 1001; }
 #lobby.hide, #online-curtain.hide { display: none; }
 
 .lobby-panel {
