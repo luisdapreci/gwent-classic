@@ -1,5 +1,5 @@
 // Bump to drop old caches after changing asset files in place.
-const VERSION = "gwent-v12";
+const VERSION = "gwent-v13";
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 
@@ -30,6 +30,7 @@ const SHELL_FILES = [
 	"img/app/favicon-32.png",
 	"img/app/icon-192.png",
 	"img/app/icon-512.png",
+	"img/app/boot-art.png",
 ];
 
 self.addEventListener("install", event => {
