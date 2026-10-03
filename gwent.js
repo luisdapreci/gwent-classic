@@ -4561,12 +4561,16 @@ document.getElementById("deck-back").addEventListener("click", async () => {
 }, false);
 ["#title-play", "#title-online", "#title-deck", "#deck-back"].forEach(addMouseEnterSFXBySelector);
 
-// Chromium offers installs via beforeinstallprompt; iOS Safari only via Share > Add to Home Screen.
+// Chromium offers installs via beforeinstallprompt (only after some engagement), otherwise via its menu;
+// iOS Safari only via Share > Add to Home Screen.
 const installButton = document.getElementById("title-install");
-let installPrompt = null;
+let installPrompt = window.earlyInstallPrompt || null;
 const runningAsApp = matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches || navigator.standalone;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-installButton.classList.toggle("hide", runningAsApp || !isIOS);
+const isAndroid = /Android/.test(navigator.userAgent);
+installButton.classList.toggle("hide", runningAsApp || !(isIOS || isAndroid || installPrompt));
+if (!runningAsApp && navigator.getInstalledRelatedApps)
+	navigator.getInstalledRelatedApps().then(apps => apps.length && installButton.classList.add("hide"), () => {});
 window.addEventListener("beforeinstallprompt", e => {
 	e.preventDefault();
 	installPrompt = e;
@@ -4578,11 +4582,14 @@ window.addEventListener("appinstalled", () => {
 });
 installButton.addEventListener("click", () => {
 	if (!installPrompt)
-		return ui.alert("Install Gwent", "Tap the Share button in Safari, then choose \"Add to Home Screen\".");
+		return isIOS
+			? ui.alert("Install Gwent", "Tap the Share button in Safari, then choose \"Add to Home Screen\".")
+			: ui.alert("Install Gwent", "Open the browser menu (⋮) and choose \"Install app\".");
 	const prompt = installPrompt;
 	// A prompt can only be shown once; the browser fires a fresh beforeinstallprompt if it is dismissed.
 	installPrompt = null;
-	installButton.classList.add("hide");
+	// Android keeps the button: without a prompt it explains the menu route
+	installButton.classList.toggle("hide", !isAndroid);
 	prompt.prompt().catch(err => {
 		console.warn("Install prompt failed:", err);
 		installPrompt = prompt;

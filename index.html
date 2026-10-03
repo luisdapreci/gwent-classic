@@ -14,6 +14,8 @@
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 	<link rel="manifest" href="manifest.webmanifest" />
+	<!-- Chrome can fire this before the game scripts finish downloading -->
+	<script>addEventListener("beforeinstallprompt", e => { e.preventDefault(); window.earlyInstallPrompt = e; });</script>
 	<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48" />
 	<link rel="icon" type="image/png" sizes="32x32" href="img/app/favicon-32.png" />
 	<link rel="apple-touch-icon" href="img/app/apple-touch-icon.png" />
