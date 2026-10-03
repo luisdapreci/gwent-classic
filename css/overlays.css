@@ -346,7 +346,8 @@
 	position: absolute;
 	width: 100%;
 	height: var(--stage-h);
-	z-index: 1000;
+	/* above #end-screen (1000) */
+	z-index: 1001;
 	background-color: rgba(6, 5, 4, .92);
 	animation: fade-in .2s ease-out;
 }
