@@ -135,8 +135,6 @@
 #title-play { animation-delay: .8s; }
 #title-online { animation-delay: .875s; }
 #title-deck { animation-delay: .95s; }
-#title-install { animation-delay: 1.025s; }
-#title-install.hide { display: none; }
 
 .title-credit {
 	position: absolute;

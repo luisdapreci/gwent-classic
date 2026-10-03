@@ -133,11 +133,12 @@ html { scrollbar-color: var(--gold-3) rgba(0, 0, 0, 0.45); }
 #toggle-notifications.deck-menu { display: none !important; }
 
 body.title-open { --title-toggles-top: 41.7; }
-body.title-open:has(#title-install:not(.hide)) { --title-toggles-top: 45.9; }
 body.title-open #toggle-music.deck-menu   { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 8 * var(--u)); }
 body.title-open #toggle-sfx.deck-menu     { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 11.2 * var(--u)); }
 body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 14.4 * var(--u)); }
 body.title-open #open-guide.deck-menu     { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 17.6 * var(--u)); }
+body.title-open #title-install            { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 20.8 * var(--u)); }
+body:not(.title-open) #title-install, #title-install.hide { display: none; }
 
 /* small (phone) stages: finger-sized buttons, spaced by their own size */
 @media (max-width: 999px), (max-height: 562px) {
@@ -164,11 +165,13 @@ body.title-open #open-guide.deck-menu     { top: calc(var(--stage-y) + var(--tit
 	body.title-open #toggle-music.deck-menu,
 	body.title-open #toggle-sfx.deck-menu,
 	body.title-open #toggle-effects.deck-menu,
-	body.title-open #open-guide.deck-menu { top: calc(var(--stage-y) + 2 * var(--u)); }
+	body.title-open #open-guide.deck-menu,
+	body.title-open #title-install { top: calc(var(--stage-y) + 2 * var(--u)); }
 	body.title-open #toggle-music.deck-menu   { left: calc(var(--stage-x) + 8 * var(--u)); }
 	body.title-open #toggle-sfx.deck-menu     { left: calc(var(--stage-x) + 8 * var(--u) + 32px); }
 	body.title-open #toggle-effects.deck-menu { left: calc(var(--stage-x) + 8 * var(--u) + 64px); }
 	body.title-open #open-guide.deck-menu     { left: calc(var(--stage-x) + 8 * var(--u) + 96px); }
+	body.title-open #title-install            { left: calc(var(--stage-x) + 8 * var(--u) + 128px); }
 }
 
 /* ---------- tooltip ---------- */
