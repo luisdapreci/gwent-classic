@@ -16,6 +16,67 @@
 	<link rel="manifest" href="manifest.webmanifest" />
 	<!-- Chrome can fire this before the game scripts finish downloading -->
 	<script>addEventListener("beforeinstallprompt", e => { e.preventDefault(); window.earlyInstallPrompt = e; });</script>
+	<!-- Boot screen: inline so it paints before any stylesheet or script arrives -->
+	<style>
+		#boot { position: fixed; inset: 0; z-index: 1999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #070605; transition: opacity .5s, visibility .5s; }
+		#boot.done { opacity: 0; visibility: hidden; }
+		#boot img { width: min(34vmin, 200px); height: min(34vmin, 200px); opacity: 0; animation: boot-breathe 2.6s ease-in-out infinite; transition: opacity .4s, scale .5s; }
+		#boot img.in { opacity: 1; }
+		#boot.done img { scale: 1.08; }
+		#boot h1 { margin: min(3vmin, 20px) 0 0; font: 700 min(6vmin, 38px)/1 Cinzel, Georgia, serif; letter-spacing: .32em; padding-left: .32em; background: linear-gradient(180deg, #f6dc9c, #c08a2e); -webkit-background-clip: text; background-clip: text; color: transparent; }
+		#boot p { margin: min(1.2vmin, 8px) 0 0; font: 500 min(2vmin, 12px)/1 Cinzel, Georgia, serif; letter-spacing: .45em; padding-left: .45em; color: #a08250; opacity: .75; text-transform: uppercase; }
+		#boot .boot-bar { width: min(42vmin, 240px); height: 2px; margin-top: min(4vmin, 28px); border-radius: 2px; background: rgba(218, 165, 32, .14); overflow: hidden; }
+		#boot .boot-bar > i { display: block; height: 100%; background: linear-gradient(90deg, #8a6420, #f6d27a); box-shadow: 0 0 8px rgba(246, 210, 122, .7); transform-origin: left; transform: scaleX(var(--boot, 0)); transition: transform .35s ease-out; }
+		@keyframes boot-breathe { 50% { scale: 1.035; filter: drop-shadow(0 0 18px rgba(218, 165, 32, .28)); } }
+		@media (prefers-reduced-motion: reduce) { #boot img { animation: none; } }
+		/* the title intro waits for the boot screen to leave */
+		.booting #title-screen, .booting #title-screen *, .booting #title-screen::before, .booting #title-screen *::before, .booting #title-screen *::after { animation-play-state: paused !important; }
+	</style>
+	<script>
+		// Counts stylesheets/scripts/images as they load (element load events stop at document, not window)
+		(() => {
+			const tracked = "link[rel=stylesheet], script[src], img:not([loading=lazy])";
+			const start = performance.now();
+			let done = 0, extra = 0, extraDone = 0, shown = 0, base = null, baseDone = 0, finished = false;
+			// Until parsing ends the total is unknown, so that phase fills at most 60% of the bar
+			const update = () => {
+				const total = document.querySelectorAll(tracked).length + extra, count = done + extraDone;
+				const p = base === null ? .6 * count / Math.max(total, 1)
+					: base + (1 - base) * (count - baseDone) / Math.max(total - baseDone, 1);
+				shown = Math.max(shown, Math.min(p, 1));
+				document.documentElement.style.setProperty("--boot", shown);
+			};
+			document.addEventListener("load", e => e.target.matches?.(tracked) && (done++, update()), true);
+			document.addEventListener("error", e => e.target.matches?.(tracked) && (done++, update()), true);
+			const finish = () => {
+				if (finished)
+					return;
+				finished = true;
+				shown = 1;
+				document.documentElement.style.setProperty("--boot", 1);
+				setTimeout(() => {
+					document.body.classList.remove("booting");
+					const boot = document.getElementById("boot");
+					boot.classList.add("done");
+					setTimeout(() => boot.remove(), 600);
+				}, Math.max(350, 900 - (performance.now() - start)));
+			};
+			// The title fan art is CSS backgrounds, so it is preloaded explicitly
+			addEventListener("DOMContentLoaded", () => {
+				const waits = [...document.querySelectorAll("#title-screen .card-lg")]
+					.map(card => card.style.backgroundImage.match(/url\(["']?([^"')]+)/)?.[1]).filter(Boolean)
+					.map(src => new Promise(resolve => Object.assign(new Image(), { onload: resolve, onerror: resolve, src })));
+				waits.push(document.fonts.ready, new Promise(resolve => document.readyState === "complete" ? resolve() : addEventListener("load", resolve)));
+				extra = waits.length;
+				base = shown;
+				baseDone = done;
+				waits.forEach(w => w.then(() => { extraDone++; update(); }));
+				update();
+				Promise.all(waits).then(finish);
+			});
+			setTimeout(finish, 12000);
+		})();
+	</script>
 	<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48" />
 	<link rel="icon" type="image/png" sizes="32x32" href="img/app/favicon-32.png" />
 	<link rel="apple-touch-icon" href="img/app/apple-touch-icon.png" />
@@ -33,7 +94,14 @@
 	<link rel="stylesheet" type="text/css" href="css/guide.css" />
 </head>
 
-<body class="title-open">
+<body class="title-open booting">
+
+<div id="boot" aria-hidden="true">
+	<img src="img/app/icon-512.png" alt="" onload="this.classList.add('in')">
+	<h1>Gwent</h1>
+	<p>The Witcher Card Game</p>
+	<div class="boot-bar"><i></i></div>
+</div>
 
 <div id="dimensions"></div>
 

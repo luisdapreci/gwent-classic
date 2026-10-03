@@ -4689,6 +4689,28 @@ function lockLandscape(e) {
 }
 document.addEventListener("click", lockLandscape, true);
 
+// Fullscreen on Android: pulling down the status bar shrinks the viewport for a moment, which would resize the
+// whole stage. Small height-only drops keep the full size; rotation and the keyboard (big drops) still resize.
+let stageSize = null;
+function keepStageSize() {
+	const root = document.documentElement.style;
+	const fullscreen = matchMedia("(display-mode: fullscreen)").matches || document.fullscreenElement;
+	if (!fullscreen || !matchMedia("(pointer: coarse)").matches) {
+		stageSize = null;
+		root.removeProperty("--app-w");
+		root.removeProperty("--app-h");
+		return;
+	}
+	const w = innerWidth, h = innerHeight;
+	if (!stageSize || stageSize.w !== w || h > stageSize.h || h < stageSize.h * 0.85)
+		stageSize = { w, h };
+	root.setProperty("--app-w", stageSize.w + "px");
+	root.setProperty("--app-h", stageSize.h + "px");
+}
+addEventListener("resize", keepStageSize);
+document.addEventListener("fullscreenchange", keepStageSize);
+keepStageSize();
+
 // Keyboard controls: Enter/Space activate focused controls; arrows/Enter/Escape drive the carousel; Escape closes previews
 document.addEventListener("keydown", e => {
 	if (Popup.curr)

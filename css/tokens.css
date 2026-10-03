@@ -1,9 +1,11 @@
 :root {
-	/* 16:9 stage that fits the window in both directions */
-	--stage-w: min(100vw, 100vh * 16 / 9);
+	/* 16:9 stage that fits the window in both directions (--app-w/h: see keepStageSize in gwent.js) */
+	--view-w: var(--app-w, 100vw);
+	--view-h: var(--app-h, 100vh);
+	--stage-w: min(var(--view-w), var(--view-h) * 16 / 9);
 	--stage-h: calc(var(--stage-w) * 9 / 16);
-	--stage-x: calc((100vw - var(--stage-w)) / 2);
-	--stage-y: calc((100vh - var(--stage-h)) / 2);
+	--stage-x: calc((var(--view-w) - var(--stage-w)) / 2);
+	--stage-y: calc((var(--view-h) - var(--stage-h)) / 2);
 	--u: calc(var(--stage-w) / 100);
 
 	--card-w: calc(4.45 * var(--u));
