@@ -4671,8 +4671,8 @@ function onFirstInput() {
 }
 activationEvents.forEach(t => document.addEventListener(t, onFirstInput, true));
 
-// Touch devices: pin landscape on the first tap, and on taps while held in portrait (the rotate hint).
-// Browser tabs can only lock orientation while fullscreen; the installed app's manifest already locks it.
+// Touch devices: pin landscape and go fullscreen on the first tap, and on taps while held in portrait (the rotate hint).
+// The installed app is standalone (fullscreen WebAPKs showed Chrome's icon in recents), so it re-enters fullscreen on any tap.
 let landscapeTried = false;
 function lockLandscape(e) {
 	if (!matchMedia("(pointer: coarse)").matches || !screen.orientation?.lock)
@@ -4680,11 +4680,11 @@ function lockLandscape(e) {
 	// requestFullscreen consumes the tap's user activation, which the install prompt needs.
 	if (e.target.closest?.("#title-install"))
 		return;
-	if (landscapeTried && !matchMedia("(orientation: portrait)").matches)
+	const app = matchMedia("(display-mode: standalone)").matches;
+	if (landscapeTried && !matchMedia("(orientation: portrait)").matches && !(app && !document.fullscreenElement))
 		return;
 	landscapeTried = true;
-	const installed = matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches;
-	const ready = installed || document.fullscreenElement ? null : document.documentElement.requestFullscreen?.({ navigationUI: "hide" });
+	const ready = document.fullscreenElement ? null : document.documentElement.requestFullscreen?.({ navigationUI: "hide" });
 	Promise.resolve(ready).then(() => screen.orientation.lock("landscape")).catch(() => {});
 }
 document.addEventListener("click", lockLandscape, true);
