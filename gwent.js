@@ -4672,7 +4672,7 @@ function onFirstInput() {
 activationEvents.forEach(t => document.addEventListener(t, onFirstInput, true));
 
 // Touch devices: pin landscape and go fullscreen on the first tap, and on taps while held in portrait (the rotate hint).
-// The installed app is standalone (fullscreen WebAPKs showed Chrome's icon in recents), so it re-enters fullscreen on any tap.
+// The manifest has no "orientation" (with it, Android showed Chrome's icon in recents), so landscape is locked here.
 let landscapeTried = false;
 function lockLandscape(e) {
 	if (!matchMedia("(pointer: coarse)").matches || !screen.orientation?.lock)
