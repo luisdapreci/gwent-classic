@@ -4681,8 +4681,8 @@ let landscapeTried = false;
 function lockLandscape(e) {
 	if (!matchMedia("(pointer: coarse)").matches || !screen.orientation?.lock)
 		return document.removeEventListener("click", lockLandscape, true);
-	// requestFullscreen consumes the tap's user activation, which the install prompt needs.
-	if (e.target.closest?.("#title-install"))
+	// requestFullscreen consumes the tap's user activation, which the install prompt and share sheet need.
+	if (e.target.closest?.("#title-install, #lobby-copy-link"))
 		return;
 	const app = matchMedia("(display-mode: standalone)").matches;
 	if (landscapeTried && !matchMedia("(orientation: portrait)").matches && !(app && !document.fullscreenElement))

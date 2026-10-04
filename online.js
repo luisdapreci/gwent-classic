@@ -742,11 +742,18 @@ const Online = {
 				conn.close();
 		});
 		// The broker link only matters for new connections; get it back so the opponent can reconnect
-		peer.on("disconnected", () => setTimeout(() => {
-			if (this.peer === peer && !peer.destroyed && peer.disconnected)
-				peer.reconnect();
-		}, 1000));
+		peer.on("disconnected", () => setTimeout(() => this.reconnectBroker(), 1000));
+		peer.on("open", () => {
+			if (this.peer === peer && this.role === "host" && !this.connected)
+				Lobby.status("Waiting for an opponent to join…");
+		});
 		peer.on("error", err => this.onPeerError(err));
+	},
+
+	reconnectBroker() {
+		const peer = this.peer;
+		if (peer && !peer.destroyed && peer.disconnected && navigator.onLine && document.visibilityState === "visible")
+			peer.reconnect();
 	},
 
 	peerErrorText(err) {
@@ -763,6 +770,13 @@ const Online = {
 		// Expected while the opponent is away; the reconnect loop keeps trying
 		if (this.dropTimer)
 			return;
+		// Mobile OSes cut the broker socket when the app is backgrounded (e.g. to share the invite); keep the room
+		const transient = ["network", "server-error", "socket-error", "socket-closed", "disconnected"].includes(err?.type);
+		if (!this.connected && transient && this.role === "host" && this.peer && !this.peer.destroyed) {
+			Lobby.status("Reconnecting to the server…");
+			setTimeout(() => this.reconnectBroker(), 2000);
+			return;
+		}
 		if (!this.connected) {
 			Lobby.status(this.peerErrorText(err), true);
 			Lobby.setBusy(false);
@@ -1331,6 +1345,18 @@ const Lobby = {
 		}
 	},
 
+	async share() {
+		const url = location.origin + location.pathname + "?room=" + Online.code;
+		if (!navigator.share)
+			return this.copy(url, "Invite link");
+		try {
+			await navigator.share({title: "Gwent", text: "Join my Gwent match! Room code: " + Online.code, url: url});
+		} catch (err) {
+			if (err?.name !== "AbortError")
+				this.copy(url, "Invite link");
+		}
+	},
+
 	async copy(text, what) {
 		try {
 			await navigator.clipboard.writeText(text);
@@ -1349,8 +1375,7 @@ document.getElementById("lobby-host").addEventListener("click", () => Lobby.host
 document.getElementById("lobby-join").addEventListener("click", () => Lobby.join());
 document.getElementById("lobby-cancel").addEventListener("click", () => Lobby.cancel());
 document.getElementById("lobby-copy-code").addEventListener("click", () => Lobby.copy(Online.code, "Room code"));
-document.getElementById("lobby-copy-link").addEventListener("click", () =>
-	Lobby.copy(location.origin + location.pathname + "?room=" + Online.code, "Invite link"));
+document.getElementById("lobby-copy-link").addEventListener("click", () => Lobby.share());
 DeckMaker.bindRadioGroup(Lobby.timerButtons, b => Lobby.setTimer(b.dataset.timer));
 Lobby.codeInput.addEventListener("input", () => Lobby.codeInput.value = Lobby.codeInput.value.toUpperCase());
 Lobby.codeInput.addEventListener("keydown", e => e.key === "Enter" && Lobby.join());
@@ -1369,7 +1394,9 @@ document.getElementById("online-curtain-leave").addEventListener("click", () => 
 document.addEventListener("visibilitychange", () => {
 	if (document.visibilityState === "visible" && Online.conn?.open)
 		Online.send({t: "ping"});
+	Online.reconnectBroker();
 });
+window.addEventListener("online", () => Online.reconnectBroker());
 
 {
 	const room = new URLSearchParams(location.search).get("room");
