@@ -2064,8 +2064,12 @@ class Card {
 			}
 		}
 		
+		// Multi-ability weather (Skellige Storm) is described by its first ability only
+		const descAbilities = (this.row === "weather" && this.abilities.length > 1) ? [this.abilities[0]] : this.abilities;
 		if (this.row === "leader")
 			this.desc_name = "Leader Ability";
+		else if (this.row === "weather" && this.abilities.length > 0)
+			this.desc_name = ability_dict[descAbilities[0]].name;
 		else if (this.abilities.length > 0)
 			this.desc_name = ability_dict[this.abilities[this.abilities.length-1]].name;
 		else if (this.row==="agile")
@@ -2076,8 +2080,8 @@ class Card {
 			this.desc_name = "";
 		
 		this.desc = this.row ==="agile" ? ability_dict["agile"].description : "";
-		for (let i=this.abilities.length-1; i>=0; --i) {
-			this.desc += ability_dict[this.abilities[i]].description;
+		for (let i=descAbilities.length-1; i>=0; --i) {
+			this.desc += ability_dict[descAbilities[i]].description;
 		}
 		if (this.hero)
 			this.desc += ability_dict["hero"].description;
