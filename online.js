@@ -716,9 +716,28 @@ const Online = {
 		});
 	},
 
-	createPeer(id) {
+	// A TURN relay is what lets players on different networks (mobile data, strict NATs) connect
+	async iceConfig() {
+		if (this.ice && Date.now() - this.ice.at < 6 * 3600000)
+			return this.ice.config;
+		const defaults = window.peerjs?.util?.defaultConfig?.iceServers || [];
+		try {
+			const res = await fetch("api/turn", {cache: "no-store", signal: AbortSignal.timeout(5000)});
+			const servers = res.ok ? (await res.json()).iceServers : null;
+			if (!Array.isArray(servers))
+				return null;
+			this.ice = {at: Date.now(), config: {iceServers: [...servers, ...defaults]}};
+			return this.ice.config;
+		} catch (err) {
+			return null;
+		}
+	},
+
+	async createPeer(id) {
+		const config = await this.iceConfig();
+		const options = config ? {debug: 1, config: config} : {debug: 1};
 		return new Promise((resolve, reject) => {
-			const peer = id ? new Peer(id, {debug: 1}) : new Peer({debug: 1});
+			const peer = id ? new Peer(id, options) : new Peer(options);
 			const onError = err => {
 				peer.off("open", onOpen);
 				peer.destroy();

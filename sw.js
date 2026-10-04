@@ -53,7 +53,7 @@ self.addEventListener("fetch", event => {
 
 	if (url.origin === self.location.origin) {
 		// Long music files stream with Range requests; caching them whole would delay playback (and Safari needs 206s).
-		if (url.pathname.includes("/sfx/music/"))
+		if (url.pathname.includes("/sfx/music/") || url.pathname.includes("/api/"))
 			return;
 		if (req.mode === "navigate" || /\.(js|css|html|webmanifest)$/.test(url.pathname))
 			event.respondWith(networkFirst(req));
