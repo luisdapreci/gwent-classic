@@ -35,11 +35,11 @@ class ControllerRemote {
 // Makes decisions for an AI-controlled player (either side of the board)
 class ControllerAI {
 	// easy: no mulligan, often plays a random viable option; normal: weighted random; hard: plays for card advantage across rounds;
-	// expert: hard, but caps the total unit strength and heroes of the player's deck
+	// (hard caps the player's unit strength and heroes); expert: hard, but with tighter caps
 	static difficulties = {
 		easy: {label: "Easy", redraws: 0, randomChance: 0.5},
 		normal: {label: "Normal", redraws: 2, randomChance: 0},
-		hard: {label: "Hard", redraws: 2, randomChance: 0, strategic: true},
+		hard: {label: "Hard", redraws: 2, randomChance: 0, strategic: true, deckLimits: {strength: 180, hero: 4}},
 		expert: {label: "Expert", redraws: 2, randomChance: 0, strategic: true, deckLimits: {strength: 130, hero: 3}}
 	};
 	
@@ -3508,13 +3508,13 @@ class DeckMaker {
 		stats.children[3].innerHTML = this.stats.units +(this.stats.units < 22 ? "/22" : "");
 		stats.children[5].innerHTML = this.stats.special + "/10";
 		const limits = DeckMaker.deckLimits();
-		stats.children[7].innerHTML = this.stats.strength + (limits ? "/" + limits.strength : "");
-		stats.children[9].innerHTML = this.stats.hero + (limits ? "/" + limits.hero : "");
+		stats.children[7].innerHTML = this.stats.strength + (limits?.strength ? "/" + limits.strength : "");
+		stats.children[9].innerHTML = this.stats.hero + (limits?.hero ? "/" + limits.hero : "");
 		
 		stats.children[3].style.color = this.stats.units < 22 ? "red" : "";
 		stats.children[5].style.color = (this.stats.special > 10) ? "red" : "";
-		stats.children[7].style.color = limits && this.stats.strength > limits.strength ? "red" : "";
-		stats.children[9].style.color = limits && this.stats.hero > limits.hero ? "red" : "";
+		stats.children[7].style.color = limits?.strength && this.stats.strength > limits.strength ? "red" : "";
+		stats.children[9].style.color = limits?.hero && this.stats.hero > limits.hero ? "red" : "";
 
 		const rules = document.body.classList.contains("online") ? DeckMaker.onlineRules : [];
 		for (const x of [...(this.bank ?? []), ...(this.deck ?? [])])
@@ -3667,9 +3667,9 @@ class DeckMaker {
 		if (!limits)
 			return "";
 		let warning = "";
-		if (stats.strength > limits.strength)
+		if (limits.strength && stats.strength > limits.strength)
 			warning += label + " allows at most " + limits.strength + " total unit strength (deck has " + stats.strength + ").\n";
-		if (stats.hero > limits.hero)
+		if (limits.hero && stats.hero > limits.hero)
 			warning += label + " allows at most " + limits.hero + " hero cards (deck has " + stats.hero + ").\n";
 		return warning;
 	}
