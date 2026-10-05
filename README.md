@@ -34,12 +34,12 @@ Press **F11** for fullscreen. The board keeps a 16:9 aspect ratio and scales to 
 ## How to play
 Win **two of three rounds**. The player with the higher total score when a round ends wins it. Each player has two gems, and a gem is lost for every round lost.
 
-1. **Start of match:** a coin toss decides who goes first (Scoia'tael players may choose). Each player then has the option to **redraw up to 2 cards** from their starting hand of 10.
-2. **Turns:** on your turn, play one card or use your **leader ability** (once per match) by clicking your leader.
-3. **Passing:** pass when you're done for the round. Your opponent keeps playing until they pass too.
+1. **Start of match:** a coin toss decides who goes first (Scoia'tael players may choose). Leaders with passive abilities (King Bran, Daisy of the Valley, the White Flame and so on) are announced with a banner. Each player then has the option to **redraw up to 2 cards** from their starting hand of 10.
+2. **Turns:** on your turn, play one card or use your **leader ability** (once per match) by clicking your leader. A gold badge above the active player's panel shows whose turn it is.
+3. **Passing:** **hold** the Pass button for a moment to pass (a quick tap does nothing, so you can't pass by accident; <kbd>Enter</kbd> on the focused button passes at once). Your opponent keeps playing until they pass too.
 4. **End of round:** once both players have passed, scores are compared, the board is cleared to the discard piles, and the next round begins. You **do not draw** between rounds, so card advantage matters.
 
-Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click a card in your hand to select it, then click a row to play it. Click a card or row on the board to inspect it.
+Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click a card in your hand to select it, then click a row to play it. Click a row, discard pile or leader to inspect it; this works during your opponent's turn too.
 
 **Keyboard:** <kbd>Tab</kbd> moves between cards, rows and buttons; <kbd>Enter</kbd> or <kbd>Space</kbd> activates the focused one. In card pickers, <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> browse, <kbd>Enter</kbd> selects and <kbd>Esc</kbd> closes. <kbd>Esc</kbd> also cancels a selected card. Game messages are announced to screen readers.
 
@@ -47,7 +47,7 @@ Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click 
 Play someone on another device. Both players need an internet connection.
 
 1. On the title screen choose **Online** and enter a name (up to 16 characters; it's remembered for next time).
-2. One player picks a **turn timer** (none, 30, 60 or 90 seconds) and presses **Create Room**. Share the 5-character room code, or press **Copy Invite Link** and send the link (it opens the game with the code filled in).
+2. One player picks a **turn timer** (none, 30, 60 or 90 seconds) and presses **Create Room**. Share the 5-character room code, or press **Share Invite Link** and send the link (it opens the game with the code filled in).
 3. The other player enters the code and presses **Join Room**.
 4. Both players pick a deck in the deck builder and press **Ready**. The match starts when both are ready.
 
@@ -55,7 +55,7 @@ During the match you only see your own hand. A countdown appears next to the pla
 
 If the connection drops, the game tries to reconnect for 60 seconds. Reloading the page during a match rejoins it automatically (in the same tab). If the opponent doesn't come back in time, you win.
 
-How it works: the two browsers connect directly with WebRTC through [PeerJS](https://peerjs.com/) (its free public server is only used to find each other). Both run the same game from a shared random seed and only send each other their moves, and each turn they compare a checksum of the game state; if the games ever disagree, or a move breaks the rules, the match ends. Some strict networks (corporate firewalls, some mobile carriers) can block the connection.
+How it works: the two browsers connect directly with WebRTC through [PeerJS](https://peerjs.com/) (its free public server is only used to find each other). When a direct connection isn't possible (strict NATs, mobile data), traffic goes through a Cloudflare TURN relay; `api/turn.js` (a Vercel function) hands out 6-hour relay credentials, only to requests coming from the game's own site. Both run the same game from a shared random seed and only send each other their moves, and each turn they compare a checksum of the game state; if the games ever disagree, or a move breaks the rules, the match ends. Some strict networks (corporate firewalls) can still block the connection.
 
 ## Pass and play
 Two people can play each other on the same device, passing it between turns.
@@ -66,7 +66,7 @@ Two people can play each other on the same device, passing it between turns.
 
 Player 1 plays the bottom half of the board and Player 2 the top half. The hand tray at the bottom only ever shows the hand of the player whose turn it is. Whenever control changes hands, a **Pass the device** screen hides the board until the next player presses **Ready**, so neither player sees the other's cards. This also happens for each player's opening redraw. If one player has passed, the other keeps playing without the handoff screen.
 
-Banners, the end screen and screen reader messages name the player ("Player 2's turn", "Player 1 wins!") instead of saying "you" and "opponent". Leader abilities, faction perks (such as the Scoia'tael choice of who goes first) and card choices work the same for both players. **Rematch** keeps both decks; **New Game** gives Player 2 a random premade deck. **Quit match** on the handoff screen, or the exit button, returns to the deck builder.
+Banners, the end screen and screen reader messages name the player ("Player 2's turn", "Player 1 wins!") instead of saying "you" and "opponent". Leader abilities, faction perks (such as the Scoia'tael choice of who goes first) and card choices work the same for both players. **Rematch** keeps both decks; **New Game** returns to the deck builder so both players can pick again. **Quit match** on the handoff screen, or the exit button, returns to the deck builder.
 
 ## Factions
 Your faction determines which unit cards and leaders you can use (neutral and special cards are available to all) and gives you a passive perk.
@@ -79,7 +79,7 @@ Your faction determines which unit cards and leaders you can use (neutral and sp
 | Scoia'tael | Decides who takes the first turn. |
 | Skellige | 2 random units from the graveyard return to the battlefield at the start of round 3. |
 
-Each faction has several leaders, each with its own ability.
+Each faction has several leaders, each with its own ability. Most are used once per match by clicking the leader; a few are passive and work from the start (announced with a banner). The White Flame cancels both players' leader abilities. Leader horns (Siegemaster, Commander of the Red Riders, The Beautiful) can't be used on a row that already has Dandelion or Draig Bon-Dhu, since horns don't stack.
 
 ## Card abilities
 | Ability | Effect |
@@ -94,8 +94,8 @@ Each faction has several leaders, each with its own ability.
 | Scorch | Destroys the strongest card(s) on the board, or in a specific enemy row for unit variants. |
 | Commander's Horn | Doubles the strength of all units in a row (one per row). |
 | Decoy | Swap with a unit on the board to return it to your hand. |
-| Berserker / Mardroeme | Mardroeme transforms Berserkers into a stronger bear form. |
-| Avenger | Summons another card when removed from the battlefield. |
+| Berserker / Mardroeme | Mardroeme transforms Berserkers into a stronger bear form. The bear is a token: when it leaves the board the original Berserker takes its place (in the discard pile, or in hand after a Decoy). |
+| Avenger | Summons another card when removed from the battlefield (the summon disappears when it leaves the board). |
 | Biting Frost / Impenetrable Fog / Torrential Rain | Sets all Close Combat / Ranged / Siege units to 1 strength for both players. |
 | Skellige Storm | Applies both Fog and Rain. |
 | Clear Weather | Removes all weather effects. |
@@ -129,12 +129,15 @@ The four toggle buttons are in the center column of the deck builder and in the 
 | Game messages | In-game notifications such as round start, pass and faction perks. |
 | Visual effects | Particle bursts, screen shake, sunlight, score pulses and card flips. Also disabled automatically when the OS asks for reduced motion. |
 
+During a match (and while waiting in an online room) the game asks the browser to keep the screen on, so phones don't dim or lock mid-game. Browsers that don't support it, or phones in battery saver, just time out as usual.
+
 ## Project structure
 | Path | Contents |
 | --- | --- |
 | `index.html` | Page markup, title screen and script/style includes |
 | `gwent.js` | Game engine: board, rows, players, AI, pass and play, UI, deck builder, settings, audio, music |
 | `online.js` | Online play: lobby, PeerJS connection, move exchange, reconnects, turn timer |
+| `api/turn.js` | Vercel serverless function that mints Cloudflare TURN relay credentials (env `CF_TURN_KEY_ID`, `CF_TURN_API_TOKEN`) |
 | `lib/peerjs.min.js` | PeerJS 1.5.5 (MIT), loaded only when hosting or joining a room |
 | `cards.js` | Card database (`card_dict`) |
 | `decks.js` | Premade decks used by the AI |
@@ -156,6 +159,9 @@ The four toggle buttons are in the center column of the deck builder and in the 
 - **Script order:** `online.js` and `fx.js` load after `gwent.js`.
 - **Online determinism:** online clients must make the same random choices in the same order. Game-state randomness uses the player's seeded `player.rng` (or `Online.rng` for the coin toss) and random picks from a container sort by `card.uid` first, because the two clients order hands, rows and graves differently. Player choices go through `Online.carousel` / `Online.rowChoice` / `Online.choice` so the opponent's client replays them.
 - **Testing audio and music:** serve over http. `file://` can fail to load larger sound and music files.
+- **Summons and resets:** `Game.reset()` empties the rows while the state can still be `PLAYING`, which fires `removed` callbacks. Abilities that put cards on the board from a `removed` callback must check `game.summonsAllowed()`.
+- **Off-turn input:** `main.noclick` blocks play while it isn't your turn, but rows, weather, discard piles and leaders stay clickable for inspection. `ui.viewCardsInContainer(container)` without an action opens a view-only carousel that never changes `ui.enablePlayer`; anything that plays a card must check `ui.isInteractive()`.
+- **Pacing:** card placement always waits `DURATION_CARD_PLACEMENT`, independent of the sound effects setting.
 
 ## Credits
 - Original project by [asundr](https://github.com/asundr/gwent-classic).

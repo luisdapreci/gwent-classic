@@ -537,7 +537,7 @@
 							<li><b>Horn slot</b> &ndash; Commander's Horn doubles a row.</li>
 							<li><b>Weather</b> &ndash; active weather cards.</li>
 							<li><b>Leaders</b> &ndash; yours below, theirs above.</li>
-							<li><b>Total strength</b>, cards in hand and gems.</li>
+							<li><b>Total strength</b>, cards in hand and gems. A gold badge above shows whose turn it is.</li>
 							<li><b>Pass</b> &ndash; hold the button to end your round.</li>
 							<li><b>Deck &amp; discard pile</b> &ndash; click the pile to browse it.</li>
 						</ol>
@@ -551,7 +551,7 @@
 						<li><div class="g-step-art"><img src="img/icons/notif_me_coin.png" alt="" loading="lazy"></div><b>Coin toss</b><p>Decides who plays first. Scoia'tael may choose.</p></li>
 						<li><div class="g-step-art"><img class="g-step-shot" src="img/guide/redraw.jpg" alt="Redraw screen" loading="lazy"></div><b>Redraw</b><p>Draw 10 cards, then swap up to 2 you don't like.</p></li>
 						<li><div class="g-step-art"><img src="img/icons/notif_me_turn.png" alt="" loading="lazy"></div><b>Take turns</b><p>Play one card per turn, alternating with your opponent.</p></li>
-						<li><div class="g-step-art"><img src="img/icons/notif_round_passed.png" alt="" loading="lazy"></div><b>Pass</b><p>Once you pass you're out for the round &ndash; your opponent may keep playing.</p></li>
+						<li><div class="g-step-art"><img src="img/icons/notif_round_passed.png" alt="" loading="lazy"></div><b>Pass</b><p>Hold the Pass button to pass. Once you pass you're out for the round &ndash; your opponent may keep playing.</p></li>
 						<li><div class="g-step-art"><img src="img/icons/notif_round_start.png" alt="" loading="lazy"></div><b>Next round</b><p>When both have passed the higher total wins. The board is cleared and a new round begins.</p></li>
 					</ol>
 				</article>
@@ -571,7 +571,7 @@
 							<li><b>Select a card</b> from your hand.</li>
 							<li><b>Read it</b> &ndash; the preview explains its ability.</li>
 							<li><b>Click a glowing row</b> to play it. Click elsewhere or press <kbd>Esc</kbd> to cancel.</li>
-							<li><b>Or pass</b> if you'd rather save your cards.</li>
+							<li><b>Or hold Pass</b> if you'd rather save your cards &ndash; a quick tap won't pass by accident.</li>
 						</ol>
 					</div>
 					<div class="g-tips">
@@ -636,7 +636,7 @@
 						<div><img src="img/icons/card_ability_scorch.png" alt="" loading="lazy"><p><b>Scorch</b>Kills the enemy's strongest unit(s) in a row worth 10+.</p></div>
 						<div><img src="img/icons/card_ability_agile.png" alt="" loading="lazy"><p><b>Agile</b>Can go in Close or Ranged.</p></div>
 						<div><img src="img/icons/card_ability_avenger.png" alt="" loading="lazy"><p><b>Avenger</b>Summons a stronger unit when it leaves the board.</p></div>
-						<div><img src="img/icons/card_ability_berserker.png" alt="" loading="lazy"><p><b>Berserker</b>Becomes a bear when Mardroeme hits its row.</p></div>
+						<div><img src="img/icons/card_ability_berserker.png" alt="" loading="lazy"><p><b>Berserker</b>Becomes a bear when Mardroeme hits its row. When the bear leaves the board, the Berserker card goes back to your discard pile.</p></div>
 						<div><img src="img/icons/card_ability_mardroeme.png" alt="" loading="lazy"><p><b>Mardroeme</b>Triggers Berserkers in its row.</p></div>
 						<div><img src="img/icons/power_hero.png" alt="" loading="lazy"><p><b>Hero</b>Ignores every special card, weather and ability.</p></div>
 					</div>
@@ -655,7 +655,7 @@
 					<div class="g-leader">
 						<img class="g-thumb" src="img/lg/realms_foltest_gold.jpg" alt="Foltest leader card" loading="lazy">
 						<img class="g-icon" src="img/icons/icon_leader_active.png" alt="" loading="lazy">
-						<p><b>Leader card</b>Each deck has one leader with a powerful ability you can use <b>once per match</b>. Click your leader (bottom-left) on your turn to use it. The marker beside it shows it's still available.</p>
+						<p><b>Leader card</b>Each deck has one leader with a powerful ability you can use <b>once per match</b>. Click your leader (bottom-left) on your turn to use it. The marker beside it shows it's still available. Some leaders work on their own from the start (King Bran, Daisy of the Valley, the White Flame&hellip;) &ndash; a banner announces them when the match begins.</p>
 					</div>
 				</article>
 
@@ -743,6 +743,7 @@
 							<li><b>Hidden hands</b> &ndash; Player 1 plays the bottom half, Player 2 the top. Between turns the board is covered: hand the device over and the next player presses <b>Ready</b>.</li>
 							<li>Once one player passes, the other keeps playing without the handoff screen.</li>
 							<li><b>Quit match</b> returns to the deck builder. Hard and Expert deck limits don't apply here.</li>
+							<li>After the match, <b>Rematch</b> keeps both decks and <b>New Game</b> returns to the deck builder so both players can pick again.</li>
 						</ul>
 					</div>
 				</article>
@@ -758,7 +759,7 @@
 						</div>
 						<ol class="g-legend">
 							<li><b>Your name</b> &ndash; up to 16 characters, remembered for next time.</li>
-							<li><b>Host</b> &ndash; pick a turn timer (none, 30, 60 or 90s) and <b>Create Room</b>. Share the 5-letter code or <b>Copy Invite Link</b>.</li>
+							<li><b>Host</b> &ndash; pick a turn timer (none, 30, 60 or 90s) and <b>Create Room</b>. Share the 5-letter code or <b>Share Invite Link</b>.</li>
 							<li><b>Join</b> &ndash; enter your friend's code and press <b>Join Room</b>.</li>
 						</ol>
 					</div>
@@ -788,7 +789,9 @@
 						<p><kbd>Esc</kbd> cancel / close</p>
 					</div>
 					<ul class="g-notes">
-						<li>Click a discard pile or a leader to look at the cards; click any row to inspect what's on it.</li>
+						<li>Click a discard pile or a leader to look at the cards; click any row to inspect what's on it &ndash; even during your opponent's turn.</li>
+						<li><b>Pass</b> needs a short hold (<kbd>Enter</kbd> on the focused button passes at once).</li>
+						<li>The screen stays on during a match and while you wait in an online room.</li>
 						<li>On phones, play in landscape. Use <b>Install App</b> on the main menu to add Gwent to your home screen.</li>
 					</ul>
 				</article>
