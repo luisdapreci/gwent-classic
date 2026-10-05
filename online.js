@@ -264,7 +264,7 @@ const Online = {
 			await action(c, i);
 		}, predicate, ...view);
 		// queueCarousel returns early when it had to queue behind another carousel
-		await sleepUntil(() => ui.carousels.length === 0 && !Carousel.curr, 100);
+		await sleepUntil(() => ui.carousels.length === 0 && (!Carousel.curr || Carousel.curr.viewOnly), 100);
 		this.stopTimer(player);
 		if (session === game.session)
 			this.record(player.seat, kind, uids);
@@ -718,7 +718,8 @@ const Online = {
 
 	// A TURN relay is what lets players on different networks (mobile data, strict NATs) connect
 	async iceConfig() {
-		if (this.ice && Date.now() - this.ice.at < 6 * 3600000)
+		// The credentials live 6 h (api/turn.js); refresh early so a match never starts on nearly expired ones
+		if (this.ice && Date.now() - this.ice.at < 4 * 3600000)
 			return this.ice.config;
 		const defaults = window.peerjs?.util?.defaultConfig?.iceServers || [];
 		try {

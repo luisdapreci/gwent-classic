@@ -118,7 +118,8 @@
 
 #notif-north::after,
 #notif-monsters::after,
-#notif-scoiatael::after {
+#notif-scoiatael::after,
+#notif-leader::after {
 	font-size: max(calc(1.15 * var(--u)), 12px);
 	line-height: 1.25;
 }

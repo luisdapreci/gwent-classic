@@ -128,6 +128,33 @@
 	animation: turn-glow 2.2s ease-in-out infinite;
 }
 
+/* Turn badge above each plate ("Passed" shares the spot, but a passed player never has the turn) */
+.stats.current-turn::after {
+	content: attr(data-turn);
+	position: absolute;
+	left: 30%;
+	right: 4%;
+	height: max(calc(1.6 * var(--u)), 16px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: #1a1006;
+	background: linear-gradient(180deg, var(--gold-1), var(--gold-3));
+	border-radius: calc(0.3 * var(--u));
+	box-shadow: 0 0 calc(0.8 * var(--u)) rgba(246, 210, 130, 0.6);
+	font-family: var(--font-display);
+	font-size: max(calc(0.85 * var(--u)), var(--fs-xs));
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	animation: passed-in .45s var(--ease-back);
+	pointer-events: none;
+	bottom: calc(100% + 0.3 * var(--u));
+}
+
 #stats-op { top: 24.25%; }
 #stats-me { top: 61.75%; }
 
@@ -318,6 +345,30 @@
 	opacity: 0.45;
 	filter: grayscale(0.7);
 }
+/* Hold-to-pass fill (UI.PASS_HOLD_MS) */
+#pass-button {
+	isolation: isolate;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+	touch-action: manipulation;
+}
+#pass-button::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 0;
+	border-radius: inherit;
+	background: linear-gradient(90deg, rgba(255, 122, 46, 0.35), rgba(255, 170, 80, 0.7));
+	pointer-events: none;
+}
+#pass-button.holding::before {
+	width: 100%;
+	transition: width .7s linear;
+}
 #pass-button[data-title]:hover::after {
 	bottom: calc(-2.2 * var(--u));
 	left: calc(-0.45 * var(--u));
@@ -420,6 +471,10 @@
 
 /* pass and play: Player 2 can target their own (top) units with Decoy */
 body.hotseat #field-op .card:not(.noclick) { pointer-events: auto; }
+
+/* Off turn the board can still be inspected: rows, weather, graves and leaders open view-only carousels */
+main.noclick :is(.row-cards, .row-special, #weather, .grave, .leader-box):not(.noclick),
+main.noclick > #carousel:not(.hide) { pointer-events: auto; }
 
 .row-selectable {
 	background-color: rgba(255, 200, 100, 0.06);

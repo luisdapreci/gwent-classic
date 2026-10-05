@@ -61,8 +61,20 @@ var ability_dict = {
 			const cardId = card.name.indexOf("Young") === -1 ? 206 : 207;
 			const bear = new Card(card_dict[cardId], card.holder);
 			bear.uid = card.uid + "b";
+			bear.removed.push(() => ability_dict["berserker"].revert(bear, card));
 			await row.addCard(bear);
-		}
+		},
+		// The bear is a token: once it leaves the board (to the grave, or to hand via Decoy) the original Berserker takes its place
+		revert: (bear, original) => queueMicrotask(() => {
+			if (!game.isPlaying())
+				return;
+			for (const container of [bear.holder.grave, bear.holder.hand]) {
+				if (!container.cards.includes(bear))
+					continue;
+				container.removeCard(bear);
+				container.addCard(original);
+			}
+		})
 	},
 	vildkarrl: {
 		placed: async (card, row) => {
@@ -82,11 +94,8 @@ var ability_dict = {
 			await board.toGrave(card, card.holder.hand);
 		},
 		placed: async (card, row) => {
-			if (row !== undefined)
-				row.cards.splice( row.cards.indexOf(card), 1);
-			let maxUnits = board.row.map( r => [r,r.maxUnits()] ).filter( p => p[1].length > 0);
-			if (row !== undefined)
-				row.cards.push(card);
+			// A unit with Scorch (Clan Dimun Pirate) doesn't burn itself
+			let maxUnits = board.row.map( r => [r,r.maxUnits(card)] ).filter( p => p[1].length > 0);
 			let maxPower = maxUnits.reduce( (a,p) => Math.max(a, p[1][0].power), 0 );
 			let scorched = maxUnits.filter( p => p[1][0].power === maxPower);
 			let cards = scorched.reduce( (a,p) => a.concat( p[1].map(u => [p[0], u])), []);
@@ -223,8 +232,7 @@ var ability_dict = {
 		name: "Avenger",
 		description: "When this card is removed from the battlefield, it summons a powerful new Unit Card to take its place. ",
 		removed: async (card) => {
-			// Rows are also emptied when a game is reset
-			if (!game.isPlaying())
+			if (!game.summonsAllowed())
 				return;
 			let bdf = new Card(card_dict[21], card.holder);
 			bdf.uid = card.uid + "a" + (card.summons = (card.summons ?? 0) + 1);
@@ -245,7 +253,7 @@ var ability_dict = {
 		name: "Avenger",
 		description: "When this card is removed from the battlefield, it summons a powerful new Unit Card to take its place. ",
 		removed: async card => {
-			if (!game.isPlaying())
+			if (!game.summonsAllowed())
 				return;
 			let bdf = new Card(card_dict[196], card.holder);
 			bdf.uid = card.uid + "a" + (card.summons = (card.summons ?? 0) + 1);
@@ -272,7 +280,7 @@ var ability_dict = {
 	},
 	foltest_siegemaster: {
 		description: "Doubles the strength of all your Siege units (unless a Commander's Horn is also present on that row).",
-		canActivate: card => board.getRow(card, "siege", card.holder).special === null,
+		canActivate: card => board.getRow(card, "siege", card.holder).canLeaderHorn(),
 		activated: async card => await board.getRow(card, "siege", card.holder).leaderHorn(),
 		weight: (card, ai) => ai.weightHornRow(card, board.getRow(card, "siege", card.holder))
 	},
@@ -344,7 +352,7 @@ var ability_dict = {
 	},
 	eredin_commander: {
 		description: "Double the strength of all your Close Combat units (unless a Commander's horn is 	also present on that row).",
-		canActivate: card => board.getRow(card, "close", card.holder).special === null,
+		canActivate: card => board.getRow(card, "close", card.holder).canLeaderHorn(),
 		activated: async card => await board.getRow(card, "close", card.holder).leaderHorn(),
 		weight: (card, ai) => ai.weightHornRow(card, board.getRow(card, "close", card.holder))
 	},
@@ -431,7 +439,7 @@ var ability_dict = {
 	},
 	francesca_beautiful: {
 		description: "Doubles the strength of all your Ranged Combat units (unless a Commander's Horn is also present on that row).",
-		canActivate: card => board.getRow(card, "ranged", card.holder).special === null,
+		canActivate: card => board.getRow(card, "ranged", card.holder).canLeaderHorn(),
 		activated: async card => await board.getRow(card, "ranged", card.holder).leaderHorn(),
 		weight: (card, ai) => ai.weightHornRow(card, board.getRow(card, "ranged", card.holder))
 	},
@@ -469,8 +477,10 @@ var ability_dict = {
 		helper: card => {
 			const close = board.getRow(card, "close");
 			const ranged = board.getRow(card, "ranged");
-			const agileCards = close.cards.filter(c => c.row === "agile").concat(ranged.cards.filter(c => c.row === "agile"));
-			const notAgilePred = c => c.row !== "agile";
+			// Heroes are immune to abilities, so agile heroes stay where they are
+			const movable = c => c.row === "agile" && !c.hero;
+			const agileCards = close.cards.filter(movable).concat(ranged.cards.filter(movable));
+			const notAgilePred = c => !movable(c);
 			const closeNorm = close.getVirtualCopy(notAgilePred);
 			const rangedNorm = ranged.getVirtualCopy(notAgilePred);
 			const {score, pattern} = findBest(closeNorm, rangedNorm, agileCards);

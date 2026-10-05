@@ -257,8 +257,9 @@ class ControllerAI {
 		
 		let weathers = card.holder.hand.cards.filter(c => c.row === "weather");
 		if (weathers.length > 1){
-			weathers.splice(randomInt(weathers.length), 1);
-			cards.push(...weathers);
+			// Keep the most useful one; deterministic so a rating and the play that follows agree
+			const keep = weathers.reduce((a, c) => this.weightWeather(c) > this.weightWeather(a) ? c : a);
+			cards.push(...weathers.filter(c => c !== keep));
 		}
 		
 		let normal = card.holder.hand.cards.filter(c => c.abilities.length === 0 && !c.hero);
@@ -322,15 +323,17 @@ class ControllerAI {
 		return owner.grave.findCard(c => c.isUnit()) ? this.medic(null, owner.grave) : undefined;
 	}
 	
-	// Picks the unit a Decoy takes back: an enemy spy, a medic or scorch unit to reuse, else one of the strongest units
+	// Picks the unit a Decoy takes back: an enemy spy, a medic or scorch unit to reuse, else one of the strongest units.
+	// Deterministic, so the target rated by rateCard is the one decoy() takes.
 	decoyTarget(max, data) {
+		const weakest = list => list.reduce((a, c) => c.power < a.power ? c : a);
 		if (data.spy.length)
-			return data.spy.reduce((a, c) => c.power < a.power ? c : a);
+			return weakest(data.spy);
 		if (data.medic.length && this.reviveTarget(this.player))
-			return data.medic[randomInt(data.medic.length)];
+			return weakest(data.medic);
 		if (data.scorch.length)
-			return data.scorch[randomInt(data.scorch.length)];
-		return max.me[randomInt(max.me.length)]?.card;
+			return weakest(data.scorch);
+		return max.me[0]?.card;
 	}
 	
 	// Returns a unit to the Hand and replaces it with a Decoy. Assumes at least one valid card.
@@ -479,7 +482,7 @@ class ControllerAI {
 	
 	// Calculates the weight for cards with the berserker ability
 	weightBerserker(card, row, score){
-		if (card.holder.hand.cards.filter(c => c.abilities.includes("mardroeme")).length < 1 && !row.effects.mardroeme > 0)
+		if (card.holder.hand.cards.filter(c => c.abilities.includes("mardroeme")).length < 1 && !(row.effects.mardroeme > 0))
 			return score;
 		score -= card.basePower;
 		if (card.row === "close")
@@ -538,12 +541,18 @@ class ControllerAI {
 			case "horn":
 				points = this.weightRowChange(card, row); break;
 			case "medic": {
+				extraValue += 3;
+				// Emhyr Invader of the North: the revived unit is random, so count the average one
+				if (game.randomRespawn) {
+					const units = this.player.grave.findCards(c => c.isUnit());
+					points += units.length ? Math.round(units.reduce((a, c) => a + c.basePower, 0) / units.length) : 0;
+					break;
+				}
 				const targ = this.reviveTarget(this.player);
 				weight = this.weightMedic(data, points, this.player);
 				// A revived spy lands on the opponent's side
 				advantage = !!targ?.abilities.includes("spy");
 				points += !targ ? 0 : advantage ? -targ.basePower : targ.basePower;
-				extraValue += 3;
 				break;
 			}
 			case "spy": {
@@ -644,6 +653,8 @@ class Player {
 	
 		this.enableLeader();
 		this.setPassed(false);
+		// Quitting mid-turn would otherwise leave the turn badge up in the next game
+		document.getElementById("stats-" + this.tag).classList.remove("current-turn");
 		document.getElementById("gem1-" +this.tag).classList.add("gem-on");
 		document.getElementById("gem2-" +this.tag).classList.add("gem-on");
 	}
@@ -688,7 +699,9 @@ class Player {
 	
 	// Sets up board for turn
 	async startTurn(){
-		document.getElementById("stats-" + this.tag).classList.add("current-turn");
+		const stats = document.getElementById("stats-" + this.tag);
+		stats.dataset.turn = ui.playerCaption("turn", this) ?? (this.tag === "me" ? "Your turn" : "Opponent's turn");
+		stats.classList.add("current-turn");
 		this.elem_leader.children[1].classList.toggle("hide", !this.canActivateLeader());
 		
 		if (this.isHuman()) {
@@ -809,12 +822,13 @@ class Player {
 		this.elem_leader.parentNode.replaceChild(elem, this.elem_leader);
 		this.elem_leader = elem;
 		this.elem_leader.children[0].classList.remove("fade");
-		this.elem_leader.children[1].classList.remove("hide");
+		// Passive leaders have nothing to activate
+		this.elem_leader.children[1].classList.toggle("hide", !this.leaderAvailable);
 		
 		if (this.isHuman() && this.leader.activated.length > 0){
 			// Both leaders are clickable in pass and play; only the player whose turn it is may activate theirs
 			this.elem_leader.addEventListener("click", 
-				async () => await ui.viewCard(this.leader, game.currPlayer !== this || !this.canActivateLeader() ? undefined : async () => {
+				async () => await ui.viewCard(this.leader, game.currPlayer !== this || !this.canActivateLeader() || !ui.isInteractive() ? undefined : async () => {
 					AudioManager.playSFX('open');
 					Online.commit(this, {a: "leader"});
 					await this.activateLeader();
@@ -1202,10 +1216,13 @@ class Row extends CardContainer {
 			let index = this.addCardSorted(card);
 			this.addCardElement(card, index);
 			this.resize();
-			if (silent)
+			// The pause doesn't depend on the sound, so turning sound effects off doesn't speed up play
+			const sound = silent ? "" : this.placementSound(card);
+			if (sound !== null) {
+				if (sound)
+					AudioManager.playSFX(sound);
 				await sleep(DURATION_CARD_PLACEMENT);
-			else
-				await this.playPlacementAudio(card);
+			}
 		}
 		this.updateState(card, true);
 		game.placedEffectsActive = true;
@@ -1217,37 +1234,18 @@ class Row extends CardContainer {
 		this.updateScore();
 	}
 
-	async playPlacementAudio(card)
+	// The placement sound for a card, or null when its own ability animation replaces the placement pause
+	placementSound(card)
 	{
-		let key;
 		if (card.abilities.includes('spy') || card.abilities.includes('vildkarrl'))
-			return;
-		else if (card.abilities.includes('berserker') && this.effects.mardroeme >= 1)
-			return;
-		else if (card.abilities.includes('decoy'))
-			key = 'decoy';
-		else if (card.isHero())
-		{
-			key = "hero";
-		}
-		else
-		{
-			switch(this.type)
-			{
-				case "siege":
-					key = "common_siege"; break;
-				case "ranged":
-					key = "common_ranged"; break;
-				case "close":
-					key = "common_close"; break;
-				default:
-					return;
-			}
-		}
-		if (key)
-		{
-			return await AudioManager.playSFX(key, DURATION_CARD_PLACEMENT, true);
-		}
+			return null;
+		if (card.abilities.includes('berserker') && this.effects.mardroeme >= 1)
+			return null;
+		if (card.abilities.includes('decoy'))
+			return 'decoy';
+		if (card.isHero())
+			return "hero";
+		return {siege: "common_siege", ranged: "common_ranged", close: "common_close"}[this.type] ?? null;
 	}
 	
 	// Override
@@ -1304,7 +1302,7 @@ class Row extends CardContainer {
 	removeOverlay(overlay){
 		this.effects.weather = false;
 		const elem = this.elem_parent.getElementsByClassName("row-weather")[0];
-		fadeOut(elem, 500).then(() => elem.classList.remove(overlay));	
+		fadeOut(elem, 500).then(() => this.effects.weather || elem.classList.remove(overlay));	
 		this.updateScore();
 	}
 	
@@ -1366,11 +1364,16 @@ class Row extends CardContainer {
 	
 	// Applies a temporary leader horn affect that is removed at the end of the round
 	async leaderHorn(){
-		if (this.special !== null)
+		if (!this.canLeaderHorn())
 			return;
 		let horn = new Card(card_dict[5], null);
 		await this.addCard(horn);
 		game.roundEnd.push( () => this.removeCard(horn) );
+	}
+	
+	// A leader horn needs a free special slot and does nothing next to a horn unit (Dandelion, Draig Bon-Dhu)
+	canLeaderHorn() {
+		return this.special === null && this.effects.horn === 0;
 	}
 	
 	// Applies a local scorch effect to this row
@@ -1395,12 +1398,12 @@ class Row extends CardContainer {
 		await Promise.all(toGrave.map(async c => await board.toGrave(c, this)));
 	}
 
-	// Returns all regular unit cards with the heighest power
-	maxUnits(){
+	// Returns all regular unit cards with the heighest power, ignoring exclude
+	maxUnits(exclude){
 		let max = [];
 		for (let i=0; i<this.cards.length; ++i){
 			let card = this.cards[i];
-			if (!card.isUnit())
+			if (!card.isUnit() || card === exclude)
 				continue;
 			if (!max[0] || max[0].power < card.power)
 				max = [card];
@@ -1443,7 +1446,8 @@ class Weather extends CardContainer {
 	async addCard(card) {
 		const isDuplicate = !!this.cards.find(c => c.name === card.name);
 		super.addCard(card);
-		AudioManager.playSFX(card.audio);
+		// card.audio is the last ability, which for Skellige Storm is fog
+		AudioManager.playSFX(ability_dict[card.abilities[0]]?.audio ?? card.audio);
 		card.elem.classList.add("noclick");
 		if (card.name === "Clear Weather"){
 			fx.sunlight();
@@ -1653,8 +1657,17 @@ class Game {
 
 		this.placedEffectsActive = false;
 		
+		// Emptying the rows must not trigger Avenger summons (the state may still be PLAYING when quitting)
+		this.resetting = true;
 		weather.reset();
 		board.row.forEach(r => r.reset());
+		this.resetting = false;
+	}
+	
+	// Units may still be summoned onto the board: not while resetting or after the final round
+	summonsAllowed()
+	{
+		return this.isPlaying() && !this.resetting && player_me?.health > 0 && player_op?.health > 0;
 	}
 	
 	// Sets up player faction abilities and psasive leader abilities
@@ -1720,6 +1733,11 @@ class Game {
 		board.labelRows();
 		ui.showHand(this.isHotseat() ? null : player_me);
 		await this.runEffects(this.gameStart);
+		if (session !== this.session)
+			return;
+		await ui.passiveLeaderNotifications();
+		if (session !== this.session)
+			return;
 		await this.coinToss();
 		if (session !== this.session)
 			return;
@@ -1940,8 +1958,9 @@ class Game {
 		endScreen.children[0].className = "";
 		const winnerElem = document.getElementById("end-winner");
 		winnerElem.classList.add("hide");
-		if (player_op.health <= 0 && player_me.health <= 0) {
-			endScreen.getElementsByTagName("p")[0].classList.remove("hide");
+		const draw = player_op.health <= 0 && player_me.health <= 0;
+		endScreen.getElementsByTagName("p")[0].classList.toggle("hide", !draw);
+		if (draw) {
 			AudioManager.playSFX("game_lose");
 			endScreen.children[0].classList.add("end-draw");
 			ui.announce("The game ended in a draw");
@@ -2013,10 +2032,12 @@ class Game {
 
 	newOpponentGame()
 	{
-		const hotseat = this.isHotseat();
+		// Pass and play: both players pick their decks again
+		if (this.isHotseat())
+			return this.returnToCustomization();
 		this.reset();
 		player_me.reset();
-		player_op = new Player(1, hotseat ? player_op.name : DeckMaker.opponentName(), dm.constructOpponentDeck(hotseat ? "normal" : undefined), hotseat);
+		player_op = new Player(1, DeckMaker.opponentName(), dm.constructOpponentDeck());
 		this.endScreen.classList.add("hide");
 		this.startGame();
 	}
@@ -2276,6 +2297,8 @@ class Card {
 
 // Handles notifications and client interration with menus
 class UI {
+	static PASS_HOLD_MS = 700;
+	
 	// Mirrors the banner captions in css/overlays.css for screen readers
 	static notificationText = {
 		"me-first": "You will go first", "op-first": "Your opponent will go first",
@@ -2297,13 +2320,33 @@ class UI {
 		this.previewCard = null;
 		this.lastRow = null;
 		this.toggleSettings = [];
-		document.getElementById("pass-button").addEventListener("click", () => {
-			if (!game.currPlayer?.isHuman())
+		const passButton = document.getElementById("pass-button");
+		const pass = () => {
+			if (!game.currPlayer?.isHuman() || passButton.classList.contains("noclick"))
 				return;
 			Online.commit(game.currPlayer, {a: "pass"});
 			game.currPlayer.passRound();
 			AudioManager.playSFX('pass');
-		}, false);
+		};
+		// Passing is held down for a moment so a stray tap can't give the round away
+		let hold = null;
+		const release = () => {
+			clearTimeout(hold);
+			passButton.classList.remove("holding");
+		};
+		passButton.addEventListener("pointerdown", e => {
+			if (e.button !== 0 || passButton.classList.contains("noclick"))
+				return;
+			passButton.classList.add("holding");
+			hold = setTimeout(() => {
+				release();
+				pass();
+			}, UI.PASS_HOLD_MS);
+		});
+		["pointerup", "pointerleave", "pointercancel"].forEach(t => passButton.addEventListener(t, release));
+		// Keyboard (and scripted) clicks have no pointer to hold
+		passButton.addEventListener("click", e => e.detail === 0 && pass());
+		passButton.addEventListener("contextmenu", e => e.preventDefault());
 		this.handoff_elem = document.getElementById("handoff");
 		this.handViewer = null;
 		this.handoffResolve = null;
@@ -2506,6 +2549,8 @@ class UI {
 	
 	// Called when the player selects a selectable card
 	async selectCard(card) {
+		if (!this.isInteractive())
+			return;
 		let row = this.lastRow;
 		let pCard = this.previewCard;
 		if (card === pCard)
@@ -2532,6 +2577,11 @@ class UI {
 		EventManager.rowSelected.dispatch(row, game.currPlayer);
 		if (game.placedEffectsActive)
 		{
+			return;
+		}
+		// Off turn (or while a play resolves) rows can only be inspected; previewCard may be the opponent's card
+		if (!this.isInteractive()) {
+			await this.viewCardsInContainer(row);
 			return;
 		}
 		this.lastRow = row;
@@ -2642,8 +2692,8 @@ class UI {
 		}
 	}
 	
-	// Displayed a timed notification to the client. caption overrides the banner's built-in text.
-	async notification(name, duration, caption){
+	// Displayed a timed notification to the client. caption overrides the banner's built-in text, art its emblem.
+	async notification(name, duration, caption, art){
 		if (Online.replaying)
 			return;
 		this.announce(caption ?? UI.notificationText[name]);
@@ -2659,6 +2709,7 @@ class UI {
 			banner.dataset.caption = caption;
 		else
 			delete banner.dataset.caption;
+		banner.style.backgroundImage = art ?? "";
 		const shown = fadeIn(this.notif_elem, fadeSpeed);
 		// fadeIn unhides the bar synchronously, so this lines up with the coin flip starting
 		if (name.endsWith("-coin"))
@@ -2688,6 +2739,25 @@ class UI {
 		await this.notification(player.tag + "-" + kind, duration, this.playerCaption(kind, player));
 	}
 	
+	// "Your", "Opponent's" or the player's name where "you" would be ambiguous
+	possessive(player){
+		if (game.isHotseat() || player.isRemote())
+			return player.name + "'s";
+		return player === player_me ? "Your" : "Opponent's";
+	}
+	
+	// Announces leader abilities that work without being activated, which would otherwise go unnoticed
+	async passiveLeaderNotifications(){
+		const players = [player_me, player_op];
+		const whiteFlame = players.filter(p => p.leader.abilities[0] === "emhyr_whiteflame");
+		const passive = whiteFlame.length ? whiteFlame : players.filter(p => p.leader.activated.length === 0);
+		for (const p of passive) {
+			const ability = ability_dict[p.leader.abilities[0]];
+			const text = whiteFlame.length ? "White Flame cancels all Leader Abilities." : ability.description;
+			await this.notification("leader", 3000, this.possessive(p) + " leader: " + text, smallURL(p.leader.faction + "_" + p.leader.filename));
+		}
+	}
+	
 	// Displays a cancellable Carousel for a single card 
 	async viewCard(card, action) {
 		if (card === null)
@@ -2697,10 +2767,22 @@ class UI {
 		await this.viewCardsInContainer(container, action);
 	}
 	
-	// Displays a cancellable Carousel for all cards in a container
+	// Displays a cancellable Carousel for all cards in a container. Without an action it is view-only:
+	// it works on anyone's turn, never changes whether the board is interactive and gives way to forced choices.
 	async viewCardsInContainer(container, action) {
-		action = action ? action : function() {return this.cancel();};
-		await this.queueCarousel(container, 1, action, () => true, false, true);
+		if (action)
+			return this.queueCarousel(container, 1, action, () => true, false, true);
+		if (Carousel.curr || !container.cards.length)
+			return;
+		const carousel = new Carousel(container, 1, function() {return this.cancel();}, () => true, false, true);
+		carousel.viewOnly = true;
+		carousel.start();
+		await sleepUntil(() => Carousel.curr !== carousel, 100);
+	}
+	
+	// True while the local player may act on the board (their turn, nothing resolving)
+	isInteractive(){
+		return !document.getElementsByTagName("main")[0].classList.contains("noclick");
 	}
 	
 	// Displays a Carousel menu of filtered container items that match the predicate.
@@ -2715,6 +2797,8 @@ class UI {
 			}
 			return;
 		}
+		if (Carousel.curr?.viewOnly)
+			Carousel.curr.exit();
 		let carousel = new Carousel(container, count, action, predicate, bSort, bQuit, title, hint);
 		if (Carousel.curr === undefined || Carousel.curr === null)
 			carousel.start();
@@ -2722,7 +2806,7 @@ class UI {
 			this.carousels.push(carousel);
 			return;
 		}
-		await sleepUntil( () => this.carousels.length === 0 && !Carousel.curr, 100);
+		await sleepUntil( () => this.carousels.length === 0 && (!Carousel.curr || Carousel.curr.viewOnly), 100);
 	}
 	
 	// Starts the next queued Carousel
@@ -2734,8 +2818,8 @@ class UI {
 	
 	// Displays a custom confirmation menu 
 	async popup(yesName, yes, noName, no, title, description, alpha = .95) {
-		let p = new Popup(yesName, yes, noName, no, title, description, alpha);
-		await sleepUntil( () => !Popup.curr) 
+		new Popup(yesName, yes, noName, no, title, description, alpha);
+		await new Promise(resolve => Popup.waiters.push(resolve));
 	}
 	
 	// In-game replacement for window.alert
@@ -2848,18 +2932,15 @@ class UI {
 		ui.setSelectable(null, false);
 		ui.showPreview(card, false);
 		ui.enablePlayer(true);
-		let selectedRow = null;
-		let bRowSelected = false;
-		const rowSelect = event => {
-			const {row, player} = event.detail;
-			bRowSelected = true;
-			selectedRow = row;
-		};
-		EventManager.rowSelected.bind(rowSelect);
-		EventManager.previewCancelled.bind(rowSelect);
-		await sleepUntil(() => bRowSelected === true);
-		EventManager.rowSelected.unbind(rowSelect);
-		EventManager.previewCancelled.unbind(rowSelect);
+		const selectedRow = await new Promise(resolve => {
+			const rowSelect = event => {
+				EventManager.rowSelected.unbind(rowSelect);
+				EventManager.previewCancelled.unbind(rowSelect);
+				resolve(event.detail.row ?? null);
+			};
+			EventManager.rowSelected.bind(rowSelect);
+			EventManager.previewCancelled.bind(rowSelect);
+		});
 		ui.hidePreview();
 		game.placedEffectsActive = false;
 		return selectedRow;
@@ -2903,7 +2984,6 @@ class Carousel {
 			Carousel.initSwipe(Carousel.elem.children[0]);
 		}
 		this.elem = Carousel.elem;
-		document.getElementsByTagName("main")[0].classList.remove("noclick");
 		
 		this.elem.children[0].classList.remove("noclick");
 		this.previews = this.elem.getElementsByClassName("card-lg");
@@ -2927,7 +3007,7 @@ class Carousel {
 		Carousel.setCurrent(this);
 		
 		if (this.title) {
-			this.title_elem.innerHTML = this.title;
+			this.title_elem.textContent = this.title;
 			this.title_elem.classList.remove("hide");
 		} else {
 			this.title_elem.classList.add("hide");
@@ -2939,7 +3019,8 @@ class Carousel {
 		this.hint_elem.classList.toggle("hide", !this.bExit);
 		AudioManager.playSFX('open');
 		this.elem.classList.remove("hide");
-		ui.enablePlayer(true);
+		if (!this.viewOnly)
+			ui.enablePlayer(true);
 	}
 	
 	// Called by the client to cycle cards displayed by n
@@ -3064,7 +3145,7 @@ class Carousel {
 		--this.count;
 		if (this.isLastSelection())
 			this.elem.classList.add("hide");
-		if (this.count <= 0)
+		if (this.count <= 0 && !this.viewOnly)
 			ui.enablePlayer(false);
 		// A second pick before the first card has left (e.g. discards) would pick the same card again
 		this.busy = true;
@@ -3085,7 +3166,8 @@ class Carousel {
 			AudioManager.playSFX('discard');
 			this.exit();
 		}
-		ui.enablePlayer(true);
+		if (!this.viewOnly)
+			ui.enablePlayer(true);
 	}
 	
 	// Returns true if there are no more cards to view or select
@@ -3218,9 +3300,12 @@ class Popup {
 		this.elem.classList.add("hide");
 		Popup.clearCurrent();
 		this.returnFocus?.focus?.();
+		Popup.waiters.splice(0).forEach(resolve => resolve());
 	}
 	
 }
+// ui.popup callers waiting for the dialog to close
+Popup.waiters = [];
 
 // Screen used to customize, import and export deck contents
 class DeckMaker {
@@ -4357,10 +4442,16 @@ async function fade(fadeIn, elem, dur){
 		return;
 	dur *= Online.timeScale;
 	return new Promise(res => {
-		const startingOpacity = toInteger(elem.style.opacity);
+		const startingOpacity = parseFloat(elem.style.opacity) || 0;
 		const endOpacity = fadeIn ? 1 : 0;
 		const startTime = Date.now();
 		const endTime = startTime + dur;
+		// A new fade takes over from one still running, which would otherwise hide or reveal the element when it finishes
+		const running = fade.running.get(elem);
+		if (running) {
+			clearInterval(running.timer);
+			running.res();
+		}
 		if (fadeIn)
 			elem.classList.remove('hide');
 		const timer = setInterval(() => {
@@ -4370,13 +4461,16 @@ async function fade(fadeIn, elem, dur){
 			if (op === endOpacity)
 			{
 				clearInterval(timer);
+				fade.running.delete(elem);
 				if (!fadeIn)
 					elem.classList.add('hide');
 				res();
 			}
 		}, DUR_FADE_STEP);
+		fade.running.set(elem, {timer, res});
 	});
 }
+fade.running = new WeakMap();
 
 //      Get Image paths   
 function iconURL(name, ext = "png"){
