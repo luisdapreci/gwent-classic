@@ -855,10 +855,12 @@
 	font-size: max(calc(0.8 * var(--u)), var(--fs-sm));
 }
 
-/* beside each player's plate, above carousels (z 90) so choices show their countdown too */
+/* beside each player's plate, above carousels (z 90) so choices show their countdown too.
+   Centred on the gap left of the portrait so the px size floors on phones don't push it off-centre. */
 .turn-timer {
 	position: absolute;
-	left: calc(1.2 * var(--u));
+	left: calc(3.4 * var(--u));
+	translate: -50% -50%;
 	width: max(calc(3.6 * var(--u)), 34px);
 	height: max(calc(3.6 * var(--u)), 34px);
 	z-index: 91;
@@ -874,8 +876,8 @@
 	font-weight: 700;
 	pointer-events: none;
 }
-#timer-op { top: calc(15.3 * var(--u)); }
-#timer-me { top: calc(36.4 * var(--u)); }
+#timer-op { top: calc(17.15 * var(--u)); }
+#timer-me { top: calc(38.25 * var(--u)); }
 .turn-timer.hide { display: none; }
 .turn-timer.low {
 	color: #ffd3c9;
@@ -927,6 +929,14 @@
 	#carousel .card-description { top: 66.5%; }
 	/* the carousel title moves up to where the online waiting line sits */
 	main:has(#carousel:not(.hide)) #online-wait { display: none; }
+
+	.turn-timer {
+		width: max(calc(3.6 * var(--u)), 24px);
+		height: max(calc(3.6 * var(--u)), 24px);
+		font-size: max(calc(1.4 * var(--u)), 11px);
+		box-shadow: inset 0 0 0 1px var(--gold-line), 0 1px 3px rgba(0, 0, 0, 0.6);
+	}
+	.turn-timer.low { box-shadow: inset 0 0 0 1px var(--debuff), 0 0 6px rgba(216, 57, 43, 0.6); }
 }
 
 /* ---------------- portrait phones ---------------- */
