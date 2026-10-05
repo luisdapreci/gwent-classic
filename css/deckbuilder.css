@@ -334,6 +334,8 @@ body.online #opponent-mode,
 body.online #ai-difficulty,
 body.online #deck-owner-row { display: none; }
 #online-panel { display: none; }
+/* three status lines: grow upward from the stage bottom instead of overflowing it */
+body.online #opponent-preview { top: auto; bottom: 1.5%; }
 body.online #online-panel {
 	display: flex;
 	flex-direction: column;
@@ -410,6 +412,13 @@ body.online #online-panel {
 		gap: 4px 18px;
 	}
 	#opponent-preview > div > p { margin: 0; }
+	body.online #online-panel {
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 2px 14px;
+	}
+	#online-panel > #online-opponent { flex-basis: 100%; }
 	#opponent-preview #ai-difficulty,
 	#deck-owner-row { margin-top: 0; }
 	#opponent-preview #game-mode button,
