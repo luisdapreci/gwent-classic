@@ -209,7 +209,7 @@ const Online = {
 			case "pass":
 				return player.passRound();
 			case "leader":
-				if (!player.leaderAvailable)
+				if (!player.canActivateLeader())
 					break;
 				return player.activateLeader();
 			case "scorch":

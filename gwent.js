@@ -83,7 +83,7 @@ class ControllerAI {
 		const data = this.getBoardData();
 		const options = player.hand.cards.map(c => 
 			({...this.rateCard(c, max, data), action: async () => await this.playCard(c, max, data)}) );
-		if (player.leaderAvailable)
+		if (player.canActivateLeader())
 			options.push( {...this.rateLeader(player.leader, max, data), leader: true, action: async () => await player.activateLeader()} );
 		const pass = {weight: this.weightPass(options), action: async () => await player.passRound()};
 		const choice = this.difficulty.strategic ? this.chooseStrategic(options, pass) : this.chooseAction([...options, pass]);
@@ -766,7 +766,12 @@ class Player {
 	
 	// Returns true if the Player can make any action other than passing
 	canPlay() {
-		return this.hand.cards.length > 0 || this.leaderAvailable;
+		return this.hand.cards.length > 0 || this.canActivateLeader();
+	}
+
+	// Leader is unused and its ability's own requirements (if any) are met
+	canActivateLeader() {
+		return this.leaderAvailable && (ability_dict[this.leader.abilities[0]]?.canActivate?.(this.leader) ?? true);
 	}
 	
 	// Use a leader's Activate ability, then disable the leader
@@ -809,7 +814,7 @@ class Player {
 		if (this.isHuman() && this.leader.activated.length > 0){
 			// Both leaders are clickable in pass and play; only the player whose turn it is may activate theirs
 			this.elem_leader.addEventListener("click", 
-				async () => await ui.viewCard(this.leader, game.currPlayer !== this ? undefined : async () => {
+				async () => await ui.viewCard(this.leader, game.currPlayer !== this || !this.canActivateLeader() ? undefined : async () => {
 					AudioManager.playSFX('open');
 					Online.commit(this, {a: "leader"});
 					await this.activateLeader();
