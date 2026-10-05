@@ -689,8 +689,7 @@ class Player {
 	// Sets up board for turn
 	async startTurn(){
 		document.getElementById("stats-" + this.tag).classList.add("current-turn");
-		if (this.leaderAvailable)
-			this.elem_leader.children[1].classList.remove("hide");
+		this.elem_leader.children[1].classList.toggle("hide", !this.canActivateLeader());
 		
 		if (this.isHuman()) {
 			document.getElementById("pass-button").classList.remove("noclick");
@@ -771,7 +770,8 @@ class Player {
 
 	// Leader is unused and its ability's own requirements (if any) are met
 	canActivateLeader() {
-		return this.leaderAvailable && (ability_dict[this.leader.abilities[0]]?.canActivate?.(this.leader) ?? true);
+		const canActivate = ability_dict[this.leader.abilities[0]]?.canActivate;
+		return this.leaderAvailable && (!canActivate || !!canActivate(this.leader));
 	}
 	
 	// Use a leader's Activate ability, then disable the leader
@@ -1077,8 +1077,9 @@ class Deck extends CardContainer {
 		if (!card)
 			return;
 		const index = container.cards.indexOf(card);
-		this.addCard(container.removeCard(card));
+		// Draw first so the returned card can't come straight back
 		const drawnCard = this.removeCard(0);
+		this.addCard(container.removeCard(card));
 		container.addCard(drawnCard, index);
 	}
 	
@@ -1374,11 +1375,16 @@ class Row extends CardContainer {
 	
 	// Applies a local scorch effect to this row
 	async scorch() {
-		if (this.total >= 10)
+		if (this.canScorch())
 			await Promise.all( this.maxUnits().map( async c => {
 				await c.animate("scorch", true, false);
 				await board.toGrave(c, this);
 			}));
+	}
+
+	// A row scorch needs 10+ total strength and a non-hero unit to destroy
+	canScorch() {
+		return this.total >= 10 && this.maxUnits().length > 0;
 	}
 	
 	// Removes all cards and effects from this row
@@ -2086,7 +2092,7 @@ class Card {
 		
 		this.desc = this.row ==="agile" ? ability_dict["agile"].description : "";
 		for (let i=descAbilities.length-1; i>=0; --i) {
-			this.desc += ability_dict[descAbilities[i]].description;
+			this.desc += ability_dict[descAbilities[i]].description ?? "";
 		}
 		if (this.hero)
 			this.desc += ability_dict["hero"].description;

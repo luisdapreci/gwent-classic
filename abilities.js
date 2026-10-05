@@ -256,6 +256,7 @@ var ability_dict = {
 	},
 	foltest_king: {
 		description: "Pick an Impenetrable Fog card from your deck and play it instantly.",
+		canActivate: card => card.holder.deck.cards.some(c => c.name === "Impenetrable Fog"),
 		activated: async card => {
 			let out = card.holder.deck.findCard(c => c.name === "Impenetrable Fog");
 			if (out)
@@ -265,26 +266,31 @@ var ability_dict = {
 	},
 	foltest_lord: {
 		description: "Clear any weather effects (resulting from Biting Frost, Torrential Rain or Impenetrable Fog cards) in play.",
+		canActivate: () => weather.cards.length > 0,
 		activated: async () => await weather.clearWeather(),
 		weight: (card, ai) =>  ai.weightCard( {row:"weather", name:"Clear Weather"} )
 	},
 	foltest_siegemaster: {
 		description: "Doubles the strength of all your Siege units (unless a Commander's Horn is also present on that row).",
+		canActivate: card => board.getRow(card, "siege", card.holder).special === null,
 		activated: async card => await board.getRow(card, "siege", card.holder).leaderHorn(),
 		weight: (card, ai) => ai.weightHornRow(card, board.getRow(card, "siege", card.holder))
 	},
 	foltest_steelforged: {
 		description: "Destroy your enemy's strongest Siege unit(s) if the combined strength of all his or her Siege units is 10 or more.",
+		canActivate: card => board.getRow(card, "siege", card.holder.opponent()).canScorch(),
 		activated: async card => await ability_dict["scorch_s"].placed(card),
 		weight: (card, ai, max) => ai.weightScorchRow(card, max, "siege")
 	},
 	foltest_son: {
 		description: "Destroy your enemy's strongest Ranged Combat unit(s) if the combined strength of all his or her Ranged Combat units is 10 or more.",
+		canActivate: card => board.getRow(card, "ranged", card.holder.opponent()).canScorch(),
 		activated: async card => await ability_dict["scorch_r"].placed(card),
 		weight: (card, ai, max) => ai.weightScorchRow(card, max, "ranged")
 	},
 	emhyr_imperial: {
 		description: "Pick a Torrential Rain card from your deck and play it instantly.",
+		canActivate: card => card.holder.deck.cards.some(c => c.name === "Torrential Rain"),
 		activated: async card => {
 			let out = card.holder.deck.findCard(c => c.name === "Torrential Rain");
 			if (out)
@@ -294,6 +300,7 @@ var ability_dict = {
 	},
 	emhyr_emperor: {
 		description: "Look at 3 random cards from your opponent's hand.",
+		canActivate: card => card.holder.opponent().hand.cards.length > 0,
 		activated: async card => {
 			// Only shown to the player who activated it, so it doesn't touch the synced online random streams
 			if (!card.holder.isHuman() || Online.replaying)
@@ -311,6 +318,7 @@ var ability_dict = {
 	},
 	emhyr_relentless: {
 		description: "Draw a card from your opponent's discard pile.",
+		canActivate: card => card.holder.opponent().grave.cards.some(c => c.isUnit()),
 		activated: async card => {
 			let grave = board.getRow(card, "grave", card.holder.opponent());
 			if (grave.findCards(c => c.isUnit()).length === 0)
@@ -336,12 +344,14 @@ var ability_dict = {
 	},
 	eredin_commander: {
 		description: "Double the strength of all your Close Combat units (unless a Commander's horn is 	also present on that row).",
+		canActivate: card => board.getRow(card, "close", card.holder).special === null,
 		activated: async card => await board.getRow(card, "close", card.holder).leaderHorn(),
 		weight: (card, ai) => ai.weightHornRow(card, board.getRow(card, "close", card.holder))
 	},
 	eredin_bringer_of_death: {
 		name: "Eredin : Bringer of Death",
 		description: "Restore a card from your discard pile to your hand.",
+		canActivate: card => card.holder.grave.cards.some(c => c.isUnit()),
 		activated: async card => {
 			let newCard;
 			if (card.holder.controller instanceof ControllerAI) {
@@ -384,6 +394,7 @@ var ability_dict = {
 	},
 	eredin_king: {
 		description: "Pick any weather card from your deck and play it instantly.",
+		canActivate: card => card.holder.deck.cards.some(c => c.faction === "weather"),
 		activated: async card => {
 			let deck = board.getRow(card, "deck", card.holder);
 			if (card.holder.controller instanceof ControllerAI) {
@@ -414,11 +425,13 @@ var ability_dict = {
 	},
 	francesca_queen: {
 		description: "Destroy your enemy's strongest Close Combat unit(s) if the combined strength of all his or her Close Combat units is 10 or more.",
+		canActivate: card => board.getRow(card, "close", card.holder.opponent()).canScorch(),
 		activated: async card => await ability_dict["scorch_c"].placed(card),
 		weight: (card, ai, max) => ai.weightScorchRow(card, max, "close")
 	},
 	francesca_beautiful: {
 		description: "Doubles the strength of all your Ranged Combat units (unless a Commander's Horn is also present on that row).",
+		canActivate: card => board.getRow(card, "ranged", card.holder).special === null,
 		activated: async card => await board.getRow(card, "ranged", card.holder).leaderHorn(),
 		weight: (card, ai) => ai.weightHornRow(card, board.getRow(card, "ranged", card.holder))
 	},
@@ -432,6 +445,7 @@ var ability_dict = {
 	},
 	francesca_pureblood: {
 		description: "Pick a Biting Frost card from your deck and play it instantly.",
+		canActivate: card => card.holder.deck.cards.some(c => c.name === "Biting Frost"),
 		activated: async card => {
 			let out = card.holder.deck.findCard(c => c.name === "Biting Frost");
 			if (out)
@@ -441,6 +455,7 @@ var ability_dict = {
 	},
 	francesca_hope: {
 		description: "Move agile units to whichever valid row maximizes their strength (don't move units already in optimal row).",
+		canActivate: card => ability_dict["francesca_hope"].helper(card).cards.length > 0,
 		activated: async card => {
 			const close = board.getRow(card, "close");
 			const ranged =  board.getRow(card, "ranged");
@@ -496,6 +511,7 @@ var ability_dict = {
 	},
 	crach_an_craite: {
 		description: "Shuffle all cards from each player's graveyard back into their decks.",
+		canActivate: card => card.holder.grave.cards.length > 0 || card.holder.opponent().grave.cards.length > 0,
 		activated: async card => {
 			AudioManager.playSFX('redraw');
 			const own = card.holder.grave, other = card.holder.opponent().grave;
