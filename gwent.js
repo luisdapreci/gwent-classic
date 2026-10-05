@@ -4610,17 +4610,21 @@ function onFirstInput() {
 }
 activationEvents.forEach(t => document.addEventListener(t, onFirstInput, true));
 
-// Touch devices: try to pin landscape on the first tap, and on taps while held in portrait (the rotate hint).
-// No fullscreen; browsers that only allow the lock in fullscreen just keep showing the rotate hint.
+// Touch devices: pin landscape and go fullscreen on the first tap, and on taps while held in portrait (the rotate hint).
 // The manifest has no "orientation" (with it, Android showed Chrome's icon in recents), so landscape is locked here.
 let landscapeTried = false;
-function lockLandscape() {
+function lockLandscape(e) {
 	if (!matchMedia("(pointer: coarse)").matches || !screen.orientation?.lock)
 		return document.removeEventListener("click", lockLandscape, true);
-	if (landscapeTried && !matchMedia("(orientation: portrait)").matches)
+	// requestFullscreen consumes the tap's user activation, which the install prompt and share sheet need.
+	if (e.target.closest?.("#title-install, #lobby-copy-link"))
+		return;
+	const app = matchMedia("(display-mode: standalone)").matches;
+	if (landscapeTried && !matchMedia("(orientation: portrait)").matches && !(app && !document.fullscreenElement))
 		return;
 	landscapeTried = true;
-	screen.orientation.lock("landscape").catch(() => {});
+	const ready = document.fullscreenElement ? null : document.documentElement.requestFullscreen?.({ navigationUI: "hide" });
+	Promise.resolve(ready).then(() => screen.orientation.lock("landscape")).catch(() => {});
 }
 document.addEventListener("click", lockLandscape, true);
 
