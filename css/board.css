@@ -134,7 +134,7 @@
 	position: absolute;
 	left: 30%;
 	right: 4%;
-	height: max(calc(1.6 * var(--u)), 16px);
+	height: max(calc(1.1 * var(--u)), 12px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -146,9 +146,10 @@
 	border-radius: calc(0.3 * var(--u));
 	box-shadow: 0 0 calc(0.8 * var(--u)) rgba(246, 210, 130, 0.6);
 	font-family: var(--font-display);
-	font-size: max(calc(0.85 * var(--u)), var(--fs-xs));
+	font-size: max(calc(0.65 * var(--u)), 8px);
 	font-weight: 700;
-	letter-spacing: 0.1em;
+	letter-spacing: 0.08em;
+	padding: 0 0.5em;
 	text-transform: uppercase;
 	animation: passed-in .45s var(--ease-back);
 	pointer-events: none;
