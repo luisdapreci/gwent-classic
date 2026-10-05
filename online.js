@@ -944,6 +944,7 @@ const Online = {
 		clearTimeout(this.joinTimer);
 		this.connected = true;
 		this.saveSession();
+		wakeLock.update();
 		Lobby.close();
 		AudioManager.playSFX("menu_opening");
 		this.enterBuilder();
@@ -1132,6 +1133,7 @@ const Online = {
 	// Closes the link to the opponent but keeps this device's view (e.g. the end screen)
 	dropConnection() {
 		this.connected = false;
+		wakeLock.update();
 		clearInterval(this.dropTimer);
 		this.dropTimer = null;
 		this.curtain(null);

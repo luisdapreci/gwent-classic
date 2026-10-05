@@ -4755,6 +4755,39 @@ addEventListener("resize", keepStageSize);
 document.addEventListener("fullscreenchange", keepStageSize);
 keepStageSize();
 
+// Keeps the screen from dimming/locking during a match or while in an online room.
+// Browsers drop the lock whenever the tab is hidden, so it is requested again on return.
+const wakeLock = {
+	sentinel: null,
+	pending: false,
+	async update() {
+		if (!navigator.wakeLock || this.pending)
+			return;
+		const want = (game.state !== GameState.CUSTOMIZE || Online.connected) && document.visibilityState === "visible";
+		if (want && !this.sentinel) {
+			this.pending = true;
+			try {
+				const sentinel = await navigator.wakeLock.request("screen");
+				sentinel.addEventListener("release", () => this.sentinel === sentinel && (this.sentinel = null));
+				this.sentinel = sentinel;
+			} catch (err) {
+				// Denied (battery saver, unsupported context): the screen just times out as usual
+			} finally {
+				this.pending = false;
+			}
+			// The state may have changed while the request was pending
+			if (this.sentinel && !(game.state !== GameState.CUSTOMIZE || Online.connected))
+				this.update();
+		} else if (!want && this.sentinel) {
+			const sentinel = this.sentinel;
+			this.sentinel = null;
+			sentinel.release().catch(() => {});
+		}
+	}
+};
+EventManager.gameStateChanged.bind(() => wakeLock.update());
+document.addEventListener("visibilitychange", () => wakeLock.update());
+
 // Keyboard controls: Enter/Space activate focused controls; arrows/Enter/Escape drive the carousel; Escape closes previews
 document.addEventListener("keydown", e => {
 	if (Popup.curr)
