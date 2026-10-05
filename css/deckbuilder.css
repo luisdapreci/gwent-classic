@@ -105,10 +105,7 @@
 	z-index: 1;
 }
 
-/* px floor keeps the floored-font buttons from touching on narrow stages */
-#upload-deck    { left: calc(50% - max(12%, 136px)); }
 #change-faction { left: 50%; }
-#download-deck  { left: calc(50% + max(12%, 136px)); }
 
 .card-contianer-title {
 	position: absolute;
@@ -377,9 +374,6 @@ body.online #online-panel {
 		font-size: 10.5px;
 		letter-spacing: 0.04em;
 	}
-	#upload-deck    { left: calc(50% - 102px); }
-	#change-faction { left: 50%; }
-	#download-deck  { left: calc(50% + 102px); }
 	/* the px-sized buttons reach past 19.5%, so the divider and leader drop below them */
 	#deck-customization::before { top: calc(14.3% + 25px); }
 	#card-leader { top: calc(20.8% + 6px); height: calc(27% - 6px); }

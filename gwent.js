@@ -2339,7 +2339,7 @@ class UI {
 		this.live_elem = document.getElementById("live-region");
 		[
 			'#exit-game', '#pass-button', '#grave-me', '#grave-op', '.settings-button',
-			'#change-faction', '#download-deck', '#upload-deck', '#card-leader > div', '#carousel .card-lg'
+			'#change-faction', '#card-leader > div', '#carousel .card-lg'
 		].forEach(selector => document.querySelectorAll(selector).forEach(e => makeAccessible(e, e.dataset.title || e.textContent.trim())));
 		document.querySelector('#card-leader > div').setAttribute("aria-label", "Choose leader");
 	}
@@ -3238,8 +3238,6 @@ class DeckMaker {
 		this.change_elem = document.getElementById("change-faction");
 		this.change_elem.addEventListener("click", () => this.selectFaction(), false);
 		
-		document.getElementById("download-deck").addEventListener("click", () => this.downloadDeck(), false);
-		document.getElementById("add-file").addEventListener("change", () => this.uploadPlayerDeck(), false);
 		document.getElementById("start-game").addEventListener("click", () => this.startNewGame(), false);
 		document.getElementById("start-game").addEventListener("mouseenter", CLICK_EVENT_SFX, false);
 		
@@ -3700,50 +3698,6 @@ class DeckMaker {
 		return {faction: deck.faction, leader: card_dict[deck.leader], cards: deck.cards.map(([index, count]) => ({index: index, count: count}))};
 	}
 	
-	// Converts the current deck to a JSON string
-	deckToJSON(){
-		let obj = {
-			faction: this.faction,
-			leader: this.leader.index, 
-			cards: this.deck.filter(x => x.count > 0).map(x => [x.index, x.count] )
-		};
-		return JSON.stringify(obj);
-	}
-	
-	// Called by the client to downlaod the current deck as a JSON file
-	downloadDeck(){
-		let json = this.deckToJSON();
-		let str = "data:text/json;charset=utf-8," + encodeURIComponent(json);
-		let hidden_elem = document.getElementById('download-json');
-		hidden_elem.href = str;
-		hidden_elem.download = "GwentDeck.json";
-		hidden_elem.click();
-	}
-
-	uploadDeck(id, callback)
-	{
-		let files = document.getElementById(id).files;
-		if (files.length <= 0)
-			return false;
-		let fr = new FileReader();
-		fr.onload = async e => {
-			document.getElementById(id).value = "";
-			let deck;
-			try {
-				deck = JSON.parse(e.target.result);
-			} catch (err) {
-				return ui.alert("Invalid deck file", "The uploaded file is not valid JSON.");
-			}
-			await callback(deck);
-		}
-		fr.readAsText(files.item(0));
-	}
-	
-	// Called by the client to upload a JSON file representing a new deck
-	uploadPlayerDeck() {
-		this.uploadDeck("add-file", deck => this.loadPlayerDeck(deck, false));
-	}
-
 	// Returns a description of deck-building rule violations, or "" if the deck is legal
 	static ruleWarnings(units, special){
 		let warning = "";
@@ -3815,25 +3769,6 @@ class DeckMaker {
 				return null;
 		}
 		return {faction: deck.faction, leader: leaderIndex, cards: cards};
-	}
-
-	async loadPlayerDeck(deck, silent = true)
-	{
-		const loadedDeck = await this.loadDeck(deck, silent);
-		if (!loadedDeck)
-			return;
-		
-		// Use deck to update current player faction and cards in deck maker
-		this.setFaction(loadedDeck.faction, true);
-		if (card_dict[loadedDeck.leader].row === "leader" && loadedDeck.faction === card_dict[loadedDeck.leader].deck){
-			this.leader = this.leaders.filter(c => c.index === loadedDeck.leader)[0];
-			this.leader_elem.children[1].style.backgroundImage = largeURL(this.leader.card.deck + "_" + this.leader.card.filename);
-		}
-		this.makeBank(loadedDeck.faction, loadedDeck.cards);
-		this.update();
-		const saved = Settings.getFactionSettings(this.faction, this.owner);
-		saved.setLeader(this.leader);
-		saved.setCards(this.deck.filter(x => x.count > 0));
 	}
 }
 
@@ -4675,21 +4610,17 @@ function onFirstInput() {
 }
 activationEvents.forEach(t => document.addEventListener(t, onFirstInput, true));
 
-// Touch devices: pin landscape and go fullscreen on the first tap, and on taps while held in portrait (the rotate hint).
+// Touch devices: try to pin landscape on the first tap, and on taps while held in portrait (the rotate hint).
+// No fullscreen; browsers that only allow the lock in fullscreen just keep showing the rotate hint.
 // The manifest has no "orientation" (with it, Android showed Chrome's icon in recents), so landscape is locked here.
 let landscapeTried = false;
-function lockLandscape(e) {
+function lockLandscape() {
 	if (!matchMedia("(pointer: coarse)").matches || !screen.orientation?.lock)
 		return document.removeEventListener("click", lockLandscape, true);
-	// requestFullscreen consumes the tap's user activation, which the install prompt and share sheet need.
-	if (e.target.closest?.("#title-install, #lobby-copy-link"))
-		return;
-	const app = matchMedia("(display-mode: standalone)").matches;
-	if (landscapeTried && !matchMedia("(orientation: portrait)").matches && !(app && !document.fullscreenElement))
+	if (landscapeTried && !matchMedia("(orientation: portrait)").matches)
 		return;
 	landscapeTried = true;
-	const ready = document.fullscreenElement ? null : document.documentElement.requestFullscreen?.({ navigationUI: "hide" });
-	Promise.resolve(ready).then(() => screen.orientation.lock("landscape")).catch(() => {});
+	screen.orientation.lock("landscape").catch(() => {});
 }
 document.addEventListener("click", lockLandscape, true);
 

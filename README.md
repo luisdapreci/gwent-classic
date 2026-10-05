@@ -61,7 +61,7 @@ How it works: the two browsers connect directly with WebRTC through [PeerJS](htt
 Two people can play each other on the same device, passing it between turns.
 
 1. On the title screen choose **Local Play**, then pick **Pass and Play** under *Opponent* in the deck builder.
-2. Each player builds their own deck. Use the **Editing: Player 1 / Player 2** switch under *Opponent* to choose whose deck the builder shows; faction, leader, card changes, **Upload Deck** and **Download Deck** all apply to that player. Player 2's decks are saved separately from Player 1's, one per faction.
+2. Each player builds their own deck. Use the **Editing: Player 1 / Player 2** switch under *Opponent* to choose whose deck the builder shows; faction, leader and card changes all apply to that player. Player 2's decks are saved separately from Player 1's, one per faction.
 3. Press **Start game**. Both decks must be legal (22+ units, at most 10 specials).
 
 Player 1 plays the bottom half of the board and Player 2 the top half. The hand tray at the bottom only ever shows the hand of the player whose turn it is. Whenever control changes hands, a **Pass the device** screen hides the board until the next player presses **Ready**, so neither player sees the other's cards. This also happens for each player's opening redraw. If one player has passed, the other keeps playing without the handoff screen.
@@ -106,7 +106,6 @@ Open the **Deck Builder** from the title screen.
 - Choose a faction at the top, then click cards in the left (collection) and right (deck) lists to add or remove them.
 - Click your leader to cycle through the leaders available for that faction.
 - A deck needs **at least 22 unit cards** and **no more than 10 special cards**. The stats column shows your counts.
-- **Download** saves your deck as `GwentDeck.json`. **Upload** loads one, checking the faction, leader, card IDs and copy limits; you can choose to import anyway if only some entries are invalid.
 - **Opponent:** choose **AI** or **Pass and Play** (see [Pass and play](#pass-and-play)). The choice is remembered.
 - **AI difficulty:** pick **Easy**, **Normal**, **Hard** or **Expert** under *Opponent* (shown when playing the AI). Each difficulty has its own pool of decks, one or more per faction, each with a set leader: Easy brings weak starter decks, Normal the classic premade decks, and Hard thin decks full of heroes, spies, medics and the strongest leaders. Easy also skips its redraw and often makes random plays; Normal weighs its options with some randomness; Hard plays for card advantage: it takes free cards first (spies, decoyed spies, Avengers), answers with its cheapest card that takes the lead, passes once ahead in rounds it can afford to lose, and once you've passed it wins with the fewest cards (or gives up a round that would cost too many). On Hard your deck may have at most 180 total unit strength and 4 hero cards. Expert is the Hard AI with Hard decks, but your deck may have at most 130 total unit strength and 3 hero cards; the deck stats show these limits and turn red when exceeded. The choice is remembered.
 
