@@ -524,7 +524,8 @@
 	gap: calc(4 * var(--u));
 }
 #end-screen button {
-	width: max(calc(10 * var(--u)), 120px);
+	min-width: max(calc(10 * var(--u)), 120px);
+	padding: 0 calc(1.2 * var(--u));
 	height: max(calc(2.8 * var(--u)), 34px);
 	font-size: max(calc(1 * var(--u)), 12px);
 	white-space: nowrap;

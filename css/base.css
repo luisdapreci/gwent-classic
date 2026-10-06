@@ -176,9 +176,14 @@ body:not(.title-open) #title-install, #title-install.hide { display: none; }
 
 /* ---------- tooltip ---------- */
 
+/* touch screens keep :hover after a tap, which left the tooltip stuck over overlays */
+@media (hover: hover) {
+	*[data-title]:hover::after { content: attr(data-title); }
+}
+*[data-title]:focus-visible::after { content: attr(data-title); }
+
 *[data-title]:hover::after,
 *[data-title]:focus-visible::after {
-	content: attr(data-title);
 	position: absolute;
 	bottom: calc(-2.1 * var(--u));
 	left: var(--title-left);

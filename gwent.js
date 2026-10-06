@@ -833,7 +833,6 @@ class Player {
 					Online.commit(this, {a: "leader"});
 					await this.activateLeader();
 		}	), false);
-			this.elem_leader.children[0].setAttribute('data-title', "Play leader");
 		} else {
 			this.elem_leader.addEventListener("click", async () => await ui.viewCard(this.leader), false);
 		}
@@ -4598,7 +4597,8 @@ function openTitleScreen(sfx = true) {
 		AudioManager.playSFX("menu_opening");
 }
 document.getElementById("deck-back").addEventListener("click", async () => {
-	if (Online.connected && !await ui.confirm("Leave the room?", "You will be disconnected from " + Online.opponentName + ".", "Leave", "Stay"))
+	// Stay first (gold), Leave second (red), matching the in-game exit popups
+	if (Online.connected && await ui.confirm("Leave the room?", "You will be disconnected from " + Online.opponentName + ".", "Stay", "Leave"))
 		return;
 	Online.leave();
 	openTitleScreen();
