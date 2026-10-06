@@ -62,14 +62,25 @@
 #notif-me-first::after { content: "You will go first"; }
 #notif-op-first::after { content: "Your opponent will go first"; }
 
-#notif-me-coin { background-image: url('../img/icons/notif_me_coin.png'); }
 #notif-me-coin::after { content: "You will go first"; }
-
-#notif-op-coin { background-image: url('../img/icons/notif_op_coin.png'); }
 #notif-op-coin::after { content: "Your opponent will go first"; }
+
+/* Coin spins on its own layer so the caption (::after) never rotates with it */
+#notif-me-coin::before,
+#notif-op-coin::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: url('../img/icons/notif_me_coin.png') center / contain no-repeat;
+}
+#notif-op-coin::before { background-image: url('../img/icons/notif_op_coin.png'); }
 
 #notification-bar:not(.hide) > #notif-me-coin,
 #notification-bar:not(.hide) > #notif-op-coin {
+	animation: none;
+}
+#notification-bar:not(.hide) > #notif-me-coin::before,
+#notification-bar:not(.hide) > #notif-op-coin::before {
 	animation: notif-coin-flip 1.4s cubic-bezier(.2, .6, .3, 1);
 }
 #notification-bar:not(.hide) > #notif-me-coin::after,
