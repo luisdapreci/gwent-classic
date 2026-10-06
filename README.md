@@ -39,7 +39,7 @@ Win **two of three rounds**. The player with the higher total score when a round
 3. **Passing:** **hold** the Pass button for a moment to pass (a quick tap does nothing, so you can't pass by accident; <kbd>Enter</kbd> on the focused button passes at once). Your opponent keeps playing until they pass too.
 4. **End of round:** once both players have passed, scores are compared, the board is cleared to the discard piles, and the next round begins. You **do not draw** between rounds, so card advantage matters.
 
-Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click a card in your hand to select it, then click a row to play it. Click a row, discard pile or leader to inspect it; this works during your opponent's turn too.
+Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click a card in your hand to select it, then click a row to play it. Click a row, discard pile or leader to inspect it; this works during your opponent's turn too. Hovering a button or leader with the mouse (or focusing it with <kbd>Tab</kbd>) shows a short hint; touch screens skip these hints so they don't stay stuck on screen after a tap.
 
 **Keyboard:** <kbd>Tab</kbd> moves between cards, rows and buttons; <kbd>Enter</kbd> or <kbd>Space</kbd> activates the focused one. In card pickers, <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> browse, <kbd>Enter</kbd> selects and <kbd>Esc</kbd> closes. <kbd>Esc</kbd> also cancels a selected card. Game messages are announced to screen readers.
 
@@ -49,7 +49,7 @@ Play someone on another device. Both players need an internet connection.
 1. On the title screen choose **Online** and enter a name (up to 16 characters; it's remembered for next time).
 2. One player picks a **turn timer** (none, 30, 60 or 90 seconds) and presses **Create Room**. Share the 5-character room code, or press **Share Invite Link** and send the link (it opens the game with the code filled in).
 3. The other player enters the code and presses **Join Room**.
-4. Both players pick a deck in the deck builder and press **Ready**. The match starts when both are ready.
+4. Both players pick a deck in the deck builder and press **Ready**. The match starts when both are ready. Pressing **Back** in the deck builder asks before leaving the room (**Stay** / **Leave**).
 
 During the match you only see your own hand. A countdown appears next to the player whose move it is when a timer is set; if it runs out on your turn you pass the round, and an unanswered card choice (redraw, medic, leader picks) is skipped or takes the card on show. After the match, **Rematch** (both players must accept) keeps the decks, **New Game** sends both players back to the deck builder, and **Main Menu** leaves the room. Leaving a match early counts as a forfeit.
 
