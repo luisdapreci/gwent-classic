@@ -1478,6 +1478,8 @@ class Weather extends CardContainer {
 	// Adds a card if unique and clears all weather if 'clear weather' card added
 	async addCard(card) {
 		const isDuplicate = !!this.cards.find(c => c.name === card.name);
+		if (game.story && card.holder === player_me)
+			game.story.weatherPlayed = true;
 		super.addCard(card);
 		// card.audio is the last ability, which for Skellige Storm is fog
 		AudioManager.playSFX(ability_dict[card.abilities[0]]?.audio ?? card.audio);
@@ -1725,6 +1727,8 @@ class Game {
 		initFaction(p2);
 		
 		function initLeader(player, leader){
+			if (player.leaderBlockedBy)
+				return;
 			if (leader.placed)
 				leader.placed(player.leader);
 			Object.keys(leader).filter(key => game[key]).map(key => game[key].push(leader[key]));
@@ -1761,6 +1765,8 @@ class Game {
 		const session = this.session;
 		EventManager.gameOpened.dispatch();
 		ui.setMusicTrack("game");
+		if (this.story)
+			StoryMode.applyModifiers(this.story);
 		// Online clients register hooks in seat order so effects run in the same order on both
 		this.initPlayers(...(Online.active ? Online.players() : [player_me, player_op]));
 		this.setState(GameState.PLAYING);
@@ -2023,6 +2029,10 @@ class Game {
 			winnerElem.classList.remove("hide");
 			ui.announce(note);
 		}
+		if (this.story)
+			StoryMode.onGameEnd(this.story);
+		this.mainMenu_elem.textContent = t(this.story ? "Continue" : "Main Menu");
+		this.newGame_elem.classList.toggle("hide", !!this.story);
 		Online.onGameEnd();
 		
 		fadeIn(endScreen, 300);
@@ -2038,6 +2048,12 @@ class Game {
 				t("Resume"), ()=>{},
 				t("Leave"), ()=>Online.forfeit(),
 				t("Leave the match?"), t("You will forfeit and your opponent wins.")
+			);
+		if (this.story)
+			return ui.popup(
+				t("Resume"), ()=>{},
+				t("Retreat"), ()=>this.returnToMainMenu(),
+				t("Retreat to the map?"), t("This counts as a loss, and any wager is lost.")
 			);
 		ui.popup(
 			t("Resume"), ()=>{},
@@ -2064,6 +2080,11 @@ class Game {
 
 	// The builder stays hidden so it doesn't show through the title's fade-in; closeTitleScreen reveals it
 	returnToMainMenu(){
+		if (this.story) {
+			const finished = !!this.story.result;
+			this.returnToCustomization(false);
+			return finished ? StoryMode.finish() : StoryMode.leaveMatch();
+		}
 		openTitleScreen(false);
 		this.returnToCustomization(false);
 	}
@@ -2082,6 +2103,8 @@ class Game {
 	
 	// Restarts the last game with the dame decks
 	rematchGame(){
+		if (this.story)
+			return StoryMode.rematch();
 		this.reset();
 		player_me.reset();
 		player_op.reset();
@@ -3380,7 +3403,9 @@ class DeckMaker {
 		this.leader_elem.children[1].addEventListener('mouseenter', CLICK_EVENT_SFX);
 		// Whose deck the builder is editing; Player 2 only exists in pass and play
 		this.owner = "p1";
-		this.loadFactionDeck(Settings.getLastFaction(this.owner).get(), true);
+		// True while editing the story mode collection's decks
+		this.story = false;
+		this.loadFactionDeck(this.store().lastFaction.get(), true);
 
 		this.change_elem = document.getElementById("change-faction");
 		this.change_elem.addEventListener("click", () => this.selectFaction(), false);
@@ -3479,13 +3504,21 @@ class DeckMaker {
 		document.getElementById("card-deck-title").textContent = t(title);
 	}
 
+	// Where decks are saved: the story collection or the free-play decks in Settings
+	store(){
+		return this.story ? StoryMode.deckStore : {
+			lastFaction: Settings.getLastFaction(this.owner),
+			deck: faction => Settings.getFactionSettings(faction, this.owner)
+		};
+	}
+
 	loadFactionDeck(faction, force = false)
 	{
 		if (!this.isValidFaction(faction))
 			return;
 		if (!this.setFaction(faction, true))
 			return;
-		const faction_deck = Settings.getFactionSettings(this.faction, this.owner).get();
+		const faction_deck = this.store().deck(this.faction).get();
 		this.setLeader(faction_deck.leader);
 		this.makeBank(this.faction, faction_deck.cards);
 		this.update();
@@ -3493,6 +3526,8 @@ class DeckMaker {
 
 	isValidFaction(factionName)
 	{
+		if (this.story && !StoryMode.isUnlocked(factionName))
+			return false;
 		switch(factionName) 
 		{
 		case "realms": case "nilfgaard": case "monsters": case "scoiatael": case "skellige":
@@ -3514,13 +3549,13 @@ class DeckMaker {
 		
 		this.leaders = 
 			card_dict.map((c,i) => ({index: i, card:c}) )
-			.filter(c => c.card.deck === faction_name && c.card.row === "leader");
+			.filter(c => c.card.deck === faction_name && c.card.row === "leader" && (!this.story || StoryMode.owned(c.index) > 0));
 		if (!this.leader || this.faction !== faction_name) {
 			this.leader = this.leaders[0];
 			this.leader_elem.children[1].style.backgroundImage = largeURL(this.leader.card.deck + "_" + this.leader.card.filename);
 		}
 		this.faction = faction_name;
-		Settings.getLastFaction(this.owner).set(faction_name);
+		this.store().lastFaction.set(faction_name);
 		return true;
 	}
 	
@@ -3550,8 +3585,10 @@ class DeckMaker {
 			for (let i of Object.keys(deck)) deckMap[deck[i].index] = deck[i].count;
 		}
 		cards.forEach( p => {
-			let count = deckMap[p.index] !== undefined ? Number(deckMap[p.index]) : 0;
-			this.makePreview(p.index, Number.parseInt(p.card.count) - count, this.bank_elem, this.bank,);
+			// Story mode offers only the copies in the collection
+			const max = this.story ? StoryMode.owned(p.index) : Number.parseInt(p.card.count);
+			let count = deckMap[p.index] !== undefined ? Math.min(Number(deckMap[p.index]), max) : 0;
+			this.makePreview(p.index, max - count, this.bank_elem, this.bank,);
 			this.makePreview(p.index, count, this.deck_elem, this.deck);
 		});
 	}
@@ -3688,7 +3725,7 @@ class DeckMaker {
 			let data = c.cards[i].data;
 			this.leader = data;
 			this.leader_elem.children[1].style.backgroundImage = largeURL(data.card.deck + "_" + data.card.filename);
-			Settings.getFactionSettings(this.leader.card.deck, this.owner).setLeader(this.leader);
+			this.store().deck(this.leader.card.deck).setLeader(this.leader);
 			AudioManager.playSFX('ui_card_bank');
 		}, () => true, false, true);
 		Carousel.curr.index = index;
@@ -3698,7 +3735,7 @@ class DeckMaker {
 	// Opens a Carousel to allow the client to select a faction for their deck
 	selectFaction() {
 		let container = new CardContainer();
-		container.cards = Object.keys(factions).map( f => {
+		container.cards = Object.keys(factions).filter(f => this.isValidFaction(f)).map( f => {
 			return {abilities: [f], filename: f, desc_name: t(factions[f].name), desc: t(factions[f].description), faction: "faction"};
 		});
 		let index = container.cards.reduce((a,c,i) => c.filename === this.faction ? i : a, 0);
@@ -3723,7 +3760,7 @@ class DeckMaker {
 			this.remove(index, this.deck);
 			AudioManager.playSFX('discard');
 		}
-		Settings.getFactionSettings(this.faction, this.owner).setCards(this.deck.filter(x => x.count > 0));
+		this.store().deck(this.faction).setCards(this.deck.filter(x => x.count > 0));
 		this.update();
 	}
 	
@@ -3755,6 +3792,7 @@ class DeckMaker {
 	startNewGame(){
 		if (Online.connected)
 			return Online.toggleReady();
+		game.story = null;
 		const hotseat = DeckMaker.isHotseatMode();
 		const p1 = this.playerDeck("p1");
 		const p2 = hotseat ? this.playerDeck("p2") : null;
@@ -3806,6 +3844,9 @@ class DeckMaker {
 
 	// The AI difficulty's caps on the player's deck (online: the room's Expert Limits rule), none in pass and play
 	static deckLimits(){
+		// Runs inside the DeckMaker constructor too, before `dm` exists
+		if (document.body.classList.contains("story"))
+			return null;
 		if (document.body.classList.contains("online"))
 			return DeckMaker.onlineRules.includes("expert") ? ControllerAI.difficulties.expert.deckLimits : null;
 		return DeckMaker.isHotseatMode() ? null : ControllerAI.difficulty().deckLimits ?? null;
@@ -4442,7 +4483,8 @@ async function translateTo(card, container_source, container_dest){
 		if (source instanceof HandAI)
 			return source.hidden_elem;
 		if (source instanceof Deck)
-			return source.elem.children[source.elem.children.length-2];
+			// A muster can pull several cards at once and leave no deck-card element to start from
+			return source.elem.children[source.elem.children.length-2] ?? source.elem;
 		return source.elem;
 	}
 
@@ -4649,6 +4691,8 @@ function openTitleScreen(sfx = true) {
 		AudioManager.playSFX("menu_opening");
 }
 document.getElementById("deck-back").addEventListener("click", async () => {
+	if (dm.story)
+		return StoryMode.closeDeck();
 	// Stay first (gold), Leave second (red), matching the in-game exit popups
 	if (Online.connected && await ui.confirm(t("Leave the room?"), t("You will be disconnected from {name}.", {name: Online.opponentName}), t("Stay"), t("Leave")))
 		return;

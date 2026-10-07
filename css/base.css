@@ -132,7 +132,8 @@ html { scrollbar-color: var(--gold-3) rgba(0, 0, 0, 0.45); }
 #open-guide.deck-menu     { top: calc(var(--stage-y) + 44.15 * var(--u)); left: calc(var(--stage-x) + 53.475 * var(--u)); }
 #toggle-notifications.deck-menu { display: none !important; }
 
-body.title-open { --title-toggles-top: 41.7; }
+/* 1.5u below the last title menu button (Deck Builder ends at 42.24u); move it if the menu gains a button */
+body.title-open { --title-toggles-top: 43.75; }
 body.title-open #toggle-music.deck-menu   { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 8 * var(--u)); }
 body.title-open #toggle-sfx.deck-menu     { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 11.2 * var(--u)); }
 body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 14.4 * var(--u)); }

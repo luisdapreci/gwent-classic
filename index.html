@@ -111,6 +111,7 @@
 	<link rel="stylesheet" type="text/css" href="css/title.css" />
 	<link rel="stylesheet" type="text/css" href="css/fx.css" />
 	<link rel="stylesheet" type="text/css" href="css/guide.css" />
+	<link rel="stylesheet" type="text/css" href="css/story.css" />
 </head>
 
 <body class="title-open booting">
@@ -812,6 +813,52 @@
 	</div>
 </section>
 
+<section id="story-screen" class="hide" aria-label="Story">
+	<div id="story-map">
+		<div id="story-map-inner">
+			<img id="story-map-img" src="img/map/continent-2560.jpg" srcset="img/map/continent-1280.jpg 1280w, img/map/continent-2560.jpg 2560w" sizes="70vw" alt="Map of the Continent" draggable="false" loading="lazy" />
+			<canvas id="story-fog" width="1000" height="825"></canvas>
+			<svg id="story-path" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="" /></svg>
+			<div id="story-pins"></div>
+			<div id="story-token" aria-hidden="true"></div>
+		</div>
+		<button id="story-back" class="btn-ghost">&lsaquo; Main Menu</button>
+		<div id="story-zoom">
+			<button id="story-zoom-in" class="btn-ghost" aria-label="Zoom in">+</button>
+			<button id="story-zoom-out" class="btn-ghost" aria-label="Zoom out">&minus;</button>
+		</div>
+	</div>
+	<div id="story-side">
+		<div id="story-hud">
+			<p id="story-crowns" aria-label="Crowns"></p>
+			<div id="story-actions">
+				<button id="story-open-deck" class="btn-ghost">Deck</button>
+				<button id="story-open-collection" class="btn-ghost">Collection</button>
+				<button id="story-open-shop" class="btn-ghost">Shop</button>
+				<button id="story-open-stats" class="btn-ghost">Stats</button>
+				<button id="story-open-options" class="btn-ghost">Options</button>
+			</div>
+		</div>
+		<div id="story-panel"></div>
+	</div>
+	<div id="story-modal" class="hide" role="dialog" aria-modal="true">
+		<div id="story-modal-box"></div>
+	</div>
+	<div id="story-dialogue" class="hide" role="dialog" aria-modal="true" aria-live="polite">
+		<div id="story-dialogue-portrait"></div>
+		<div id="story-dialogue-box" tabindex="0">
+			<p id="story-dialogue-name"></p>
+			<p id="story-dialogue-text"></p>
+			<p id="story-dialogue-hint"></p>
+		</div>
+		<div id="story-dialogue-buttons">
+			<button id="story-dialogue-guide" class="btn-ghost hide">How to Play</button>
+			<button id="story-dialogue-skip" class="btn-ghost">Skip</button>
+		</div>
+	</div>
+	<input id="story-import-file" type="file" accept="application/json,.json" class="hide" />
+</section>
+
 <section id="title-screen">
 	<canvas></canvas>
 	<div class="title-fan">
@@ -825,7 +872,8 @@
 		<h1 class="title-logo">Gwent</h1>
 		<p class="title-sub">The Witcher Card Game</p>
 		<div class="title-rule"></div>
-		<button id="title-play" class="btn-gold">Local Play</button>
+		<button id="title-story" class="btn-gold">Story</button>
+		<button id="title-play" class="btn-ghost">Local Play</button>
 		<button id="title-online" class="btn-ghost">Online</button>
 		<button id="title-deck" class="btn-ghost">Deck Builder</button>
 	</div>
@@ -845,6 +893,8 @@
 <script type="text/javascript" src="factions.js"></script>
 <script type="text/javascript" src="gwent.js"></script>
 <script type="text/javascript" src="online.js"></script>
+<script type="text/javascript" src="campaign.js"></script>
+<script type="text/javascript" src="story.js"></script>
 <script type="text/javascript" src="fx.js"></script>
 <script>
 	if ("serviceWorker" in navigator && location.protocol.startsWith("http"))

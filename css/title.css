@@ -132,6 +132,7 @@
 	font-size: max(calc(1.1 * var(--u)), var(--fs-md));
 	animation: fade-up .7s var(--ease-out) backwards;
 }
+#title-story { animation-delay: .725s; }
 #title-play { animation-delay: .8s; }
 #title-online { animation-delay: .875s; }
 #title-deck { animation-delay: .95s; }
