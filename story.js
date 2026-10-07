@@ -35,7 +35,7 @@ const StoryMode = {
 	newSave() {
 		const save = {
 			version: this.VERSION, crowns: 0, collection: {}, decks: {}, activeFaction: "realms", unlockedFactions: [],
-			progress: {}, pending: [], matches: 0, last: null, shop: null,
+			progress: {}, pending: [], matches: 0, last: null, shop: null, tournament: null,
 			stats: {wins: 0, losses: 0, streak: 0, bestStreak: 0, crownsEarned: 0, tournamentsWon: 0}
 		};
 		this.unlockFaction("realms", save);
@@ -253,17 +253,24 @@ const StoryMode = {
 		return this.artURL(opp.portrait ? "lg/" + opp.portrait + ".jpg" : "icons/deck_shield_" + opp.deck.faction + ".png");
 	},
 
+	// A modifier's rule, prefixed by its flavor name (e.g. "Partisans: Your opponent goes first.")
 	modifierText(m) {
+		const name = m.name ?? {ambush: "Ambush", terms: "Terms"}[m.id];
+		const rule = this.modifierRule(m);
+		return name ? t(name) + ": " + rule : rule;
+	},
+
+	modifierRule(m) {
 		switch (m.id) {
 		case "weather":
 			return m.rounds.length >= 3
 				? t("{card} at the start of every round.", {card: card_dict[m.card].name})
 				: t("{card} at the start of round {rounds}.", {card: card_dict[m.card].name, rounds: m.rounds.join(", ")});
-		case "ambush": return t("Ambush: your opponent goes first.");
+		case "ambush": return t("Your opponent goes first.");
 		case "extraDraw": return m.side === "both" ? t("Both players draw an extra card when round 1 starts.") : t("You draw an extra card when round 1 starts.");
 		case "informants": return t("You discard a random card when round 1 starts.");
 		case "leaderBlocked": return t("Your leader is blocked for the whole match.");
-		case "terms": return t("Terms: {rule}", {rule: t(DeckMaker.RULES[m.rule].desc)});
+		case "terms": return t(DeckMaker.RULES[m.rule].desc);
 		}
 		return "";
 	},
@@ -348,14 +355,28 @@ const StoryMode = {
 		const opp = this.opponent(id);
 		if (!opp || !this.isAvailable(id))
 			return false;
+		const rematch = this.beaten(id);
+		return this.launch({id, opp, rematch, wager: rematch ? wager : null});
+	},
+
+	// The current round of the tournament run; wagers are allowed in every round
+	async startTournamentMatch(wager = null) {
+		const run = this.data.tournament;
+		if (!run)
+			return false;
+		return this.launch({id: run.id, opp: this.tournamentOpponent(run), rematch: false, wager, tournament: true});
+	},
+
+	async launch(story) {
+		const opp = story.opp;
 		const {deck, warning} = this.playerDeck();
 		const terms = this.termsWarning(opp, deck.cards);
 		if (warning || terms) {
 			await ui.alert(t("Invalid deck"), warning + terms);
 			return false;
 		}
-		const rematch = this.beaten(id);
-		if (wager && (!rematch || wager.crowns && wager.crowns > this.data.crowns || wager.card !== undefined && !this.stakeableCards().includes(wager.card)))
+		let wager = story.wager;
+		if (wager && (wager.crowns && wager.crowns > this.data.crowns || wager.card !== undefined && !this.stakeableCards().includes(wager.card)))
 			wager = null;
 		if (wager?.crowns)
 			this.data.crowns -= wager.crowns;
@@ -367,11 +388,11 @@ const StoryMode = {
 		game.endScreen.classList.add("hide");
 		player_me?.reset();
 		player_op?.reset();
-		const oppDeck = this.opponentDeck(opp, rematch);
+		const oppDeck = this.opponentDeck(opp, story.rematch);
 		player_me = new Player(0, t("Geralt"), deck);
 		player_op = new Player(1, t(opp.name), oppDeck);
 		player_op.controller = new ControllerAI(player_op, opp.level);
-		game.story = {id, opp, rematch, wager, oppDeck, weatherPlayed: false, wentFirst: null};
+		game.story = {...story, wager, oppDeck, weatherPlayed: false, wentFirst: null};
 		document.body.classList.add("story");
 		document.getElementById("deck-customization").classList.add("hide");
 		game.startGame();
@@ -379,9 +400,9 @@ const StoryMode = {
 	},
 
 	rematch() {
-		const id = game.story?.id;
-		if (id)
-			this.startMatch(id);
+		const story = game.story;
+		if (story && !story.tournament)
+			this.startMatch(story.id);
 	},
 
 	// Called by Game.startGame before the players are set up, so a blocked leader never registers its effects
@@ -448,12 +469,14 @@ const StoryMode = {
 		const won = player_op.health <= 0 && player_me.health > 0;
 		const draw = player_op.health <= 0 && player_me.health <= 0;
 		const save = this.data;
-		const progress = this.progressOf(id);
 		const stats = save.stats;
 		const result = {id, won, draw, stars: [false, false, false], starsNew: [false, false, false], newStars: 0, crowns: 0, cards: [], unlocked: null, wager: null};
 		save.matches++;
 
-		if (won) {
+		if (story.tournament)
+			this.tournamentResult(result);
+		else if (won) {
+			const progress = this.progressOf(id);
 			result.stars = [true, ...opp.objectives.map(o => !!this.OBJECTIVES[o].check())];
 			const base = this.winCrowns(id);
 			if (!rematch) {
@@ -481,7 +504,7 @@ const StoryMode = {
 			stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
 		} else {
 			if (!draw) {
-				progress.losses++;
+				this.progressOf(id).losses++;
 				stats.losses++;
 			}
 			stats.streak = 0;
@@ -508,16 +531,119 @@ const StoryMode = {
 		return result;
 	},
 
-	// Quitting mid-match counts as a loss; a staked card or crowns stay lost
+	// Quitting mid-match counts as a loss; a staked card or crowns stay lost, and a tournament run ends
 	forfeit() {
 		const story = game.story;
 		if (!story || story.result)
 			return;
-		this.progressOf(story.id).losses++;
+		if (story.tournament)
+			this.data.tournament = null;
+		else
+			this.progressOf(story.id).losses++;
 		this.data.stats.losses++;
 		this.data.stats.streak = 0;
 		this.data.matches++;
 		this.commit();
+	},
+
+	// ---------- tournaments ----------
+
+	tournament(id) {
+		return campaign.tournaments[id];
+	},
+
+	isTournamentOpen(id) {
+		const tour = this.tournament(id);
+		return !!tour && this.beaten(tour.requires);
+	},
+
+	openTournaments() {
+		return Object.keys(campaign.tournaments).filter(id => this.isTournamentOpen(id));
+	},
+
+	tournamentsAt(placeKey) {
+		return this.openTournaments().filter(id => this.tournament(id).place === placeKey);
+	},
+
+	// Pays the fee and draws every round's entrant, deck and modifier up front so a reload resumes the same bracket
+	enterTournament(id) {
+		const tour = this.tournament(id);
+		if (!this.isTournamentOpen(id) || this.data.tournament || this.data.crowns < tour.fee)
+			return false;
+		const entrants = [...tour.entrants.keys()];
+		this.data.crowns -= tour.fee;
+		this.data.tournament = {
+			id, round: 0,
+			entrants: tour.rounds.map(() => entrants.splice(randomInt(entrants.length), 1)[0]),
+			decks: tour.rounds.map(r => randomInt(ai_decks[r.decks].length)),
+			mods: tour.rounds.map(() => randomInt(tour.modifiers.length))
+		};
+		this.commit();
+		return true;
+	},
+
+	withdrawTournament() {
+		this.data.tournament = null;
+		this.commit();
+	},
+
+	// The opponent of a round, in the same shape as campaign opponents
+	tournamentOpponent(run, round = run.round) {
+		const tour = this.tournament(run.id);
+		const r = tour.rounds[round];
+		const modifier = tour.modifiers[run.mods[round]];
+		const deck = ai_decks[r.decks][run.decks[round]];
+		return {name: tour.entrants[run.entrants[round]], portrait: null, level: r.level,
+			deck: r.noHeroes ? {...deck, cards: deck.cards.filter(([i]) => this.rarity(card_dict[i]) !== "hero")} : deck,
+			modifiers: modifier ? [modifier] : [], objectives: [], rewards: [], dialogue: {}, tournament: run.id};
+	},
+
+	// Advances or ends the run: crowns per round won, the champion's purse and the first leader prize not owned yet
+	tournamentResult(result) {
+		const save = this.data;
+		const run = save.tournament;
+		const tour = run && this.tournament(run.id);
+		if (!tour)
+			return;
+		const stats = save.stats;
+		result.tournament = {id: run.id, round: run.round + 1, rounds: tour.rounds.length};
+		if (result.won) {
+			stats.wins++;
+			stats.streak++;
+			stats.bestStreak = Math.max(stats.bestStreak, stats.streak);
+			result.crowns += tour.perRound;
+			if (++run.round < tour.rounds.length)
+				return;
+			result.crowns += tour.champion;
+			result.tournament.champion = true;
+			stats.tournamentsWon++;
+			const prize = tour.prizes.find(i => !this.owned(i));
+			if (prize !== undefined)
+				result.cards.push(this.addCard(prize));
+			else {
+				const heroes = this.heroChoices();
+				if (heroes.length)
+					save.pending.push({kind: "reward", cards: heroes});
+			}
+			save.tournament = null;
+		} else {
+			stats.streak = 0;
+			if (result.draw)
+				return;
+			stats.losses++;
+			result.tournament.eliminated = true;
+			save.tournament = null;
+		}
+	},
+
+	// Three heroes not owned yet from unlocked factions and neutrals (a champion who owns every leader prize)
+	heroChoices() {
+		const fixed = this.fixedRewards();
+		const pool = card_dict.map((c, i) => i).filter(i => {
+			const c = card_dict[i];
+			return this.rarity(c) === "hero" && [...this.data.unlockedFactions, "neutral"].includes(c.deck) && !fixed.has(i) && !this.owned(i);
+		});
+		return this.weightedPick(pool, () => 1, 3);
 	},
 
 	// Weighted random choice of up to n distinct items
@@ -579,6 +705,8 @@ const StoryMode = {
 		const story = game.story;
 		game.story = null;
 		document.getElementById("deck-customization").classList.add("hide");
+		if (story?.tournament)
+			StoryUI.view = {kind: "tournament", id: story.id};
 		StoryUI.show();
 		if (story?.result) {
 			await StoryUI.dialogue(story.opp, story.result.won ? "win" : "loss");
@@ -590,6 +718,8 @@ const StoryMode = {
 	// Leaving a match without finishing it
 	async leaveMatch() {
 		this.forfeit();
+		if (game.story?.tournament)
+			StoryUI.view = {kind: "tournament", id: game.story.id};
 		game.story = null;
 		await this.openMap();
 	},
@@ -698,6 +828,13 @@ const StoryMode = {
 		}
 		for (const key of ["wins", "losses", "streak", "bestStreak", "crownsEarned", "tournamentsWon"])
 			save.stats[key] = isCount(raw.stats?.[key]) ? raw.stats[key] : 0;
+		// An invalid tournament run is dropped rather than rejecting the whole save
+		const run = raw.tournament, tour = campaign.tournaments[run?.id];
+		const indices = (list, max) => Array.isArray(list) && list.length === tour.rounds.length && list.every((i, r) => isCount(i, max(r) - 1));
+		save.tournament = tour && isCount(run.round, tour.rounds.length - 1)
+			&& indices(run.entrants, () => tour.entrants.length) && new Set(run.entrants).size === run.entrants.length
+			&& indices(run.decks, r => ai_decks[tour.rounds[r].decks].length) && indices(run.mods, () => tour.modifiers.length)
+			? {id: run.id, round: run.round, entrants: [...run.entrants], decks: [...run.decks], mods: [...run.mods]} : null;
 		return save;
 	}
 };
@@ -842,10 +979,11 @@ const StoryUI = {
 			const fresh = available.find(o => !StoryMode.beaten(o.id));
 			const shown = fresh ?? available[0] ?? opps[0];
 			const boss = opps.some(o => o.opp.boss);
+			const tournaments = StoryMode.tournamentsAt(place.key);
 			tokenPlace ??= fresh && place;
 			const classes = ["story-pin", "faction-" + shown.opp.deck.faction,
 				boss && "boss", !available.length && "locked", fresh && "available",
-				available.length && !fresh && opps.every(o => StoryMode.beaten(o.id)) && "done",
+				available.length && !fresh && !tournaments.length && opps.every(o => StoryMode.beaten(o.id)) && "done",
 				this.view.place === place.key && "selected"].filter(Boolean).join(" ");
 			// Lock and count are child spans: the pin's ::after is the shared data-title tooltip
 			const pin = storyEl("button", {
@@ -1036,6 +1174,7 @@ const StoryUI = {
 	renderPanel() {
 		const view = this.view;
 		const content = view.kind === "opponent" ? this.opponentView(view.id)
+			: view.kind === "tournament" ? this.tournamentView(view.id)
 			: view.kind === "place" ? this.listView(StoryMode.places().find(p => p.key === view.place))
 			: view.kind === "chapter" ? this.listView(null, view.chapter)
 			: this.journalView();
@@ -1057,7 +1196,33 @@ const StoryUI = {
 				storyEl("div", {}, storyEl("b", {text: t(chapter.name)}), storyEl("small", {text: status})),
 				open && storyEl("span", {class: "story-stars", text: stars + "/" + ids.length * 3 + " \u2605"}));
 		});
-		return [storyEl("h2", {text: t("Journal")}), storyEl("p", {class: "story-kicker", text: t("Choose a place on the map or a chapter below.")}), ...rows];
+		const tournaments = StoryMode.openTournaments();
+		return [storyEl("h2", {text: t("Journal")}), storyEl("p", {class: "story-kicker", text: t("Choose a place on the map or a chapter below.")}), ...rows,
+			tournaments.length > 0 && storyEl("h3", {text: t("Tournaments")}),
+			...tournaments.map(id => this.tournamentRow(id, {kind: "journal"}))];
+	},
+
+	tournamentRow(id, from) {
+		const tour = StoryMode.tournament(id);
+		const run = StoryMode.data.tournament;
+		const status = run?.id === id ? t("In progress: round {n} of {total}", {n: run.round + 1, total: tour.rounds.length})
+			: t("Entry fee: {n} crowns", {n: tour.fee});
+		return storyEl("button", {class: "story-row", onclick: () => this.openTournament(id, from)},
+			this.trophy(tour),
+			storyEl("div", {}, storyEl("b", {text: t(tour.name)}), storyEl("small", {text: status})));
+	},
+
+	// A tournament's emblem: the art of its first leader prize
+	trophy(tour, large = false) {
+		const prize = card_dict[tour.prizes[0]];
+		return storyEl("div", {class: "story-portrait faction-" + prize.deck + (large ? " large" : ""), style: {"--art": StoryMode.artURL(StoryMode.cardImage(tour.prizes[0]).slice(4))}});
+	},
+
+	openTournament(id, from = this.view) {
+		AudioManager.playSFX("ui_card");
+		this.wager = null;
+		this.view = {kind: "tournament", id, from};
+		this.render();
 	},
 
 	listView(place, chapterId = place?.chapter) {
@@ -1076,7 +1241,8 @@ const StoryUI = {
 			storyEl("button", {class: "btn-ghost story-back-link", text: "\u2039 " + t("Journal"), onclick: () => { this.view = {kind: "journal"}; this.render(); }}),
 			storyEl("h2", {text: t(place ? place.name : chapter.name)}),
 			place && storyEl("p", {class: "story-kicker", text: t(chapter.name)}),
-			...rows
+			...rows,
+			...(place ? StoryMode.tournamentsAt(place.key) : []).map(id => this.tournamentRow(id, from))
 		];
 	},
 
@@ -1122,6 +1288,84 @@ const StoryUI = {
 		return out;
 	},
 
+	// Entry screen, or the current round of a run in progress (one run at a time)
+	tournamentView(id) {
+		const tour = StoryMode.tournament(id);
+		const run = StoryMode.data.tournament;
+		const crowns = StoryMode.data.crowns;
+		const {deck, warning} = StoryMode.playerDeck();
+		const out = [
+			storyEl("button", {class: "btn-ghost story-back-link", text: "\u2039 " + t("Back"), onclick: () => this.back()}),
+			storyEl("div", {class: "story-opponent-head"},
+				this.trophy(tour, true),
+				storyEl("div", {},
+					storyEl("h2", {text: t(tour.name)}),
+					storyEl("p", {class: "story-kicker", text: t(campaign.places[tour.place]?.name ?? "") + " \u00b7 " + t("{n} rounds", {n: tour.rounds.length})}),
+					storyEl("p", {class: "story-dim", text: t("Single elimination: lose once and you're out. Each round is tougher than the last.")})))
+		];
+		const deckInfo = terms => [
+			storyEl("h3", {text: t("Your deck")}),
+			storyEl("p", {text: t(factions[deck.faction].name) + " \u00b7 " + t("{n} unit cards", {n: DeckMaker.countCards(deck.cards).units})}),
+			(warning || terms) && storyEl("p", {class: "story-warn", text: warning + terms})
+		];
+
+		if (run?.id === id) {
+			const opp = StoryMode.tournamentOpponent(run);
+			const terms = StoryMode.termsWarning(opp, deck.cards);
+			out.push(storyEl("ol", {class: "story-bracket"}, tour.rounds.map((r, i) => storyEl("li", {class: i < run.round ? "won" : i === run.round ? "current" : ""},
+				storyEl("span", {text: t("Round {n}", {n: i + 1})}),
+				storyEl("b", {text: i <= run.round ? t(StoryMode.tournamentOpponent(run, i).name) : "?"})))));
+			out.push(storyEl("h3", {text: t("Round {n} of {total}", {n: run.round + 1, total: tour.rounds.length})}),
+				storyEl("div", {class: "story-row story-row-static"}, this.portrait(opp),
+					storyEl("div", {}, storyEl("b", {text: t(opp.name)}), storyEl("small", {text: t(factions[opp.deck.faction].name)}))));
+			if (opp.modifiers.length)
+				out.push(storyEl("h3", {text: t("Special rules")}), storyEl("ul", {class: "story-list"}, opp.modifiers.map(m => storyEl("li", {text: StoryMode.modifierText(m)}))));
+			out.push(storyEl("p", {class: "story-dim", text: run.round + 1 < tour.rounds.length
+				? t("Win to earn {n} crowns and advance.", {n: tour.perRound})
+				: t("Win the final to earn {n} crowns and the grand prize.", {n: tour.perRound + tour.champion})}));
+			out.push(...this.wagerSection(), ...deckInfo(terms));
+			out.push(storyEl("div", {class: "story-buttons"},
+				storyEl("button", {class: "btn-gold", text: t("Play Round {n}", {n: run.round + 1}), disabled: !!(warning || terms), onclick: () => this.challengeTournament()}),
+				storyEl("button", {class: "btn-ghost", text: t("Edit Deck"), onclick: () => StoryMode.openDeck()}),
+				storyEl("button", {class: "btn-ghost", text: t("Withdraw"), onclick: async () => {
+					if (await ui.confirm(t("Withdraw from the tournament?"), t("Your entry fee is not refunded."), t("Withdraw"), t("Cancel"))) {
+						StoryMode.withdrawTournament();
+						this.render();
+					}
+				}})));
+			return out;
+		}
+
+		const prizes = tour.prizes.filter(i => !StoryMode.owned(i));
+		const busy = run && StoryMode.tournament(run.id);
+		out.push(storyEl("h3", {text: t("Prizes")}),
+			storyEl("ul", {class: "story-list"},
+				storyEl("li", {text: t("Entry fee: {n} crowns", {n: tour.fee})}),
+				storyEl("li", {text: t("{n} crowns for each round you win", {n: tour.perRound})}),
+				storyEl("li", {text: prizes.length ? t("Champion: {n} more crowns and a leader card", {n: tour.champion}) : t("Champion: {n} more crowns and a hero of your choice", {n: tour.champion})})),
+			prizes.length > 0 && storyEl("div", {class: "story-rewards"}, prizes.map(i => this.cardThumb(i))),
+			...deckInfo(""),
+			busy && storyEl("p", {class: "story-warn", text: t("Finish the {name} first.", {name: t(busy.name)})}),
+			!busy && crowns < tour.fee && storyEl("p", {class: "story-warn", text: t("You need {n} crowns to enter.", {n: tour.fee})}),
+			storyEl("div", {class: "story-buttons"},
+				storyEl("button", {class: "btn-gold", text: t("Enter \u00b7 {n} crowns", {n: tour.fee}), disabled: !!(busy || warning || crowns < tour.fee), onclick: () => {
+					if (StoryMode.enterTournament(id)) {
+						AudioManager.playSFX("ui_card_bank");
+						this.render();
+					}
+				}}),
+				storyEl("button", {class: "btn-ghost", text: t("Edit Deck"), onclick: () => StoryMode.openDeck()})));
+		return out;
+	},
+
+	async challengeTournament() {
+		const wager = this.wager;
+		this.wager = null;
+		this.hide();
+		if (!await StoryMode.startTournamentMatch(wager))
+			this.show();
+	},
+
 	wagerSection() {
 		const crowns = StoryMode.data.crowns;
 		const set = wager => {
@@ -1142,7 +1386,8 @@ const StoryUI = {
 					text: card !== undefined ? card_dict[card].name : t("A card\u2026"),
 					onclick: () => this.pickStake(stakeable)})),
 			storyEl("p", {class: "story-dim", text: this.wager?.crowns ? t("Win to double your stake; lose and it's gone.")
-				: card !== undefined ? t("Win to keep it and take a card from their deck; lose and it's gone.") : t("Stake crowns or a spare card on this rematch.")})
+				: card !== undefined ? t("Win to keep it and take a card from their deck; lose and it's gone.")
+				: this.view.kind === "tournament" ? t("Stake crowns or a spare card on this match.") : t("Stake crowns or a spare card on this rematch.")})
 		];
 	},
 
@@ -1244,8 +1489,8 @@ const StoryUI = {
 	},
 
 	showResult(result, opp) {
-		const labels = StoryMode.objectiveLabels(opp);
-		const progress = StoryMode.progressOf(result.id);
+		const run = result.tournament;
+		const tour = run && StoryMode.tournament(run.id);
 		const title = result.won ? t("Victory") : result.draw ? t("Draw") : t("Defeat");
 		const lines = [];
 		for (const c of result.cards.filter(c => !c.added))
@@ -1256,7 +1501,7 @@ const StoryUI = {
 			lines.push(storyEl("p", {class: "story-dim", text: result.wager.won ? t("Wager won: +{n} crowns", {n: result.wager.returned}) : result.draw ? t("Wager returned") : t("Wager lost: {n} crowns", {n: result.wager.crowns})}));
 		else if (result.wager?.card !== undefined)
 			lines.push(storyEl("p", {class: "story-dim", text: result.wager.kept ? t("You keep {name}.", {name: card_dict[result.wager.card].name}) : t("Wager lost: {name}", {name: card_dict[result.wager.card].name})}));
-		if (!result.won && !result.draw)
+		if (!result.won && !result.draw && !tour)
 			lines.push(storyEl("p", {class: "story-dim", text: t("Losing costs nothing. Adjust your deck and try again.")}));
 		const rewards = [
 			result.crowns > 0 && storyEl("figure", {class: "story-result-coin"},
@@ -1266,16 +1511,28 @@ const StoryUI = {
 				this.cardThumb(c.index),
 				storyEl("figcaption", {text: card_dict[c.index].name})))
 		].filter(Boolean);
-		const stars = storyEl("div", {class: "story-result-stars"}, labels.map((l, i) =>
-			storyEl("div", {class: [progress.stars[i] && "earned", result.starsNew?.[i] && "new"].filter(Boolean).join(" "), text: l})));
+		let stars;
+		if (tour) {
+			stars = storyEl("p", {class: "story-result-round" + (run.champion ? " champion" : ""), text: run.champion ? t("Champion of the {name}!", {name: t(tour.name)})
+				: run.eliminated ? t("Eliminated in round {n}.", {n: run.round})
+				: result.draw ? t("A draw: round {n} will be replayed.", {n: run.round})
+				: t("Round {n} of {total} won.", {n: run.round, total: run.rounds})});
+		} else {
+			const progress = StoryMode.progressOf(result.id);
+			stars = storyEl("div", {class: "story-result-stars"}, StoryMode.objectiveLabels(opp).map((l, i) =>
+				storyEl("div", {class: [progress.stars[i] && "earned", result.starsNew?.[i] && "new"].filter(Boolean).join(" "), text: l})));
+		}
 		const done = this.openModal(
-			storyEl("div", {class: "story-result-title" + (result.won ? "" : " lose")}, storyEl("h2", {text: title}), storyEl("p", {class: "story-kicker", text: t(opp.name)})),
+			storyEl("div", {class: "story-result-title" + (result.won ? "" : " lose")}, storyEl("h2", {text: title}),
+				storyEl("p", {class: "story-kicker", text: t(opp.name) + (tour ? " \u00b7 " + t(tour.name) : "")})),
 			stars,
 			rewards.length > 0 && storyEl("section", {class: "story-result-rewards"}, storyEl("h3", {text: t("Rewards")}), storyEl("div", {}, rewards)),
 			lines.length > 0 && storyEl("div", {class: "story-result-notes"}, lines),
 			this.closeButton(t("Continue")));
 		this.modalBox.classList.add("result");
 		stars.querySelectorAll(".new").forEach((s, i) => setTimeout(() => fx.burst(s, "gold"), 300 + i * 250));
+		if (run?.champion)
+			setTimeout(() => fx.burst(stars, "gold"), 300);
 		return done;
 	},
 

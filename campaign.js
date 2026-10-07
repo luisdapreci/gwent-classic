@@ -38,11 +38,12 @@ const campaign = {
 	},
 
 	// Fixed rewards of chapters not written yet: never offered as random rewards or in shops
-	reserved: [6, 16, 12, 47, 24, 39, 51, 25, 184, 197, 201, 183, 195, 0, 15, 72, 3, 93, 124, 94, 8, 95, 17, 18, 19, 14, 7, 60, 212],
+	reserved: [184, 197, 201, 183, 195, 0, 15, 72, 3, 93, 124, 94, 8, 95, 17, 18, 19, 14, 7, 60, 212],
 
 	// Locations shared by several opponents (one map pin opening a list)
 	places: {
-		crowsperch: {name: "Crow's Perch", x: 52, y: 56}
+		crowsperch: {name: "Crow's Perch", x: 52, y: 56},
+		novigrad: {name: "Novigrad", x: 49, y: 29}
 	},
 
 	// Crowns for a first win by chapter (bosses x2 the first time, rematches x0.5)
@@ -52,8 +53,28 @@ const campaign = {
 		{id: "vizima", name: "Vizima", bossAfter: 1, winCrowns: 20,
 			reveal: [{x: 90, y: 66, rx: 9, ry: 9}]},
 		{id: "velen", name: "Velen", bossAfter: 2, winCrowns: 30,
-			reveal: [{x: 62, y: 58, rx: 22, ry: 20}]}
+			reveal: [{x: 62, y: 58, rx: 22, ry: 20}]},
+		{id: "novigrad", name: "Novigrad & Oxenfurt", bossAfter: 3, winCrowns: 50,
+			reveal: [{x: 57, y: 31, rx: 15, ry: 13}]}
 	],
+
+	// Single-elimination runs against random opponents; each round sets the AI deck pool, play level and whether heroes are removed
+	tournaments: {
+		passiflora: {
+			name: "Passiflora Tournament", place: "novigrad", requires: "zoltan", fee: 20, perRound: 20, champion: 80,
+			prizes: [141, 139],
+			rounds: [{decks: "easy", level: "easy"}, {decks: "easy", level: "hard"}, {decks: "normal", level: "easy", noHeroes: true}],
+			entrants: ["Count Tybalt", "Sasha", "Finneas", "Vimme Vivaldi", "Marquise Serenity", "Elihal", "Eveline Gallo", "Stjepan"],
+			modifiers: [
+				null, null,
+				{id: "weather", card: 9, rounds: [1]},
+				{id: "weather", card: 11, rounds: [1]},
+				{id: "ambush", name: "Card Sharp"},
+				{id: "extraDraw", side: "both", name: "House Rules"},
+				{id: "informants", name: "Loaded Deck"}
+			]
+		}
+	},
 
 	opponents: {
 		// ---------- Prologue: White Orchard ----------
@@ -306,6 +327,119 @@ const campaign = {
 				],
 				win: [{who: "opp", en: "Clever wolf... Take our sisters' cards. They will serve you. For now.", es: "Lobo astuto... Toma las cartas de nuestras hermanas. Te servirán. Por ahora."}],
 				loss: [{who: "opp", en: "Back to the bog with you, little wolf!", es: "¡De vuelta al pantano, lobito!"}]
+			}
+		},
+
+		// ---------- Chapter III: Novigrad & Oxenfurt ----------
+		dandelion: {
+			chapter: "novigrad", name: "Dandelion", portrait: "neutral_dandelion", pin: {x: 49, y: 29}, place: "novigrad", level: "hard",
+			deck: {faction: "realms", leader: 22, cards: [
+				[6,1], [28,3], [30,3], [40,4], [42,1], [43,1], [53,1], [44,1], [50,1], [48,1],
+				[52,1], [46,1], [35,1], [36,1], [37,1], [54,1], [29,2], [31,1], [5,1], [1,1], [11,1]
+			]},
+			modifiers: [], objectives: ["hand3", "second"], rewards: [[6,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "I must be honest with you, dear reader: the next opponent was devilishly handsome, and modest besides.", es: "Debo ser honesto contigo, querido lector: el siguiente rival era endiabladamente apuesto y, además, modesto."},
+					{who: "opp", en: "Geralt! The Chameleon's grand opening needs a headline act. A friendly game, for the crowd?", es: "¡Geralt! La gran inauguración del Camaleón necesita un número principal. ¿Una partida amistosa, para el público?"},
+					{who: "geralt", en: "Friendly. With you.", es: "Amistosa. Contigo."},
+					{who: "opp", en: "I'm wounded. Deal the cards.", es: "Me hieres. Reparte las cartas."}
+				],
+				win: [
+					{who: "opp", en: "Bravo! Take my card. Every army needs a bard to sing of its victories.", es: "¡Bravo! Toma mi carta. Todo ejército necesita un bardo que cante sus victorias."},
+					{who: "narrator", en: "For the record, I let him win. The audience adored it.", es: "Que conste que lo dejé ganar. Al público le encantó."}
+				],
+				loss: [{who: "opp", en: "And the crowd goes wild! For me, naturally.", es: "¡Y el público enloquece! Por mí, naturalmente."}]
+			}
+		},
+		triss: {
+			chapter: "novigrad", name: "Triss Merigold", portrait: "neutral_triss", pin: {x: 49, y: 29}, place: "novigrad", level: "normal",
+			deck: {faction: "realms", leader: 22, cards: [
+				[12,1], [50,1], [48,1], [31,1], [32,1], [30,3], [28,3], [45,1], [54,1],
+				[55,1], [44,1], [53,1], [52,1], [46,1], [35,1], [36,1], [4,1], [5,1], [1,1]
+			]},
+			modifiers: [{id: "terms", rule: "noWeather", name: "Witch Hunters"}], objectives: ["sweep", "noLeader"], rewards: [[12,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "Novigrad burned sorceresses in those days. Triss Merigold was hiding in plain sight, and she wanted nothing on the table that smelled of magic.", es: "En aquellos días, Novigrad quemaba hechiceras. Triss Merigold se escondía a plena vista, y no quería en la mesa nada que oliera a magia."},
+					{who: "opp", en: "Geralt. Witch hunters are watching. No weather cards, please.", es: "Geralt. Los cazadores de brujas vigilan. Nada de cartas de clima, por favor."},
+					{who: "geralt", en: "And your own cards?", es: "¿Y tus propias cartas?"},
+					{who: "opp", en: "Mine are perfectly respectable. Mostly.", es: "Las mías son perfectamente respetables. Casi todas."}
+				],
+				win: [{who: "opp", en: "You haven't lost your touch. Keep my card, and think of me in Kovir.", es: "No has perdido el toque. Quédate con mi carta, y piensa en mí cuando esté en Kovir."}],
+				loss: [{who: "opp", en: "Careful, Geralt. People are watching.", es: "Cuidado, Geralt. La gente está mirando."}]
+			}
+		},
+		dijkstra: {
+			chapter: "novigrad", name: "Sigismund Dijkstra", portrait: "realms_dijkstra", pin: {x: 49, y: 29}, place: "novigrad", level: "normal",
+			deck: {faction: "realms", leader: 22, cards: [
+				[47,1], [42,1], [43,1], [28,2], [30,2], [54,1], [31,1], [32,1], [53,1], [35,1],
+				[44,1], [50,1], [10,1], [1,1], [2,1]
+			]},
+			modifiers: [{id: "informants", name: "Informants"}], objectives: ["margin20", "hand3"], rewards: [[47,1], [24,1]],
+			dialogue: {
+				intro: [
+					{who: "opp", en: "Witcher. Sit. My informants tell me everything, including what's in your hand.", es: "Brujo. Siéntate. Mis informantes me lo cuentan todo, incluso lo que tienes en la mano."},
+					{who: "geralt", en: "Then you know I'm about to win.", es: "Entonces sabes que estoy a punto de ganar."},
+					{who: "narrator", en: "His spies cost Geralt a card before the game began. Sigi never played fair, and he was proud of it.", es: "Sus espías le costaron a Geralt una carta antes de que empezara el juego. Sigi nunca jugó limpio, y estaba orgulloso de ello."}
+				],
+				win: [{who: "opp", en: "Hah! Fine. My card, and Foltest's old siege banner. Redania remembers its friends.", es: "¡Ja! Está bien. Mi carta, y el viejo estandarte de asedio de Foltest. Redania recuerda a sus amigos."}],
+				loss: [{who: "opp", en: "Information wins wars, witcher. And card games.", es: "La información gana guerras, brujo. Y partidas de cartas."}]
+			}
+		},
+		philippa: {
+			chapter: "novigrad", name: "Philippa Eilhart", portrait: "realms_philippa", pin: {x: 56, y: 25}, level: "normal",
+			deck: {faction: "realms", leader: 22, cards: [
+				[39,1], [48,1], [28,2], [30,2], [54,1], [32,1], [53,1], [36,1],
+				[1,1]
+			]},
+			modifiers: [{id: "informants", name: "Lodge Intrigue"}], objectives: ["noLeader", "sweep"], rewards: [[39,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "In Radovid's camp the Lodge of Sorceresses was plotting again. Philippa received Geralt with an owl's patience.", es: "En el campamento de Radovid, la Logia de Hechiceras volvía a conspirar. Philippa recibió a Geralt con la paciencia de un búho."},
+					{who: "opp", en: "The Lodge has eyes everywhere, witcher. You'll find your hand a little lighter.", es: "La Logia tiene ojos en todas partes, brujo. Notarás tu mano algo más ligera."},
+					{who: "geralt", en: "Figures.", es: "Era de esperar."}
+				],
+				win: [{who: "opp", en: "Impressive. Take my card. Consider it an investment.", es: "Impresionante. Toma mi carta. Considérala una inversión."}],
+				loss: [{who: "opp", en: "Predictable. Men usually are.", es: "Predecible. Los hombres suelen serlo."}]
+			}
+		},
+		roche: {
+			chapter: "novigrad", name: "Vernon Roche", portrait: "realms_vernon", pin: {x: 67, y: 38}, level: "hard",
+			deck: {faction: "realms", leader: 25, cards: [
+				[51,1], [28,3], [52,1], [46,1], [30,3], [40,4], [54,1], [32,1], [45,1],
+				[5,1], [1,1], [10,1], [2,1]
+			]},
+			modifiers: [{id: "ambush", name: "Partisans"}], objectives: ["margin20", "noWeather"], rewards: [[51,1], [25,1]],
+			dialogue: {
+				intro: [
+					{who: "opp", en: "Geralt. The Blue Stripes don't wait for permission. We strike first.", es: "Geralt. Las Rayas Azules no piden permiso. Atacamos primero."},
+					{who: "geralt", en: "Like old times.", es: "Como en los viejos tiempos."}
+				],
+				win: [{who: "opp", en: "For Temeria. Take my card, and the Steel-Forged king's. He'd want it in good hands.", es: "Por Temeria. Toma mi carta, y la del rey Forjado en Acero. Él la querría en buenas manos."}],
+				loss: [{who: "opp", en: "Temeria isn't dead yet. Neither is my deck.", es: "Temeria aún no ha muerto. Tampoco mi mazo."}]
+			}
+		},
+		zoltan: {
+			chapter: "novigrad", name: "Zoltan Chivay", portrait: "neutral_zoltan", pin: {x: 49, y: 29}, place: "novigrad", level: "hard", boss: true, unlocks: "scoiatael",
+			deck: {faction: "scoiatael", leader: 142, cards: [
+				[16,1], [151,1], [152,1], [153,1], [168,1], [169,1], [170,1], [171,1], [172,1], [146,1],
+				[145,1], [162,1], [163,1], [164,1], [159,1], [160,1], [176,1], [177,1], [178,1],
+				[179,1], [10,1], [5,1], [1,1], [2,1]
+			]},
+			modifiers: [], objectives: ["sweep", "margin20"], rewards: [[16,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "Every tale needs a dwarf, and ours had the best: Zoltan Chivay, who played gwent the way he fought, all axe and no apology.", es: "Toda historia necesita un enano, y la nuestra tenía al mejor: Zoltan Chivay, que jugaba al gwent como peleaba, todo hacha y ninguna disculpa."},
+					{who: "opp", en: "Geralt, you old bugger! A round for old times' sake? Loser buys the mead.", es: "¡Geralt, viejo granuja! ¿Una ronda por los viejos tiempos? El que pierda paga el hidromiel."},
+					{who: "geralt", en: "Mahakam deck?", es: "¿Mazo de Mahakam?"},
+					{who: "opp", en: "What else? Elves too, if they behave.", es: "¿Qué otro? Y elfos también, si se portan bien."}
+				],
+				win: [
+					{who: "opp", en: "Ha! Fair and square. The Scoia'tael cards are yours, and mine too. Now, about that mead...", es: "¡Ja! Limpio y justo. Las cartas de los Scoia'tael son tuyas, y la mía también. Ahora, sobre ese hidromiel..."},
+					{who: "narrator", en: "Word spread fast: the Passiflora was hosting a tournament, and they had saved a seat for a witcher.", es: "La noticia corrió rápido: el Passiflora organizaba un torneo, y habían guardado un asiento para un brujo."}
+				],
+				loss: [{who: "opp", en: "Mead's on you, witcher!", es: "¡El hidromiel lo pagas tú, brujo!"}]
 			}
 		}
 	}

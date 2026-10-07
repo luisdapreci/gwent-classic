@@ -250,7 +250,7 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
 **Phase 4: Tournaments** (*depends on 2–3*)
 
 15. Tournaments unlock after Novigrad (Passiflora), Skellige (Kaer Trolde) and post-game Toussaint (Beauclair). Each has an entry fee and 3–4 single-elimination rounds. The grand prizes are the leaders listed under Campaign → Tournaments.
-16. Opponents are a random NPC name and portrait for the region, a random deck from `ai_decks[level]`, and a random modifier. Difficulty rises each round: normal → hard → expert.
+16. Opponents are a random NPC name for the region (faction shield portrait), a random deck from `ai_decks[round.decks]` (optionally with heroes removed), and a random modifier from the tournament's list. Each round sets its own deck pool and AI level so difficulty rises.
 17. Prizes scale with how far you get, using the entry fees and payouts in the Rules and economy tournament table.
 18. The run is saved after every match, so reloading resumes it. Between rounds you can edit your deck.
 
@@ -293,7 +293,7 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
 1. **Map image licensing:** the TW3 world map is CD Projekt's art, like the card art, and the app is deployed publicly on Vercel.
 2. **Release stages:**
    - R1 (first implementation): every system (map, dialogue, pre-match panel, modifiers, objectives, rewards, wagers, shop, collection, stats, save export/import) plus the Prologue, Vizima and Velen content. This tests the whole loop and unlocks Nilfgaard and Monsters. Tournament code waits for R2.
-   - R2: Novigrad & Oxenfurt + Passiflora tournament.
+   - R2 (implemented): Novigrad & Oxenfurt + Passiflora tournament. Chapter III has `bossAfter: 3`; Dijkstra and Philippa run at Normal AI because the informants discard costs about 25% win rate. Passiflora rounds: easy decks/Easy AI → easy decks/Hard AI → normal decks without heroes/Easy AI (measured about 83% / 52% / 33%). Named modifiers (`name`, e.g. "Partisans") prefix the rule text.
    - R3: Skellige, Kaer Morhen and The Hunt.
    - R4: post-game.
 3. **Lore liberties:**

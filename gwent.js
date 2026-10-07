@@ -2033,6 +2033,7 @@ class Game {
 			StoryMode.onGameEnd(this.story);
 		this.mainMenu_elem.textContent = t(this.story ? "Continue" : "Main Menu");
 		this.newGame_elem.classList.toggle("hide", !!this.story);
+		this.rematch_elem.classList.toggle("hide", !!this.story?.tournament);
 		Online.onGameEnd();
 		
 		fadeIn(endScreen, 300);
