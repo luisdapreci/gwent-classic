@@ -137,8 +137,16 @@ body.title-open #toggle-music.deck-menu   { top: calc(var(--stage-y) + var(--tit
 body.title-open #toggle-sfx.deck-menu     { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 11.2 * var(--u)); }
 body.title-open #toggle-effects.deck-menu { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 14.4 * var(--u)); }
 body.title-open #open-guide.deck-menu     { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 17.6 * var(--u)); }
-body.title-open #title-install            { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 20.8 * var(--u)); }
+body.title-open #title-lang               { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 20.8 * var(--u)); }
+body.title-open #title-install            { top: calc(var(--stage-y) + var(--title-toggles-top) * var(--u)); left: calc(var(--stage-x) + 24 * var(--u)); }
+body:not(.title-open) #title-lang,
 body:not(.title-open) #title-install, #title-install.hide { display: none; }
+#title-lang > span {
+	color: var(--gold-1);
+	font: 700 max(calc(0.8 * var(--u)), 10px)/1 var(--font-display);
+	letter-spacing: 0.04em;
+	text-shadow: 0 0 2px black;
+}
 
 /* small (phone) stages: finger-sized buttons, spaced by their own size */
 @media (max-width: 999px), (max-height: 562px) {
@@ -166,12 +174,14 @@ body:not(.title-open) #title-install, #title-install.hide { display: none; }
 	body.title-open #toggle-sfx.deck-menu,
 	body.title-open #toggle-effects.deck-menu,
 	body.title-open #open-guide.deck-menu,
+	body.title-open #title-lang,
 	body.title-open #title-install { top: calc(var(--stage-y) + 2 * var(--u)); }
 	body.title-open #toggle-music.deck-menu   { left: calc(var(--stage-x) + 8 * var(--u)); }
 	body.title-open #toggle-sfx.deck-menu     { left: calc(var(--stage-x) + 8 * var(--u) + 32px); }
 	body.title-open #toggle-effects.deck-menu { left: calc(var(--stage-x) + 8 * var(--u) + 64px); }
 	body.title-open #open-guide.deck-menu     { left: calc(var(--stage-x) + 8 * var(--u) + 96px); }
-	body.title-open #title-install            { left: calc(var(--stage-x) + 8 * var(--u) + 128px); }
+	body.title-open #title-lang               { left: calc(var(--stage-x) + 8 * var(--u) + 128px); }
+	body.title-open #title-install            { left: calc(var(--stage-x) + 8 * var(--u) + 160px); }
 }
 
 /* ---------- tooltip ---------- */

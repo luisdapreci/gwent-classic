@@ -58,6 +58,7 @@
 	background-repeat: no-repeat;
 	animation: fade-up .5s var(--ease-out);
 }
+:lang(es) #deck-customization h1 { text-transform: none; }
 
 #faction-description {
 	position: absolute;

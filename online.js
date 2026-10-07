@@ -17,12 +17,12 @@ const REPLAY_SPEED = 0.02;
 const TIMER_CHOICES = [0, 30, 60, 90];
 const INPUT_KINDS = ["turn", "redraw", "medic", "pick", "discard", "row", "first"];
 const WAIT_TEXT = {
-	redraw: "is redrawing cards…",
-	medic: "is choosing a unit to revive…",
-	pick: "is choosing a card…",
-	discard: "is choosing cards to discard…",
-	row: "is choosing a row…",
-	first: "is deciding who goes first…"
+	redraw: "{name} is redrawing cards…",
+	medic: "{name} is choosing a unit to revive…",
+	pick: "{name} is choosing a card…",
+	discard: "{name} is choosing cards to discard…",
+	row: "{name} is choosing a row…",
+	first: "{name} is deciding who goes first…"
 };
 const SESSION_KEY = "gc-online-session";
 
@@ -52,7 +52,7 @@ function cleanRules(rules) {
 }
 
 function rulesText(rules) {
-	return rules.length ? "Rules: " + rules.map(r => DeckMaker.RULES[r].label).join(", ") : "Standard deck rules";
+	return rules.length ? t("Rules: {rules}", {rules: rules.map(r => t(DeckMaker.RULES[r].label)).join(", ")}) : t("Standard deck rules");
 }
 
 const Online = {
@@ -141,7 +141,7 @@ const Online = {
 		if (entry.r && --this.replayLeft === 0)
 			this.setReplaying(false);
 		if (entry.k !== kind) {
-			this.fail("Expected " + kind + " from " + this.players()[seat].name + " but received " + entry.k + ".");
+			this.fail(t("Expected {kind} from {name} but received {got}.", {kind, name: this.players()[seat].name, got: entry.k}));
 			return undefined;
 		}
 		return entry.d;
@@ -203,7 +203,7 @@ const Online = {
 	// Plays a turn action received from the network (or the replay log), rejecting anything the UI wouldn't allow
 	async applyTurn(player, d) {
 		if (!d || typeof d !== "object")
-			return this.fail("Invalid move from " + player.name + ".");
+			return this.fail(t("Invalid move from {name}.", {name: player.name}));
 		const card = player.hand.cards.find(c => c.uid === d.c);
 		switch (d.a) {
 			case "pass":
@@ -233,7 +233,7 @@ const Online = {
 				]));
 			}
 		}
-		this.fail("Invalid move from " + player.name + ".");
+		this.fail(t("Invalid move from {name}.", {name: player.name}));
 	},
 
 	// ui.queueCarousel for a player's card choice: shown locally and sent, or replayed from the opponent's picks
@@ -246,11 +246,11 @@ const Online = {
 			if (session !== game.session)
 				return;
 			if (!Array.isArray(uids) || uids.length > count)
-				return this.fail("Invalid choice from " + player.name + ".");
+				return this.fail(t("Invalid choice from {name}.", {name: player.name}));
 			for (const uid of uids) {
 				const i = container.cards.findIndex(c => c.uid === uid);
 				if (i < 0 || (predicate && !predicate(container.cards[i])))
-					return this.fail("Invalid choice from " + player.name + ".");
+					return this.fail(t("Invalid choice from {name}.", {name: player.name}));
 				await action(container, i);
 				if (session !== game.session)
 					return;
@@ -281,7 +281,7 @@ const Online = {
 				return null;
 			const row = this.decodeRow(code);
 			if (!legal.includes(row)) {
-				this.fail("Invalid row from " + player.name + ".");
+				this.fail(t("Invalid row from {name}.", {name: player.name}));
 				return null;
 			}
 			return row;
@@ -302,7 +302,7 @@ const Online = {
 		if (this.scripted(player)) {
 			const d = await this.waitFor(player, kind);
 			if (!valid(d)) {
-				this.fail("Invalid choice from " + player.name + ".");
+				this.fail(t("Invalid choice from {name}.", {name: player.name}));
 				return undefined;
 			}
 			return d;
@@ -354,7 +354,7 @@ const Online = {
 		if (this.sums[n] === this.peerSums[n])
 			this.strikes = 0;
 		else if (++this.strikes >= 2)
-			this.fail("The two games went out of sync.");
+			this.fail(t("The two games went out of sync."));
 		else
 			console.warn("Online state mismatch at turn " + n, this.stateText());
 		delete this.sums[n];
@@ -384,7 +384,7 @@ const Online = {
 	async beginMatch(start, log) {
 		const decks = await Promise.all(start.decks.map(d => dm.loadDeck(d, true, true)));
 		if (decks.includes(null) || decks.some(d => DeckMaker.onlineRuleWarnings(d.cards, start.rules)))
-			return this.fail("A deck in the match is invalid.");
+			return this.fail(t("A deck in the match is invalid."));
 		this.active = true;
 		this.start = start;
 		this.log = [log?.[0] ?? [], log?.[1] ?? []];
@@ -412,7 +412,7 @@ const Online = {
 		ui.carousels = [];
 		game.reset();
 		game.endScreen.classList.add("hide");
-		game.rematch_elem.textContent = "Rematch";
+		game.rematch_elem.textContent = t("Rematch");
 		player_me = new Player(0, start.names[this.seat], deckFor(this.seat), true, {seat: this.seat, rng: seededRandom(start.seed + "/" + this.seat)});
 		player_op = new Player(1, start.names[op], deckFor(op), false, {seat: op, remote: true, rng: seededRandom(start.seed + "/" + op)});
 		if (!titleScreen.classList.contains("hide"))
@@ -439,9 +439,9 @@ const Online = {
 		this.showWaiting(null);
 		// The opponent's client may have finished first and already answered
 		if (this.opponentInBuilder)
-			this.endNote(this.opponentName + " went back to choose decks.");
+			this.endNote(t("{name} went back to choose decks.", {name: this.opponentName}));
 		else if (this.rematch.op)
-			game.rematch_elem.textContent = "Accept Rematch";
+			game.rematch_elem.textContent = t("Accept Rematch");
 	},
 
 	endNote(msg) {
@@ -457,7 +457,7 @@ const Online = {
 			return;
 		console.error("Online match error:", msg);
 		this.send({t: "error", msg: "desync"});
-		this.abort("Match ended", msg);
+		this.abort(t("Match ended"), msg);
 	},
 
 	abort(title, msg) {
@@ -488,19 +488,19 @@ const Online = {
 		} else if (wasConnected) {
 			this.leave();
 			game.returnToMainMenu();
-			ui.alert("Opponent left", msg);
+			ui.alert(t("Opponent left"), msg);
 		}
 	},
 
 	requestRematch() {
 		if (!this.connected)
-			return ui.alert("Opponent left", this.opponentName + " is no longer in the room.");
+			return ui.alert(t("Opponent left"), t("{name} is no longer in the room.", {name: this.opponentName}));
 		if (this.opponentInBuilder)
 			return this.toBuilder();
 		if (this.rematch.me)
 			return;
 		this.rematch.me = true;
-		game.rematch_elem.textContent = "Waiting…";
+		game.rematch_elem.textContent = t("Waiting…");
 		this.send({t: "rematch"});
 		this.checkRematch();
 	},
@@ -512,7 +512,7 @@ const Online = {
 
 	requestNewGame() {
 		if (!this.connected)
-			return ui.alert("Opponent left", this.opponentName + " is no longer in the room.");
+			return ui.alert(t("Opponent left"), t("{name} is no longer in the room.", {name: this.opponentName}));
 		this.send({t: "newgame"});
 		this.toBuilder();
 	},
@@ -553,14 +553,14 @@ const Online = {
 	},
 
 	updatePanel() {
-		const timer = this.timerSetting ? this.timerSetting + "s turn timer" : "No turn timer";
-		document.getElementById("online-room").textContent = "Room " + this.code + " · " + timer;
+		const timer = this.timerSetting ? t("{secs}s turn timer", {secs: this.timerSetting}) : t("No turn timer");
+		document.getElementById("online-room").textContent = t("Room {code} · {timer}", {code: this.code, timer});
 		document.getElementById("online-rules").textContent = rulesText(this.rulesSetting);
-		document.getElementById("online-opponent").textContent = !this.connected ? "Opponent disconnected"
-			: this.opponentName + (this.opponentReady ? " is ready" : " is choosing a deck");
+		document.getElementById("online-opponent").textContent = !this.connected ? t("Opponent disconnected")
+			: t(this.opponentReady ? "{name} is ready" : "{name} is choosing a deck", {name: this.opponentName});
 		document.getElementById("online-opponent").classList.toggle("ready", this.connected && this.opponentReady);
 		const start = document.getElementById("start-game");
-		start.textContent = !this.connected ? "Start game" : this.ready ? "Cancel Ready" : "Ready";
+		start.textContent = t(!this.connected ? "Start game" : this.ready ? "Cancel Ready" : "Ready");
 		start.classList.toggle("waiting", this.connected && this.ready);
 	},
 
@@ -573,7 +573,7 @@ const Online = {
 		const p1 = dm.playerDeck("p1");
 		const warning = DeckMaker.ruleWarnings(p1.units, p1.special) + DeckMaker.onlineRuleWarnings(p1.deck.cards, this.rulesSetting);
 		if (warning)
-			return ui.alert("Invalid deck", warning);
+			return ui.alert(t("Invalid deck"), warning);
 		AudioManager.playSFX("ui_card_bank");
 		this.ready = true;
 		this.myDeck = {faction: p1.deck.faction, leader: card_dict.indexOf(p1.deck.leader), cards: p1.deck.cards.map(c => [c.index, c.count])};
@@ -594,7 +594,7 @@ const Online = {
 			this.ready = this.opponentReady = false;
 			this.send({t: "ready", deck: null, reset: true});
 			this.updatePanel();
-			return ui.alert("Invalid deck", "One of the decks breaks the deck rules. Both players need to ready up again.");
+			return ui.alert(t("Invalid deck"), t("One of the decks breaks the deck rules. Both players need to ready up again."));
 		}
 		const start = {
 			id: randomId(8),
@@ -679,7 +679,7 @@ const Online = {
 	showWaiting(player, kind) {
 		const elem = document.getElementById("online-wait");
 		const text = player && WAIT_TEXT[kind];
-		elem.textContent = text ? player.name + " " + text : "";
+		elem.textContent = text ? t(text, {name: player.name}) : "";
 		elem.classList.toggle("hide", !text);
 	},
 
@@ -689,17 +689,17 @@ const Online = {
 		elem.classList.toggle("hide", !mode);
 		elem.dataset.mode = mode ?? "";
 		if (mode === "resume") {
-			document.getElementById("online-curtain-title").textContent = "Resuming match";
-			document.getElementById("online-curtain-desc").textContent = "Catching up with " + (this.opponentName || "your opponent") + "…";
+			document.getElementById("online-curtain-title").textContent = t("Resuming match");
+			document.getElementById("online-curtain-desc").textContent = t("Catching up with {name}…", {name: this.opponentName || t("your opponent")});
 		} else if (mode === "reconnect") {
-			document.getElementById("online-curtain-title").textContent = "Connection lost";
+			document.getElementById("online-curtain-title").textContent = t("Connection lost");
 			this.updateReconnectText();
 		}
 	},
 
 	updateReconnectText() {
 		const left = Math.max(0, Math.ceil((GRACE_MS - (Date.now() - this.dropAt)) / 1000));
-		document.getElementById("online-curtain-desc").textContent = "Reconnecting to " + (this.opponentName || "your opponent") + "… " + left + "s";
+		document.getElementById("online-curtain-desc").textContent = t("Reconnecting to {name}… {secs}s", {name: this.opponentName || t("your opponent"), secs: left});
 	},
 
 	// ================= connection =================
@@ -711,7 +711,7 @@ const Online = {
 			const script = document.createElement("script");
 			script.src = "lib/peerjs.min.js";
 			script.onload = resolve;
-			script.onerror = () => reject(new Error("Couldn't load the networking library. Check your internet connection."));
+			script.onerror = () => reject(new Error(t("Couldn't load the networking library. Check your internet connection.")));
 			document.head.appendChild(script);
 		});
 	},
@@ -765,7 +765,7 @@ const Online = {
 		peer.on("disconnected", () => setTimeout(() => this.reconnectBroker(), 1000));
 		peer.on("open", () => {
 			if (this.peer === peer && this.role === "host" && !this.connected)
-				Lobby.status("Waiting for an opponent to join…");
+				Lobby.status(t("Waiting for an opponent to join…"));
 		});
 		peer.on("error", err => this.onPeerError(err));
 	},
@@ -778,11 +778,11 @@ const Online = {
 
 	peerErrorText(err) {
 		switch (err?.type) {
-			case "browser-incompatible": return "This browser doesn't support online play.";
-			case "peer-unavailable": return "Room not found. Check the code and try again.";
+			case "browser-incompatible": return t("This browser doesn't support online play.");
+			case "peer-unavailable": return t("Room not found. Check the code and try again.");
 			case "network": case "server-error": case "socket-error": case "socket-closed":
-				return "Can't reach the matchmaking server. Check your internet connection.";
-			default: return err?.message || "Connection failed.";
+				return t("Can't reach the matchmaking server. Check your internet connection.");
+			default: return err?.message || t("Connection failed.");
 		}
 	},
 
@@ -793,7 +793,7 @@ const Online = {
 		// Mobile OSes cut the broker socket when the app is backgrounded (e.g. to share the invite); keep the room
 		const transient = ["network", "server-error", "socket-error", "socket-closed", "disconnected"].includes(err?.type);
 		if (!this.connected && transient && this.role === "host" && this.peer && !this.peer.destroyed) {
-			Lobby.status("Reconnecting to the server…");
+			Lobby.status(t("Reconnecting to the server…"));
 			setTimeout(() => this.reconnectBroker(), 2000);
 			return;
 		}
@@ -837,7 +837,7 @@ const Online = {
 		this.joinTimer = setTimeout(() => {
 			if (this.connected)
 				return;
-			Lobby.status("Couldn't connect to room " + code + ". Check the code and try again.", true);
+			Lobby.status(t("Couldn't connect to room {code}. Check the code and try again.", {code}), true);
 			Lobby.setBusy(false);
 			this.closePeer();
 		}, 15000);
@@ -948,7 +948,7 @@ const Online = {
 		Lobby.close();
 		AudioManager.playSFX("menu_opening");
 		this.enterBuilder();
-		ui.announce("Connected to " + this.opponentName);
+		ui.announce(t("Connected to {name}", {name: this.opponentName}));
 	},
 
 	onData(conn, m) {
@@ -963,7 +963,7 @@ const Online = {
 			case "welcome":
 				if (this.role !== "guest" || this.connected)
 					return;
-				this.opponentName = cleanName(m.name) || "Opponent";
+				this.opponentName = cleanName(m.name) || t("Opponent");
 				this.token = String(m.token ?? "").slice(0, 64);
 				this.timerSetting = TIMER_CHOICES.includes(m.timer) ? m.timer : 0;
 				this.rulesSetting = cleanRules(m.rules);
@@ -1004,8 +1004,8 @@ const Online = {
 					return;
 				this.rematch.op = true;
 				if (game.state === GameState.END_SCREEN && !this.rematch.me) {
-					game.rematch_elem.textContent = "Accept Rematch";
-					ui.announce(this.opponentName + " wants a rematch");
+					game.rematch_elem.textContent = t("Accept Rematch");
+					ui.announce(t("{name} wants a rematch", {name: this.opponentName}));
 				}
 				return this.checkRematch();
 			case "newgame":
@@ -1016,26 +1016,26 @@ const Online = {
 					this.toBuilder();
 				return;
 			case "forfeit":
-				return this.opponentLeft(this.opponentName + " left the match.");
+				return this.opponentLeft(t("{name} left the match.", {name: this.opponentName}));
 			case "bye":
-				return this.opponentLeft(this.opponentName + " left the room.");
+				return this.opponentLeft(t("{name} left the room.", {name: this.opponentName}));
 			case "error":
 				if (!this.active)
 					return;
-				return this.abort("Match ended", "The two games went out of sync.");
+				return this.abort(t("Match ended"), t("The two games went out of sync."));
 		}
 	},
 
 	onRejected(reason) {
 		clearTimeout(this.joinTimer);
-		const text = {
+		const text = t({
 			full: "That room already has two players.",
 			version: "Your opponent is on a different version of the game. Both players should refresh the page.",
 			token: "That match can no longer be resumed.",
 			name: "Enter a name first."
-		}[reason] ?? "The host refused the connection.";
+		}[reason] ?? "The host refused the connection.");
 		if (this.dropTimer)
-			return this.abort("Can't reconnect", text);
+			return this.abort(t("Can't reconnect"), text);
 		Lobby.status(text, true);
 		Lobby.setBusy(false);
 		this.closePeer();
@@ -1051,7 +1051,7 @@ const Online = {
 		if (m.n > log.length)
 			return this.send({t: "resend", from: log.length});
 		if (log.length >= MAX_LOG)
-			return this.fail("Too many moves.");
+			return this.fail(t("Too many moves."));
 		const entry = {k: m.k, d: m.d};
 		log.push(entry);
 		this.pending[seat].push(entry);
@@ -1126,8 +1126,8 @@ const Online = {
 		this.curtain(null);
 		this.resumeTimers();
 		if (!navigator.onLine || !this.peer || this.peer.disconnected)
-			return this.abort("Connection lost", "Couldn't reconnect to " + this.opponentName + ". The match has ended.");
-		this.opponentLeft(this.opponentName + " disconnected.");
+			return this.abort(t("Connection lost"), t("Couldn't reconnect to {name}. The match has ended.", {name: this.opponentName}));
+		this.opponentLeft(t("{name} disconnected.", {name: this.opponentName}));
 	},
 
 	// Closes the link to the opponent but keeps this device's view (e.g. the end screen)
@@ -1181,9 +1181,9 @@ const Online = {
 		DeckMaker.onlineRules = [];
 		document.body.classList.remove("online");
 		dm.updateStats();
-		document.getElementById("start-game").textContent = "Start game";
+		document.getElementById("start-game").textContent = t("Start game");
 		document.getElementById("start-game").classList.remove("waiting");
-		game.rematch_elem.textContent = "Rematch";
+		game.rematch_elem.textContent = t("Rematch");
 	},
 
 	// After a page reload: rejoin the room saved for this tab
@@ -1225,7 +1225,7 @@ const Online = {
 				}
 			}
 		} catch (err) {
-			this.abort("Can't reconnect", this.peerErrorText(err));
+			this.abort(t("Can't reconnect"), this.peerErrorText(err));
 		}
 	}
 };
@@ -1245,8 +1245,8 @@ const Lobby = {
 		this.ruleButtons = Object.entries(DeckMaker.RULES).map(([id, rule]) => {
 			const b = document.createElement("button");
 			b.dataset.rule = id;
-			b.textContent = rule.label;
-			b.title = rule.desc;
+			b.textContent = t(rule.label);
+			b.title = t(rule.desc);
 			b.addEventListener("click", () => this.toggleRule(id));
 			box.appendChild(b);
 			return b;
@@ -1314,7 +1314,7 @@ const Lobby = {
 	readName() {
 		const name = cleanName(this.nameInput.value);
 		if (!name) {
-			this.status("Enter a name first.", true);
+			this.status(t("Enter a name first."), true);
 			this.nameInput.focus();
 			return null;
 		}
@@ -1328,7 +1328,7 @@ const Lobby = {
 		if (!this.readName())
 			return;
 		this.setBusy(true);
-		this.status("Creating room…");
+		this.status(t("Creating room…"));
 		Online.timerSetting = Number(Settings.onlineTimer.get());
 		Online.rulesSetting = this.savedRules();
 		try {
@@ -1342,7 +1342,7 @@ const Lobby = {
 		document.getElementById("lobby-choose").classList.add("hide");
 		document.getElementById("lobby-room").classList.remove("hide");
 		document.getElementById("lobby-room-code").textContent = Online.code;
-		this.status("Waiting for an opponent to join…");
+		this.status(t("Waiting for an opponent to join…"));
 		document.getElementById("lobby-copy-link").focus();
 	},
 
@@ -1352,12 +1352,12 @@ const Lobby = {
 		const code = this.codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
 		this.codeInput.value = code;
 		if (code.length !== CODE_LENGTH || [...code].some(c => !CODE_CHARS.includes(c))) {
-			this.status("Enter the " + CODE_LENGTH + "-character room code.", true);
+			this.status(t("Enter the {n}-character room code.", {n: CODE_LENGTH}), true);
 			this.codeInput.focus();
 			return;
 		}
 		this.setBusy(true);
-		this.status("Connecting to room " + code + "…");
+		this.status(t("Connecting to room {code}…", {code}));
 		try {
 			await Online.join(code);
 		} catch (err) {
@@ -1370,21 +1370,21 @@ const Lobby = {
 	async share() {
 		const url = location.origin + location.pathname + "?room=" + Online.code;
 		if (!navigator.share)
-			return this.copy(url, "Invite link");
+			return this.copy(url, t("Invite link"));
 		try {
-			await navigator.share({title: "Gwent", text: "Join my Gwent match! Room code: " + Online.code, url: url});
+			await navigator.share({title: "Gwent", text: t("Join my Gwent match! Room code: {code}", {code: Online.code}), url: url});
 		} catch (err) {
 			if (err?.name !== "AbortError")
-				this.copy(url, "Invite link");
+				this.copy(url, t("Invite link"));
 		}
 	},
 
 	async copy(text, what) {
 		try {
 			await navigator.clipboard.writeText(text);
-			this.status(what + " copied. Waiting for an opponent to join…");
+			this.status(t("{what} copied. Waiting for an opponent to join…", {what}));
 		} catch (err) {
-			this.status("Copy failed. " + what + ": " + text, true);
+			this.status(t("Copy failed. {what}: {text}", {what, text}), true);
 		}
 	}
 };
@@ -1396,7 +1396,7 @@ document.getElementById("title-online").addEventListener("click", () => {
 document.getElementById("lobby-host").addEventListener("click", () => Lobby.host());
 document.getElementById("lobby-join").addEventListener("click", () => Lobby.join());
 document.getElementById("lobby-cancel").addEventListener("click", () => Lobby.cancel());
-document.getElementById("lobby-copy-code").addEventListener("click", () => Lobby.copy(Online.code, "Room code"));
+document.getElementById("lobby-copy-code").addEventListener("click", () => Lobby.copy(Online.code, t("Room code")));
 document.getElementById("lobby-copy-link").addEventListener("click", () => Lobby.share());
 DeckMaker.bindRadioGroup(Lobby.timerButtons, b => Lobby.setTimer(b.dataset.timer));
 Lobby.codeInput.addEventListener("input", () => Lobby.codeInput.value = Lobby.codeInput.value.toUpperCase());

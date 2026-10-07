@@ -1,5 +1,5 @@
 // Bump to drop old caches after changing asset files in place.
-const VERSION = "gwent-v13";
+const VERSION = "gwent-v14";
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 
@@ -7,6 +7,7 @@ const SHELL_FILES = [
 	"./",
 	"index.html",
 	"manifest.webmanifest",
+	"i18n.js",
 	"common.js",
 	"cards.js",
 	"decks.js",

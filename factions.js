@@ -47,10 +47,10 @@ var factions = {
 				const hotseat = game.isHotseat();
 				const first = await Online.choice(player, "first", async () => {
 					let goFirst = false;
-					await ui.popup("Go First", () => goFirst = true,
-						hotseat ? "Let " + player.opponent().name + " Start" : "Let Opponent Start", null,
-						hotseat ? player.name + ", would you like to go first?" : "Would you like to go first?",
-						"The Scoia'tael faction perk allows you to decide who will get to go first.", 0.55);
+					await ui.popup(t("Go First"), () => goFirst = true,
+						hotseat ? t("Let {name} Start", {name: player.opponent().name}) : t("Let Opponent Start"), null,
+						hotseat ? t("{name}, would you like to go first?", {name: player.name}) : t("Would you like to go first?"),
+						t("The Scoia'tael faction perk allows you to decide who will get to go first."), 0.55);
 					return goFirst;
 				}, d => typeof d === "boolean");
 				game.firstPlayer = first ? player : player.opponent();

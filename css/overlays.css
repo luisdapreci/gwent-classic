@@ -135,6 +135,22 @@
 	line-height: 1.25;
 }
 
+:lang(es) #notif-me-first::after, :lang(es) #notif-me-coin::after { content: "Empiezas tú"; }
+:lang(es) #notif-op-first::after, :lang(es) #notif-op-coin::after { content: "Empieza tu oponente"; }
+:lang(es) #notif-round-start::after { content: "Inicio de ronda"; }
+:lang(es) #notif-me-pass::after { content: "Pasaste la ronda"; }
+:lang(es) #notif-op-pass::after { content: "Tu oponente pasó"; }
+:lang(es) #notif-win-round::after { content: "¡Ganaste la ronda!"; }
+:lang(es) #notif-lose-round::after { content: "Tu oponente ganó la ronda"; }
+:lang(es) #notif-draw-round::after { content: "La ronda terminó en empate"; }
+:lang(es) #notif-me-turn::after { content: "¡Tu turno!"; }
+:lang(es) #notif-op-turn::after { content: "Turno del oponente"; }
+:lang(es) #notif-north::after { content: "Habilidad de facción de los Reinos del Norte: el Norte roba una carta adicional."; }
+:lang(es) #notif-monsters::after { content: "Habilidad de facción de los Monstruos: una unidad elegida al azar permanece en el tablero."; }
+:lang(es) #notif-scoiatael::after { content: "El oponente usó la ventaja de facción Scoia'tael para empezar."; }
+:lang(es) #notif-skellige-op::after { content: "¡Se activó la habilidad Skellige del oponente!"; }
+:lang(es) #notif-skellige-me::after { content: "¡Se activó la habilidad Skellige!"; }
+
 /* pass and play names the player instead of "you"/"opponent" */
 #notification-bar > div[data-caption]::after { content: attr(data-caption); }
 
@@ -192,6 +208,8 @@
 	letter-spacing: 0.08em;
 	text-transform: capitalize;
 }
+/* Spanish names are already sentence case ("Habilidad de líder", not "Habilidad De Líder") */
+:lang(es) .card-description > h1 { text-transform: none; }
 
 .card-description > p {
 	grid-column: 2;

@@ -625,14 +625,14 @@ class Player {
 		this.leader = new Card(deck.leader, this);
 		this.leader.uid = this.seat + "-L";
 		this.elem_leader = document.getElementById("leader-" + this.tag);
-		makeAccessible(this.elem_leader, id === 0 && !human ? "Your leader" : human ? name + "'s leader" : "Opponent's leader");
+		makeAccessible(this.elem_leader, id === 0 && !human ? t("Your leader") : human ? t("{name}'s leader", {name}) : t("Opponent's leader"));
 		this.elem_leader.children[0].replaceChildren( this.leader.elem );
 
 		this.reset();
 		
 		document.getElementById("name-" + this.tag).textContent = name;
 		
-		document.getElementById("deck-name-" +this.tag).innerHTML = factions[deck.faction].name;
+		document.getElementById("deck-name-" +this.tag).innerHTML = t(factions[deck.faction].name);
 		document.getElementById("stats-" + this.tag).getElementsByClassName("profile-img")[0].children[0].children[0];
 		let x = document.querySelector("#stats-" +this.tag+ " .profile-img > div > div");
 		x.style.backgroundImage = iconURL("deck_shield_" + deck.faction);
@@ -700,7 +700,7 @@ class Player {
 	// Sets up board for turn
 	async startTurn(){
 		const stats = document.getElementById("stats-" + this.tag);
-		stats.dataset.turn = ui.playerCaption("turn", this) ?? (this.tag === "me" ? "Your turn" : "Opponent's turn");
+		stats.dataset.turn = ui.playerCaption("turn", this) ?? t(this.tag === "me" ? "Your turn" : "Opponent's turn");
 		stats.classList.add("current-turn");
 		this.elem_leader.children[1].classList.toggle("hide", !this.canActivateLeader());
 		
@@ -812,7 +812,7 @@ class Player {
 		this.elem_leader.children[1].classList.add("hide");
 		this.elem_leader.addEventListener("click", async () => await ui.viewCard(this.leader), false);
 		this.elem_leader.addEventListener('mouseenter', CLICK_EVENT_SFX);
-		this.elem_leader.children[0].setAttribute('data-title', "View leader");
+		this.elem_leader.children[0].setAttribute('data-title', t("View leader"));
 	}
 	
 	// Enable access to leader ability and toggles leader visuals to on state
@@ -1188,9 +1188,15 @@ class Row extends CardContainer {
 		this.elem_special?.addEventListener("click", () => ui.selectRow(this), false, true);
 		if (elem) {
 			const side = elem.parentElement.id === "field-op" ? "Opponent's" : "Your";
-			makeAccessible(this.elem, side + " " + this.type + " row");
-			makeAccessible(this.elem_special, side + " " + this.type + " row special slot");
+			const row = Row.typeName(this.type);
+			makeAccessible(this.elem, t(side + " {row} row", {row}));
+			makeAccessible(this.elem_special, t(side + " {row} row special slot", {row}));
 		}
+	}
+	
+	// Row type as used in labels ("close combat", "ranged", "siege")
+	static typeName(type) {
+		return t(type === "close" ? "close combat" : type);
 	}
 	
 	// Returns a copy of the row
@@ -1438,7 +1444,7 @@ class Weather extends CardContainer {
 			this.types[key].rows = [board.row[i], board.row[5-i++]];
 		
 		this.elem.addEventListener("click",() => ui.selectRow(this), false);
-		makeAccessible(this.elem, "Weather");
+		makeAccessible(this.elem, t("Weather"));
 	}
 	
 	// Adds a card if unique and clears all weather if 'clear weather' card added
@@ -1520,9 +1526,11 @@ class Board {
 	labelRows(){
 		const hotseat = game.isHotseat();
 		this.row.forEach((r, i) => {
-			const side = i < 3 ? (hotseat || player_op.isRemote() ? player_op.name + "'s" : "Opponent's") : (hotseat ? player_me.name + "'s" : "Your");
-			r.elem.setAttribute("aria-label", side + " " + r.type + " row");
-			r.elem_special.setAttribute("aria-label", side + " " + r.type + " row special slot");
+			const named = i < 3 ? (hotseat || player_op.isRemote()) && player_op : hotseat && player_me;
+			const side = named ? "{name}'s" : i < 3 ? "Opponent's" : "Your";
+			const vars = {name: named?.name, row: Row.typeName(r.type)};
+			r.elem.setAttribute("aria-label", t(side + " {row} row", vars));
+			r.elem_special.setAttribute("aria-label", t(side + " {row} row special slot", vars));
 		});
 	}
 	
@@ -1775,11 +1783,11 @@ class Game {
 				player.controller.redraw();
 		const redraw = async player => {
 			if (hotseat)
-				await ui.handoff(player, "Choose up to 2 cards from your starting hand to redraw.");
+				await ui.handoff(player, t("Choose up to 2 cards from your starting hand to redraw."));
 			await Online.carousel(player, "redraw", player.hand, 2, async (c, i) => { 
 				AudioManager.playSFX('redraw');
 				await player.deck.swap(c, c.cards[i]);
-			}, c => true, false, true, (hotseat ? player.name + ": c" : "C") + "hoose up to 2 cards to redraw.", "skip redrawing");
+			}, c => true, false, true, hotseat ? t("{name}: choose up to 2 cards to redraw.", {name: player.name}) : t("Choose up to 2 cards to redraw."), "skip redrawing");
 			player.hand.sort?.();
 			if (hotseat)
 				ui.showHand(null);
@@ -1837,7 +1845,7 @@ class Game {
 			if (ui.handViewer === this.currPlayer)
 				ui.showHand(this.currPlayer);
 			else
-				await ui.handoff(this.currPlayer, "It's your turn.");
+				await ui.handoff(this.currPlayer, t("It's your turn."));
 		}
 		if (session !== this.session)
 			return;
@@ -1962,22 +1970,22 @@ class Game {
 		if (draw) {
 			AudioManager.playSFX("game_lose");
 			endScreen.children[0].classList.add("end-draw");
-			ui.announce("The game ended in a draw");
+			ui.announce(t("The game ended in a draw"));
 		} else if (this.isHotseat()) {
 			const winner = player_op.health === 0 ? player_me : player_op;
 			AudioManager.playSFX("game_win");
 			endScreen.children[0].classList.add("end-win");
-			winnerElem.textContent = winner.name + " wins!";
+			winnerElem.textContent = t("{name} wins!", {name: winner.name});
 			winnerElem.classList.remove("hide");
-			ui.announce(winner.name + " won the game!");
+			ui.announce(t("{name} won the game!", {name: winner.name}));
 		} else if (player_op.health === 0){
 			AudioManager.playSFX("game_win");
 			endScreen.children[0].classList.add("end-win");
-			ui.announce("You won the game!");
+			ui.announce(t("You won the game!"));
 		} else {
 			AudioManager.playSFX("game_lose");
 			endScreen.children[0].classList.add("end-lose");
-			ui.announce("You lost the game");
+			ui.announce(t("You lost the game"));
 		}
 		if (note) {
 			winnerElem.textContent = note;
@@ -1996,14 +2004,14 @@ class Game {
 		AudioManager.playSFX('warning');
 		if (Online.active)
 			return ui.popup(
-				"Resume", ()=>{},
-				"Leave", ()=>Online.forfeit(),
-				"Leave the match?", "You will forfeit and your opponent wins."
+				t("Resume"), ()=>{},
+				t("Leave"), ()=>Online.forfeit(),
+				t("Leave the match?"), t("You will forfeit and your opponent wins.")
 			);
 		ui.popup(
-			"Resume", ()=>{},
-			"Exit", ()=>this.returnToMainMenu(),
-			"Quit current game?" , "This will return you to the main menu."
+			t("Resume"), ()=>{},
+			t("Exit"), ()=>this.returnToMainMenu(),
+			t("Quit current game?"), t("This will return you to the main menu.")
 		); 
 	}
 	
@@ -2109,13 +2117,14 @@ class Card {
 			this.desc_name = "hero";
 		else
 			this.desc_name = "";
+		this.desc_name = t(this.desc_name);
 		
-		this.desc = this.row ==="agile" ? ability_dict["agile"].description : "";
+		this.desc = this.row ==="agile" ? t(ability_dict["agile"].description) : "";
 		for (let i=descAbilities.length-1; i>=0; --i) {
-			this.desc += ability_dict[descAbilities[i]].description ?? "";
+			this.desc += t(ability_dict[descAbilities[i]].description) ?? "";
 		}
 		if (this.hero)
-			this.desc += ability_dict["hero"].description;
+			this.desc += t(ability_dict["hero"].description);
 		
 		this.elem = this.createCardElem(this);
 	}
@@ -2394,7 +2403,7 @@ class UI {
 			'#exit-game', '#pass-button', '#grave-me', '#grave-op', '.settings-button',
 			'#change-faction', '#card-leader > div', '#carousel .card-lg'
 		].forEach(selector => document.querySelectorAll(selector).forEach(e => makeAccessible(e, e.dataset.title || e.textContent.trim())));
-		document.querySelector('#card-leader > div').setAttribute("aria-label", "Choose leader");
+		document.querySelector('#card-leader > div').setAttribute("aria-label", t("Choose leader"));
 	}
 	
 	// Reads out a message to screen readers
@@ -2424,7 +2433,7 @@ class UI {
 		document.getElementById("handoff-name").textContent = player.name;
 		document.getElementById("handoff-desc").textContent = message;
 		this.handoff_elem.classList.remove("hide");
-		this.announce("Pass the device to " + player.name + ". " + message);
+		this.announce(t("Pass the device to") + " " + player.name + ". " + message);
 		document.getElementById("handoff-ready").focus();
 		await new Promise(resolve => this.handoffResolve = resolve);
 		this.handoff_elem.classList.add("hide");
@@ -2695,7 +2704,7 @@ class UI {
 	async notification(name, duration, caption, art){
 		if (Online.replaying)
 			return;
-		this.announce(caption ?? UI.notificationText[name]);
+		this.announce(caption ?? t(UI.notificationText[name]));
 		if (!Settings.notifications.isEnabled())
 			return;
 		if (!duration)
@@ -2722,15 +2731,15 @@ class UI {
 	playerCaption(kind, player){
 		if (!game.isHotseat() && !player.isRemote())
 			return undefined;
-		const name = player.name;
-		return {
-			coin: name + " will go first",
-			first: name + " will go first",
-			turn: name + "'s turn",
-			pass: name + " has passed",
-			win: name + " won the round!",
-			skellige: name + "'s Skellige ability triggered!"
+		const text = {
+			coin: "{name} will go first",
+			first: "{name} will go first",
+			turn: "{name}'s turn",
+			pass: "{name} has passed",
+			win: "{name} won the round!",
+			skellige: "{name}'s Skellige ability triggered!"
 		}[kind];
+		return text && t(text, {name: player.name});
 	}
 	
 	// Shows the "me-"/"op-" variant of a banner for the player, named in pass and play
@@ -2738,11 +2747,11 @@ class UI {
 		await this.notification(player.tag + "-" + kind, duration, this.playerCaption(kind, player));
 	}
 	
-	// "Your", "Opponent's" or the player's name where "you" would be ambiguous
-	possessive(player){
+	// "Your leader", "Opponent's leader" or the player's name where "you" would be ambiguous
+	leaderOwner(player){
 		if (game.isHotseat() || player.isRemote())
-			return player.name + "'s";
-		return player === player_me ? "Your" : "Opponent's";
+			return t("{name}'s leader", {name: player.name});
+		return t(player === player_me ? "Your leader" : "Opponent's leader");
 	}
 	
 	// Announces leader abilities that work without being activated, which would otherwise go unnoticed
@@ -2752,8 +2761,8 @@ class UI {
 		const passive = whiteFlame.length ? whiteFlame : players.filter(p => p.leader.activated.length === 0);
 		for (const p of passive) {
 			const ability = ability_dict[p.leader.abilities[0]];
-			const text = whiteFlame.length ? "White Flame cancels all Leader Abilities." : ability.description;
-			await this.notification("leader", 3000, this.possessive(p) + " leader: " + text, smallURL(p.leader.faction + "_" + p.leader.filename));
+			const text = t(whiteFlame.length ? "White Flame cancels all Leader Abilities." : ability.description);
+			await this.notification("leader", 3000, this.leaderOwner(p) + ": " + text, smallURL(p.leader.faction + "_" + p.leader.filename));
 		}
 	}
 	
@@ -2824,11 +2833,11 @@ class UI {
 	// In-game replacement for window.alert
 	async alert(title, description) {
 		AudioManager.playSFX("warning");
-		await this.popup("OK", null, null, null, title, description);
+		await this.popup(t("OK"), null, null, null, title, description);
 	}
 	
 	// In-game replacement for window.confirm. Resolves true if the first option is chosen.
-	async confirm(title, description, yesName = "Continue", noName = "Cancel") {
+	async confirm(title, description, yesName = t("Continue"), noName = t("Cancel")) {
 		AudioManager.playSFX("warning");
 		let accepted = false;
 		await this.popup(yesName, () => accepted = true, noName, null, title, description);
@@ -3013,7 +3022,8 @@ class Carousel {
 		}
 		if (this.bExit) {
 			const touch = matchMedia("(pointer: coarse)").matches;
-			this.hint_elem.textContent = (touch ? "Tap anywhere outside the cards to " : "Click outside the cards or press Esc to ") + this.hint;
+			const hint = touch ? "Tap anywhere outside the cards to {action}" : "Click outside the cards or press Esc to {action}";
+			this.hint_elem.textContent = t(hint, {action: t(this.hint)});
 		}
 		this.hint_elem.classList.toggle("hide", !this.bExit);
 		AudioManager.playSFX('open');
@@ -3234,8 +3244,8 @@ class Popup {
 		main.children[0].textContent = header ? header : "";
 		main.children[1].textContent = description ? description : "";
 		this.buttons = [...main.children[2].children];
-		this.buttons[0].textContent = (yesName) ? yesName : "Yes";
-		this.buttons[1].textContent = (noName) ? noName : "No";
+		this.buttons[0].textContent = (yesName) ? yesName : t("Yes");
+		this.buttons[1].textContent = (noName) ? noName : t("No");
 		this.buttons[1].classList.toggle("hide", noName === null);
 
 		const bgColor = new RGBA(10, 10, 10, alpha);
@@ -3374,7 +3384,7 @@ class DeckMaker {
 	}
 	
 	static opponentName() {
-		return ControllerAI.difficulty().label + " AI";
+		return t("{level} AI", {level: t(ControllerAI.difficulty().label)});
 	}
 	
 	static isHotseatMode() {
@@ -3424,7 +3434,7 @@ class DeckMaker {
 	
 	updateDeckTitle() {
 		const title = !DeckMaker.isHotseatMode() ? "Cards in Deck" : this.owner === "p2" ? "Player 2's Deck" : "Player 1's Deck";
-		document.getElementById("card-deck-title").textContent = title;
+		document.getElementById("card-deck-title").textContent = t(title);
 	}
 
 	loadFactionDeck(faction, force = false)
@@ -3456,9 +3466,9 @@ class DeckMaker {
 			return;
 		if (!force && this.faction === faction_name)
 			return false;
-		this.elem.getElementsByTagName("h1")[0].innerHTML = factions[faction_name].name;
+		this.elem.getElementsByTagName("h1")[0].innerHTML = t(factions[faction_name].name);
 		this.elem.getElementsByTagName("h1")[0].style.backgroundImage = iconURL("deck_shield_" + faction_name);
-		document.getElementById("faction-description").innerHTML = factions[faction_name].description;
+		document.getElementById("faction-description").innerHTML = t(factions[faction_name].description);
 		
 		this.leaders = 
 			card_dict.map((c,i) => ({index: i, card:c}) )
@@ -3647,7 +3657,7 @@ class DeckMaker {
 	selectFaction() {
 		let container = new CardContainer();
 		container.cards = Object.keys(factions).map( f => {
-			return {abilities: [f], filename: f, desc_name: factions[f].name, desc: factions[f].description, faction: "faction"};
+			return {abilities: [f], filename: f, desc_name: t(factions[f].name), desc: t(factions[f].description), faction: "faction"};
 		});
 		let index = container.cards.reduce((a,c,i) => c.filename === this.faction ? i : a, 0);
 		ui.queueCarousel(container, 1, (c,i) => {
@@ -3706,15 +3716,15 @@ class DeckMaker {
 		const hotseat = DeckMaker.isHotseatMode();
 		const p1 = this.playerDeck("p1");
 		const p2 = hotseat ? this.playerDeck("p2") : null;
-		const warning = [["Player 1", p1], ["Player 2", p2]]
+		const warning = [[t("Player 1"), p1], [t("Player 2"), p2]]
 			.filter(([, d]) => d && DeckMaker.ruleWarnings(d.units, d.special))
-			.map(([name, d]) => (hotseat ? name + "'s deck:\n" : "") + DeckMaker.ruleWarnings(d.units, d.special))
+			.map(([name, d]) => (hotseat ? t("{name}'s deck:", {name}) + "\n" : "") + DeckMaker.ruleWarnings(d.units, d.special))
 			.join("\n") || DeckMaker.limitWarnings(p1);
 		if (warning)
-			return ui.alert("Invalid deck", warning);
+			return ui.alert(t("Invalid deck"), warning);
 		
-		player_me = new Player(0, "Player 1", p1.deck);
-		player_op = hotseat ? new Player(1, "Player 2", p2.deck, true) : new Player(1, DeckMaker.opponentName(), this.constructOpponentDeck());
+		player_me = new Player(0, t("Player 1"), p1.deck);
+		player_op = hotseat ? new Player(1, t("Player 2"), p2.deck, true) : new Player(1, DeckMaker.opponentName(), this.constructOpponentDeck());
 		
 		this.elem.classList.add("hide");
 		game.startGame();
@@ -3765,9 +3775,9 @@ class DeckMaker {
 			return "";
 		let warning = "";
 		if (limits.strength && stats.strength > limits.strength)
-			warning += label + " allows at most " + limits.strength + " total unit strength (deck has " + stats.strength + ").\n";
+			warning += t("{label} allows at most {max} total unit strength (deck has {n}).", {label: t(label), max: limits.strength, n: stats.strength}) + "\n";
 		if (limits.hero && stats.hero > limits.hero)
-			warning += label + " allows at most " + limits.hero + " hero cards (deck has " + stats.hero + ").\n";
+			warning += t("{label} allows at most {max} hero cards (deck has {n}).", {label: t(label), max: limits.hero, n: stats.hero}) + "\n";
 		return warning;
 	}
 
@@ -3778,7 +3788,7 @@ class DeckMaker {
 			const rule = DeckMaker.RULES[id];
 			const names = new Set(cards.filter(c => c.count > 0 && rule?.ban?.(card_dict[c.index])).map(c => card_dict[c.index].name));
 			if (names.size)
-				warning += rule.label + ": remove " + [...names].join(", ") + ".\n";
+				warning += t("{rule}: remove {cards}.", {rule: t(rule.label), cards: [...names].join(", ")}) + "\n";
 		}
 		if (rules.includes("expert"))
 			warning += DeckMaker.limitWarnings(DeckMaker.countCards(cards), ControllerAI.difficulties.expert.deckLimits, DeckMaker.RULES.expert.label);
@@ -3797,9 +3807,9 @@ class DeckMaker {
 	static ruleWarnings(units, special){
 		let warning = "";
 		if (units < 22)
-			warning += "The deck must have at least 22 unit cards (has " + units + ").\n";
+			warning += t("The deck must have at least 22 unit cards (has {n}).", {n: units}) + "\n";
 		if (special > 10)
-			warning += "The deck must have no more than 10 special cards (has " + special + ").\n";
+			warning += t("The deck must have no more than 10 special cards (has {n}).", {n: special}) + "\n";
 		return warning;
 	}
 
@@ -4598,7 +4608,7 @@ function openTitleScreen(sfx = true) {
 }
 document.getElementById("deck-back").addEventListener("click", async () => {
 	// Stay first (gold), Leave second (red), matching the in-game exit popups
-	if (Online.connected && await ui.confirm("Leave the room?", "You will be disconnected from " + Online.opponentName + ".", "Stay", "Leave"))
+	if (Online.connected && await ui.confirm(t("Leave the room?"), t("You will be disconnected from {name}.", {name: Online.opponentName}), t("Stay"), t("Leave")))
 		return;
 	Online.leave();
 	openTitleScreen();
@@ -4627,8 +4637,8 @@ window.addEventListener("appinstalled", () => {
 installButton.addEventListener("click", () => {
 	if (!installPrompt)
 		return isIOS
-			? ui.alert("Install Gwent", "Tap the Share button in Safari, then choose \"Add to Home Screen\".")
-			: ui.alert("Install Gwent", "Open the browser menu (⋮) and choose \"Install app\".");
+			? ui.alert(t("Install Gwent"), t("Tap the Share button in Safari, then choose \"Add to Home Screen\"."))
+			: ui.alert(t("Install Gwent"), t("Open the browser menu (⋮) and choose \"Install app\"."));
 	const prompt = installPrompt;
 	// A prompt can only be shown once; the browser fires a fresh beforeinstallprompt if it is dismissed.
 	installPrompt = null;
@@ -4670,7 +4680,7 @@ const guide = {
 		});
 		document.getElementById("guide-count").textContent = (this.index + 1) + " / " + this.pages.length;
 		document.getElementById("guide-prev").disabled = this.index === 0;
-		document.getElementById("guide-next").innerHTML = this.index === this.pages.length - 1 ? "Done" : "Next &rsaquo;";
+		document.getElementById("guide-next").innerHTML = this.index === this.pages.length - 1 ? t("Done") : t("Next") + " &rsaquo;";
 		this.elem.querySelector(".guide-pages").scrollTop = 0;
 	}
 };
@@ -4722,7 +4732,7 @@ function lockLandscape(e) {
 	if (!matchMedia("(pointer: coarse)").matches || !screen.orientation?.lock)
 		return document.removeEventListener("click", lockLandscape, true);
 	// requestFullscreen consumes the tap's user activation, which the install prompt and share sheet need.
-	if (e.target.closest?.("#title-install, #lobby-copy-link"))
+	if (e.target.closest?.("#title-install, #title-lang, #lobby-copy-link"))
 		return;
 	const app = matchMedia("(display-mode: standalone)").matches;
 	if (landscapeTried && !matchMedia("(orientation: portrait)").matches && !(app && !document.fullscreenElement))

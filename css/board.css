@@ -302,6 +302,7 @@
 	/* the 10px floor yields to 1.25u so "Nilfgaardian Empire" always fits the plate */
 	font-size: max(calc(0.9 * var(--u)), min(var(--fs-xs), calc(1.25 * var(--u))));
 }
+:lang(es) .deck-name { text-transform: none; }
 #deck-name-me { top: 80%; }
 
 .passed {
