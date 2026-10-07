@@ -342,6 +342,12 @@
 	border-image: var(--hairline) 1;
 	text-shadow: 0 0 calc(0.8 * var(--u)) rgba(232, 182, 84, 0.4);
 }
+/* leader status banner (passive / cancelled / used) */
+#carousel > [data-status="blocked"] {
+	color: #ff8a78;
+	text-shadow: 0 0 calc(0.8 * var(--u)) rgba(216, 57, 43, 0.5);
+}
+#carousel > :is([data-status="used"], [data-status="unavailable"]) { color: var(--text); }
 
 #carousel-hint {
 	position: absolute;

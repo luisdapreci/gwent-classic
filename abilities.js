@@ -167,6 +167,9 @@ var ability_dict = {
 				return;
 			let wrapper = {card : null};
 			if (game.randomRespawn) {
+				const invader = [player_me, player_op].find(p => p.leader.abilities[0] === "emhyr_invader");
+				if (invader)
+					await ui.notification("leader", 2200, ui.leaderOwner(invader) + ": " + t("Invader of the North picks the restored unit at random."), smallURL(invader.leader.faction + "_" + invader.leader.filename));
 				const cards = grave.findCardsRandom(c => c.isUnit(), 1, card.holder.rng);
 				if (cards.length > 0)
 					wrapper.card = cards[0];

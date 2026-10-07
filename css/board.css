@@ -100,6 +100,33 @@
 	animation: leader-ready 2.4s ease-in-out infinite;
 }
 
+/* passive / cancelled leader badge, on the box so a faded leader doesn't fade it too */
+.leader-box[data-badge]::before {
+	content: attr(data-badge);
+	position: absolute;
+	left: 31.5%;
+	bottom: calc(-0.55 * var(--u));
+	translate: -50% 0;
+	z-index: 2;
+	padding: calc(0.05 * var(--u)) calc(0.55 * var(--u)) calc(0.1 * var(--u));
+	font-family: var(--font-caps);
+	font-size: max(calc(0.8 * var(--u)), var(--fs-xs));
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	white-space: nowrap;
+	color: var(--gold-1);
+	background: linear-gradient(180deg, rgba(30, 24, 16, 0.97), rgba(12, 10, 7, 0.97));
+	border: 1px solid var(--gold-line);
+	border-radius: calc(0.2 * var(--u));
+	box-shadow: 0 calc(0.15 * var(--u)) calc(0.5 * var(--u)) rgba(0, 0, 0, 0.8);
+	pointer-events: none;
+}
+.leader-box[data-status="blocked"]::before {
+	color: #ffd6cf;
+	background: linear-gradient(180deg, rgba(120, 28, 20, 0.97), rgba(60, 12, 8, 0.97));
+	border-color: var(--debuff);
+}
+
 #leader-op { top: 7.55%; }
 #leader-me { top: 77.5%; }
 #leader-op .leader-container::after,

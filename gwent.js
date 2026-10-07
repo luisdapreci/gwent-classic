@@ -650,6 +650,7 @@ class Player {
 		this.passed = false;
 		this.handsize = 10;
 		this.winning = false;
+		this.leaderBlockedBy = null;
 	
 		this.enableLeader();
 		this.setPassed(false);
@@ -787,6 +788,32 @@ class Player {
 		return this.leaderAvailable && (!canActivate || !!canActivate(this.leader));
 	}
 	
+	// Why the leader can't be activated (badge only for match-long states), or null while it can
+	leaderStatus() {
+		if (this.leaderBlockedBy)
+			return {kind: "blocked", badge: t("Cancelled"), text: t("Cancelled by {name} for the whole match.", {name: this.leaderBlockedBy.name})};
+		if (this.leader.activated.length === 0)
+			return {kind: "passive", badge: t("Passive"), text: t("Passive ability: always in effect, nothing to activate.")};
+		if (!this.leaderAvailable)
+			return {kind: "used", text: t("Already used this match.")};
+		if (!this.canActivateLeader())
+			return {kind: "unavailable", text: t("Can't be used right now: it would have no effect.")};
+		return null;
+	}
+	
+	// Marks passive and cancelled leaders on the board
+	showLeaderBadge() {
+		const status = this.leaderStatus();
+		if (status?.badge) {
+			this.elem_leader.dataset.badge = status.badge;
+			this.elem_leader.dataset.status = status.kind;
+		} else {
+			delete this.elem_leader.dataset.badge;
+			delete this.elem_leader.dataset.status;
+		}
+		this.elem_leader.children[0].setAttribute('data-title', status?.badge ? status.text : t("View leader"));
+	}
+	
 	// Use a leader's Activate ability, then disable the leader
 	async activateLeader() {
 		const session = game.session;
@@ -812,7 +839,7 @@ class Player {
 		this.elem_leader.children[1].classList.add("hide");
 		this.elem_leader.addEventListener("click", async () => await ui.viewCard(this.leader), false);
 		this.elem_leader.addEventListener('mouseenter', CLICK_EVENT_SFX);
-		this.elem_leader.children[0].setAttribute('data-title', t("View leader"));
+		this.showLeaderBadge();
 	}
 	
 	// Enable access to leader ability and toggles leader visuals to on state
@@ -837,6 +864,7 @@ class Player {
 			this.elem_leader.addEventListener("click", async () => await ui.viewCard(this.leader), false);
 		}
 		this.elem_leader.addEventListener('mouseenter', CLICK_EVENT_SFX);
+		this.showLeaderBadge();
 	}
 	
 }
@@ -1681,9 +1709,12 @@ class Game {
 	initPlayers(p1, p2){
 		let l1 = ability_dict[p1.leader.abilities[0]];
 		let l2 = ability_dict[p2.leader.abilities[0]];
-		if (l1 === ability_dict["emhyr_whiteflame"] || l2 === ability_dict["emhyr_whiteflame"]){
-			p1.disableLeader();
-			p2.disableLeader();
+		const whiteFlames = [p1, p2].filter(p => p.leader.abilities[0] === "emhyr_whiteflame");
+		if (whiteFlames.length) {
+			for (const p of whiteFlames) {
+				p.opponent().leaderBlockedBy = p.leader;
+				p.opponent().disableLeader();
+			}
 		} else {
 			initLeader(p1, l1);
 			initLeader(p2, l2);
@@ -2761,9 +2792,18 @@ class UI {
 		const passive = whiteFlame.length ? whiteFlame : players.filter(p => p.leader.activated.length === 0);
 		for (const p of passive) {
 			const ability = ability_dict[p.leader.abilities[0]];
-			const text = t(whiteFlame.length ? "White Flame cancels all Leader Abilities." : ability.description);
+			const text = t(whiteFlame.length ? "White Flame cancels the opposing Leader Ability for the whole match." : ability.description);
 			await this.notification("leader", 3000, this.leaderOwner(p) + ": " + text, smallURL(p.leader.faction + "_" + p.leader.filename));
 		}
+	}
+	
+	// Why a viewed leader can't be activated; "no effect" stays private as it hints at deck/hand contents
+	leaderStatusOf(card) {
+		const holder = card?.holder;
+		if (card?.row !== "leader" || !game.isPlaying() || holder?.leader !== card)
+			return null;
+		const status = holder.leaderStatus();
+		return status?.kind !== "unavailable" || holder.isHuman() && game.currPlayer === holder ? status : null;
 	}
 	
 	// Displays a cancellable Carousel for a single card 
@@ -3014,8 +3054,10 @@ class Carousel {
 		this.update();
 		Carousel.setCurrent(this);
 		
-		if (this.title) {
-			this.title_elem.textContent = this.title;
+		const status = this.title ? null : ui.leaderStatusOf(this.container.cards[this.indices[this.index]]);
+		this.title_elem.dataset.status = status?.kind ?? "";
+		if (this.title || status) {
+			this.title_elem.textContent = this.title || status.text;
 			this.title_elem.classList.remove("hide");
 		} else {
 			this.title_elem.classList.add("hide");
