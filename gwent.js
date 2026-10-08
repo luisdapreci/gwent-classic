@@ -789,11 +789,14 @@ class Player {
 	}
 	
 	// Why the leader can't be activated (badge only for match-long states), or null while it can
-	leaderStatus() {
+	// badgeOnly skips the turn-state checks (canActivate may read an opponent that doesn't exist yet)
+	leaderStatus(badgeOnly = false) {
 		if (this.leaderBlockedBy)
 			return {kind: "blocked", badge: t("Cancelled"), text: t("Cancelled by {name} for the whole match.", {name: this.leaderBlockedBy.name})};
 		if (this.leader.activated.length === 0)
 			return {kind: "passive", badge: t("Passive"), text: t("Passive ability: always in effect, nothing to activate.")};
+		if (badgeOnly)
+			return null;
 		if (!this.leaderAvailable)
 			return {kind: "used", text: t("Already used this match.")};
 		if (!this.canActivateLeader())
@@ -803,7 +806,7 @@ class Player {
 	
 	// Marks passive and cancelled leaders on the board
 	showLeaderBadge() {
-		const status = this.leaderStatus();
+		const status = this.leaderStatus(true);
 		if (status?.badge) {
 			this.elem_leader.dataset.badge = status.badge;
 			this.elem_leader.dataset.status = status.kind;
