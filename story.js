@@ -19,6 +19,11 @@ const StoryMode = {
 		this.save.set(this.data);
 	},
 
+	// Picks the current language from a campaign {en, es} text
+	text(obj) {
+		return obj ? Lang.current === "es" ? obj.es : obj.en : "";
+	},
+
 	// Loads the save, starting a new one if there is none; an invalid save is backed up before being replaced
 	init() {
 		const raw = this.save.get();
@@ -35,7 +40,7 @@ const StoryMode = {
 	newSave() {
 		const save = {
 			version: this.VERSION, crowns: 0, collection: {}, decks: {}, activeFaction: "realms", unlockedFactions: [],
-			progress: {}, pending: [], matches: 0, last: null, shop: null, tournament: null,
+			progress: {}, pending: [], matches: 0, last: null, shop: null, tournament: null, seenChapters: [],
 			stats: {wins: 0, losses: 0, streak: 0, bestStreak: 0, crownsEarned: 0, tournamentsWon: 0}
 		};
 		this.unlockFaction("realms", save);
@@ -739,6 +744,25 @@ const StoryMode = {
 		StoryUI.show();
 		await this.resolvePending();
 		StoryUI.render();
+		await this.playOpeners();
+	},
+
+	// Tells each newly opened chapter's opener once, in campaign order
+	async playOpeners() {
+		if (this.openersPlaying)
+			return;
+		this.openersPlaying = true;
+		try {
+			for (const chapter of campaign.chapters) {
+				if (!StoryUI.isOpen() || !this.isChapterOpen(chapter.id) || this.data.seenChapters.includes(chapter.id))
+					continue;
+				await StoryUI.chapterOpener(chapter);
+				this.data.seenChapters.push(chapter.id);
+				this.commit();
+			}
+		} finally {
+			this.openersPlaying = false;
+		}
 	},
 
 	// ---------- deck builder ----------
@@ -827,6 +851,10 @@ const StoryMode = {
 				return null;
 			save.progress[id] = {wins: p.wins, losses: p.losses, stars: p.stars.map(s => s === true), seen: p.seen === true};
 		}
+		// Saves from before chapter openers count every chapter already played in as seen
+		save.seenChapters = Array.isArray(raw.seenChapters)
+			? campaign.chapters.map(c => c.id).filter(id => raw.seenChapters.includes(id))
+			: campaign.chapters.filter(c => this.chapterOpponents(c.id).some(id => save.progress[id]?.wins > 0)).map(c => c.id);
 		save.last = campaign.opponents[raw.last] ? raw.last : null;
 		const stock = raw.shop?.stock;
 		save.shop = Array.isArray(stock) && isCount(raw.shop.refreshAt) && stock.length <= this.SHOP_SIZE && stock.every(i => Number.isInteger(i) && card_dict[i] && card_dict[i].row !== "leader")
@@ -911,6 +939,7 @@ const StoryUI = {
 				this.closeModal();
 				this.view = {kind: "journal"};
 				this.render();
+				StoryMode.playOpeners();
 			}
 		});
 		this.modal.addEventListener("click", e => e.target === this.modal && this.closeModal());
@@ -1251,9 +1280,27 @@ const StoryUI = {
 			storyEl("button", {class: "btn-ghost story-back-link", text: "\u2039 " + t("Journal"), onclick: () => { this.view = {kind: "journal"}; this.render(); }}),
 			storyEl("h2", {text: t(place ? place.name : chapter.name)}),
 			place && storyEl("p", {class: "story-kicker", text: t(chapter.name)}),
+			!place && this.epigraph(chapter),
 			...rows,
-			...(place ? StoryMode.tournamentsAt(place.key) : []).map(id => this.tournamentRow(id, from))
+			...(place ? StoryMode.tournamentsAt(place.key) : []).map(id => this.tournamentRow(id, from)),
+			...this.rumor(chapter),
+			!place && StoryMode.data.seenChapters.includes(chapter.id) && storyEl("div", {class: "story-buttons"},
+				storyEl("button", {class: "btn-ghost", text: t("Replay Story"), onclick: () => this.chapterOpener(chapter)}))
 		];
+	},
+
+	epigraph(chapter) {
+		const e = chapter.epigraph;
+		return e && storyEl("blockquote", {class: "story-epigraph"},
+			storyEl("p", {text: StoryMode.text(e)}),
+			storyEl("cite", {text: "\u2014 " + StoryMode.text(e.source)}));
+	},
+
+	// One tavern rumor about the chapter, drawn anew on each render
+	rumor(chapter) {
+		const rumors = chapter.rumors ?? [];
+		return rumors.length ? [storyEl("h3", {text: t("Rumors")}),
+			storyEl("p", {class: "story-rumor", text: StoryMode.text(rumors[Math.floor(Math.random() * rumors.length)])})] : [];
 	},
 
 	opponentView(id) {
@@ -1274,7 +1321,8 @@ const StoryUI = {
 					storyEl("p", {class: "story-kicker", text: this.levelText(opp)}),
 					opp.boss && storyEl("p", {class: "story-dim", text: t("Chapter boss")}),
 					beaten && storyEl("p", {class: "story-dim", text: t("Won {w} \u00b7 Lost {l}", {w: progress.wins, l: progress.losses})}),
-					reason && storyEl("p", {class: "story-warn", text: reason})))
+					reason && storyEl("p", {class: "story-warn", text: reason}))),
+			opp.rumor && storyEl("p", {class: "story-rumor", text: StoryMode.text(opp.rumor)})
 		];
 		if (opp.modifiers.length)
 			out.push(storyEl("h3", {text: t("Special rules")}), storyEl("ul", {class: "story-list"}, opp.modifiers.map(m => storyEl("li", {text: StoryMode.modifierText(m)}))));
@@ -1311,7 +1359,8 @@ const StoryUI = {
 				storyEl("div", {},
 					storyEl("h2", {text: t(tour.name)}),
 					storyEl("p", {class: "story-kicker", text: t(campaign.places[tour.place]?.name ?? "") + " \u00b7 " + t("{n} rounds", {n: tour.rounds.length})}),
-					storyEl("p", {class: "story-dim", text: t("Single elimination: lose once and you're out. Each round is tougher than the last.")})))
+					storyEl("p", {class: "story-dim", text: t("Single elimination: lose once and you're out. Each round is tougher than the last.")}))),
+			tour.rumor && storyEl("p", {class: "story-rumor", text: StoryMode.text(tour.rumor)})
 		];
 		const deckInfo = terms => [
 			storyEl("h3", {text: t("Your deck")}),
@@ -1428,6 +1477,12 @@ const StoryUI = {
 
 	// ---------- dialogue ----------
 
+	// A chapter's epigraph and opening narration (no opponent speaks in it)
+	chapterOpener(chapter) {
+		const lines = [chapter.epigraph && {who: "chronicle", ...chapter.epigraph}, ...chapter.opener ?? []].filter(Boolean);
+		return this.dialogue({name: chapter.name, dialogue: {opener: lines}}, "opener");
+	},
+
 	// Plays an opponent's intro/win/loss lines; resolves when they end or are skipped
 	dialogue(opp, part) {
 		const lines = opp.dialogue?.[part] ?? [];
@@ -1443,14 +1498,16 @@ const StoryUI = {
 			const show = () => {
 				const line = lines[i];
 				const narrator = line.who === "narrator";
+				const chronicle = line.who === "chronicle";
 				this.dlg.classList.toggle("narrator", narrator);
-				name.textContent = narrator ? t("Dandelion") : line.who === "geralt" ? t("Geralt") : t(opp.name);
-				portrait.style.setProperty("--art", narrator ? StoryMode.artURL("lg/neutral_dandelion.jpg")
+				this.dlg.classList.toggle("chronicle", chronicle);
+				name.textContent = chronicle ? StoryMode.text(line.source) : narrator ? t("Dandelion") : line.who === "geralt" ? t("Geralt") : t(opp.name);
+				portrait.style.setProperty("--art", chronicle ? "none" : narrator ? StoryMode.artURL("lg/neutral_dandelion.jpg")
 					: line.who === "geralt" ? StoryMode.artURL("lg/neutral_geralt.jpg") : StoryMode.portraitArt(opp));
 				portrait.style.animation = "none";
 				void portrait.offsetWidth;
 				portrait.style.animation = "";
-				text.textContent = Lang.current === "es" ? line.es : line.en;
+				text.textContent = StoryMode.text(line);
 				ui.announce((name.textContent ? name.textContent + ": " : "") + text.textContent);
 			};
 			const finish = () => {
@@ -1655,6 +1712,7 @@ const StoryUI = {
 					if (await StoryMode.reset()) {
 						this.view = {kind: "journal"};
 						this.closeModal();
+						StoryMode.playOpeners();
 					}
 				}})),
 			this.closeButton());

@@ -557,6 +557,7 @@ const I18N = {
 		"Challenge": "Desafiar",
 		"Edit Deck": "Editar mazo",
 		"Replay Story": "Repetir historia",
+		"Rumors": "Rumores",
 		"Wager": "Apuesta",
 		"None": "Ninguna",
 		"A card…": "Una carta…",

@@ -179,6 +179,18 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
   - It also fits his Chapter III match. He narrates from later on, so he can appear in the story while still being the one telling it.
 - There's no in-match tutorial. The Innkeeper's intro has a "How to Play" button that opens the existing guide.
 
+**Voice & style** (hybrid: The Witcher 3's Geralt, Sapkowski's framing)
+- **Geralt** speaks like in The Witcher 3: terse, deadpan, gravelly. About 12 words or fewer, no speeches, almost no exclamation marks (battle calls only). Dry humor by understatement ("Hm.", "Low bar."). He prefers not to pick sides ("Not my fight.").
+- **Dandelion (narrator)** carries the books' voice: past tense, Geralt in the third person, vain first-person asides, embellishes and then corrects himself. Satire of kings, bureaucracy, tax collectors and mercenary greed. "Dear reader" at most once per chapter. At most one sensory detail per line (wind, mud, bells, smoke): The Witcher 3's atmosphere, but never lingering on scenery.
+- **Violence is never glamorous.** For monster and battle "matches", Dandelion admits he tells fights as card games because the truth makes ugly ballads, then gives a short, quiet aftermath. Monsters are often victims (the griffin's mate, the werewolf's curse); humans are often the real beasts.
+- **Melancholy and the lesser evil:** every boss closes on a sad or unresolved note. Victories cost something, choices have no clean outcome, destiny is a burden, not a prophecy.
+- **Chronicles** (`who: "chronicle"`, with a `source`): dry scholarly excerpts that are slightly wrong, deflating Dandelion. Sources: Effenberg & Talbot's *Encyclopaedia Maxima Mundi*, Roderick de Novembre's *The History of the World*, Dandelion's *Half a Century of Poetry*, and invented ones (Oxenfurt Academy, temple ordinances, tax registers).
+- **Supporting characters** (innkeepers, peasants, deserters, quartermasters) carry folk humor and grime. Named characters keep their Witcher 3 personalities.
+- **Match rules in the story:** every modifier an opponent applies is explained in its intro, diegetically and wryly (usually by Dandelion).
+- **Rumors:** one-line hearsay from minor characters (ferrymen, washerwomen, drunks), often wrong or exaggerated.
+- **Every line:** original writing (no quotes copied from the books or the game), win lines name the right reward cards, Spanish is neutral/LatAm (tú, ustedes), card names stay in English. Caps: 240 characters in English, 280 in Spanish.
+- **Structure:** each chapter has an `epigraph` (chronicle quote), an `opener` (2–4 narrator/chronicle/Geralt lines, played once when the chapter opens) and 3+ `rumors`. Each opponent and tournament has a `rumor`. Intros 2–4 lines, wins 1–3, losses 1.
+
 **Save**
 - One localStorage save, plus Export/Import to a JSON file from the story settings.
 - Import is validated: schema version, known opponent ids, card indices inside `card_dict`, counts no higher than each card's max, decks legal. Anything invalid is rejected with `ui.alert`.
