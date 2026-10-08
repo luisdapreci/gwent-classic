@@ -722,12 +722,25 @@ const StoryMode = {
 			StoryUI.view = {kind: "tournament", id: story.id};
 		StoryUI.show();
 		if (story?.result) {
-			await StoryUI.dialogue(story.opp, story.result.won ? "win" : "loss");
+			await StoryUI.dialogue(...this.outro(story));
 			await StoryUI.showResult(story.result, story.opp);
 			if (story.result.won && !story.rematch && story.opp.credits)
 				await StoryUI.showCredits(story.opp);
 		}
 		await this.openMap();
+	},
+
+	// [speaker source, dialogue part] after a match: rematches don't hand out reward cards again, and fights Dandelion retells as cards stay told
+	outro(story) {
+		const {opp, result} = story;
+		if (story.tournament && result.tournament?.champion)
+			return [{name: this.tournament(story.id).name, dialogue: this.tournament(story.id).dialogue}, "champion"];
+		if (!story.rematch || story.tournament)
+			return [opp, result.won ? "win" : "loss"];
+		if (opp.dialogue.rematch)
+			return [opp, "rematch"];
+		const pool = opp.retold ? (result.won ? campaign.rematch.retoldWin : campaign.rematch.retoldLoss) : result.won ? campaign.rematch.win : null;
+		return pool ? [{...opp, dialogue: {rematch: [pool[randomInt(pool.length)]]}}, "rematch"] : [opp, "loss"];
 	},
 
 	// Leaving a match without finishing it
@@ -747,14 +760,15 @@ const StoryMode = {
 		await this.playOpeners();
 	},
 
-	// Tells each newly opened chapter's opener once, in campaign order
-	async playOpeners() {
+	// Main chapters tell their opener as soon as they open; post-game ones the first time they are visited
+	async playOpeners(visited) {
 		if (this.openersPlaying)
 			return;
 		this.openersPlaying = true;
 		try {
 			for (const chapter of campaign.chapters) {
-				if (!StoryUI.isOpen() || !this.isChapterOpen(chapter.id) || this.data.seenChapters.includes(chapter.id))
+				if (!StoryUI.isOpen() || !this.isChapterOpen(chapter.id) || this.data.seenChapters.includes(chapter.id)
+					|| chapter.opensAfter && chapter.id !== visited)
 					continue;
 				await StoryUI.chapterOpener(chapter);
 				this.data.seenChapters.push(chapter.id);
@@ -1193,6 +1207,7 @@ const StoryUI = {
 		if (!place)
 			return;
 		AudioManager.playSFX("ui_card");
+		StoryMode.playOpeners(place.chapter);
 		if (place.ids.length === 1 && !StoryMode.tournamentsAt(key).length)
 			return this.openOpponent(place.ids[0], {kind: "journal"});
 		this.view = {kind: "place", place: key};
@@ -1231,6 +1246,7 @@ const StoryUI = {
 			return storyEl("button", {class: "story-row", disabled: !open, onclick: () => {
 				this.view = {kind: "chapter", chapter: chapter.id};
 				this.render();
+				StoryMode.playOpeners(chapter.id);
 			}},
 				storyEl("div", {}, storyEl("b", {text: t(chapter.name)}), storyEl("small", {text: status})),
 				open && storyEl("span", {class: "story-stars", text: stars + "/" + ids.length * 3 + " \u2605"}));
@@ -1411,6 +1427,7 @@ const StoryUI = {
 					if (StoryMode.enterTournament(id)) {
 						AudioManager.playSFX("ui_card_bank");
 						this.render();
+						this.dialogue({name: tour.name, dialogue: tour.dialogue}, "entry");
 					}
 				}}),
 				storyEl("button", {class: "btn-ghost", text: t("Edit Deck"), onclick: () => StoryMode.openDeck()})));
@@ -1477,6 +1494,13 @@ const StoryUI = {
 
 	// ---------- dialogue ----------
 
+	// Fixed speakers besides the opponent: [name, portrait art]
+	SPEAKERS: {
+		narrator: ["Dandelion", "neutral_dandelion"],
+		geralt: ["Geralt", "neutral_geralt"],
+		ciri: ["Ciri", "neutral_ciri"]
+	},
+
 	// A chapter's epigraph and opening narration (no opponent speaks in it)
 	chapterOpener(chapter) {
 		const lines = [chapter.epigraph && {who: "chronicle", ...chapter.epigraph}, ...chapter.opener ?? []].filter(Boolean);
@@ -1499,11 +1523,11 @@ const StoryUI = {
 				const line = lines[i];
 				const narrator = line.who === "narrator";
 				const chronicle = line.who === "chronicle";
+				const speaker = this.SPEAKERS[line.who];
 				this.dlg.classList.toggle("narrator", narrator);
 				this.dlg.classList.toggle("chronicle", chronicle);
-				name.textContent = chronicle ? StoryMode.text(line.source) : narrator ? t("Dandelion") : line.who === "geralt" ? t("Geralt") : t(opp.name);
-				portrait.style.setProperty("--art", chronicle ? "none" : narrator ? StoryMode.artURL("lg/neutral_dandelion.jpg")
-					: line.who === "geralt" ? StoryMode.artURL("lg/neutral_geralt.jpg") : StoryMode.portraitArt(opp));
+				name.textContent = chronicle ? StoryMode.text(line.source) : speaker ? t(speaker[0]) : t(opp.name);
+				portrait.style.setProperty("--art", chronicle ? "none" : speaker ? StoryMode.artURL("lg/" + speaker[1] + ".jpg") : StoryMode.portraitArt(opp));
 				portrait.style.animation = "none";
 				void portrait.offsetWidth;
 				portrait.style.animation = "";

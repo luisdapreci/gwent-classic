@@ -62,10 +62,11 @@ const campaign = {
 			opener: [
 				{who: "narrator", en: "Every ballad needs a beginning, dear reader, and this one begins badly: in a muddy village, in wartime, with a witcher who had never held a gwent card.", es: "Toda balada necesita un comienzo, querido lector, y esta comienza mal: en una aldea embarrada, en tiempos de guerra, con un brujo que jamás había sostenido una carta de gwent."},
 				{who: "narrator", en: "He was looking for Yennefer. Nilfgaard was looking for everyone else. The inn was the only roof in White Orchard nobody had set on fire yet.", es: "Él buscaba a Yennefer. Nilfgaard buscaba a todos los demás. La posada era el único techo de Huerto Blanco al que nadie había prendido fuego todavía."},
+				{who: "narrator", en: "A word on method. When Geralt sat at a card table, I tell you what was played. When the other side had claws, I tell it as cards anyway: the truth makes ugly ballads.", es: "Una aclaración de método. Cuando Geralt se sentaba a una mesa de cartas, cuento lo que se jugó. Cuando el otro bando tenía garras, lo cuento como cartas de todos modos: la verdad hace baladas feas."},
 				{who: "geralt", en: "Smells like smoke and wet dog. Must be the inn.", es: "Huele a humo y a perro mojado. Debe ser la posada."}
 			],
 			rumors: [
-				{en: "A Nilfgaardian officer, they say, fines anyone caught gambling. Then he confiscates the cards and plays with them himself.", es: "Dicen que un oficial nilfgaardiano multa a quien atrape apostando. Luego confisca las cartas y juega con ellas él mismo."},
+				{en: "Notice on the inn door, in Nilfgaardian and bad Temerian: GAMBLING FORBIDDEN BY ORDER. Underneath, in chalk: except with the captain.", es: "Aviso en la puerta de la posada, en nilfgaardiano y en mal temerio: PROHIBIDO APOSTAR POR ORDEN SUPERIOR. Debajo, en tiza: salvo con el capitán."},
 				{en: "The well-digger swears the griffin only took soldiers. \"Picky eater,\" he says. \"Like my wife.\"", es: "El pocero jura que el grifo solo se llevaba soldados. «Quisquillosa para comer», dice. «Como mi mujer»."},
 				{en: "A white-haired stranger asked at the inn about a woman in black who smells of lilac and gooseberries. The innkeeper charged him for the question.", es: "Un forastero de cabello blanco preguntó en la posada por una mujer de negro que huele a lilas y grosellas. La posadera le cobró la pregunta."}
 			]},
@@ -77,14 +78,15 @@ const campaign = {
 			opener: [
 				{who: "narrator", en: "Vizima, once Temeria's crown, now Nilfgaard's waiting room. Geralt had been summoned by an emperor, which is rarely good news and never optional.", es: "Vizima, antes corona de Temeria, ahora sala de espera de Nilfgaard. Un emperador había mandado llamar a Geralt, lo cual rara vez es buena noticia y nunca es opcional."},
 				{who: "narrator", en: "There were forms to sign before the audience. Forms, I remind you, in triplicate, to see a man who wanted a favor.", es: "Antes de la audiencia había formularios que firmar. Formularios, te recuerdo, por triplicado, para ver a un hombre que quería pedir un favor."},
-				{who: "geralt", en: "Hm. Polished floors. Someone missed a bloodstain.", es: "Hm. Suelos pulidos. Alguien olvidó una mancha de sangre."}
+				{who: "narrator", en: "Yennefer was waiting in the palace, in black and white, as if she'd been expecting him for an hour and disapproved of every minute of it.", es: "Yennefer lo esperaba en el palacio, de blanco y negro, como si llevara una hora esperándolo y desaprobara cada minuto."},
+				{who: "geralt", en: "Hm. Polished floors. Someone missed a bloodstain.", es: "Hm. Pisos pulidos. Alguien olvidó una mancha de sangre."}
 			],
 			rumors: [
 				{en: "The palace cooks say the Emperor eats like a soldier and signs death warrants like a clerk: quickly, neatly, and before lunch.", es: "Los cocineros del palacio dicen que el Emperador come como un soldado y firma sentencias de muerte como un escribano: rápido, con buena letra y antes del almuerzo."},
-				{en: "A Temerian loyalist at the market whispers that King Foltest's ghost plays gwent in the empty throne room. He loses, apparently. Even dead.", es: "Un leal temerio en el mercado susurra que el fantasma del rey Foltest juega gwent en el salón del trono vacío. Pierde, al parecer. Incluso muerto."},
+				{en: "\"The king's ghost plays gwent in the throne room.\" \"And?\" \"And he still loses.\" (two guards, palace kitchens)", es: "«El fantasma del rey juega gwent en el salón del trono». «¿Y?». «Y sigue perdiendo». (dos guardias, cocinas del palacio)"},
 				{en: "They say the Emperor's daughter died years ago. They also say she didn't. In Vizima, both rumors cost a copper.", es: "Dicen que la hija del Emperador murió hace años. También dicen que no. En Vizima, ambos rumores cuestan un cobre."}
 			]},
-		{id: "velen", name: "Velen", bossAfter: 2, winCrowns: 30,
+		{id: "velen", name: "Velen", bossAfter: 2, required: ["baron"], winCrowns: 30,
 			reveal: [{x: 62, y: 58, rx: 22, ry: 20}],
 			epigraph: {source: {en: "Effenberg & Talbot, Encyclopaedia Maxima Mundi, vol. XV", es: "Effenberg y Talbot, Encyclopaedia Maxima Mundi, vol. XV"},
 				en: "Velen, or No Man's Land: a marshy region notable for its bogs, its gallows, and a remarkably brisk traffic between the living and the dead.",
@@ -97,7 +99,7 @@ const campaign = {
 			rumors: [
 				{en: "A ferryman claims the Baron's wife ran off with a sailor. Another swears she's at the bottom of the bog. Both charge extra for the details.", es: "Un barquero asegura que la esposa del Barón se fugó con un marinero. Otro jura que está en el fondo del pantano. Ambos cobran aparte por los detalles."},
 				{en: "In Midcopse they leave bread on the windowsill for the Ladies of the Wood. The children who forget don't grow up.", es: "En Midcopse dejan pan en la ventana para las Damas del Bosque. Los niños que lo olvidan no llegan a crecer."},
-				{en: "A washerwoman says the war will be over by spring. She said the same last spring, and the one before. She is very patient, and very wrong.", es: "Una lavandera dice que la guerra terminará en primavera. Dijo lo mismo la primavera pasada, y la anterior. Es muy paciente, y se equivoca mucho."}
+				{en: "A Velen counting rhyme: one for the Baron, two for the crows, three for the Ladies, and where the rest go, nobody knows.", es: "Una rima de Velen para contar: uno es del Barón, dos son del cuervo, tres de las Damas, y el resto, del suelo."}
 			]},
 		{id: "novigrad", name: "Novigrad & Oxenfurt", bossAfter: 3, winCrowns: 50,
 			reveal: [{x: 57, y: 31, rx: 15, ry: 13}],
@@ -107,14 +109,15 @@ const campaign = {
 			opener: [
 				{who: "narrator", en: "Novigrad, free city: free to tax you, free to rob you, and free to burn whoever the Church disliked that week.", es: "Novigrad, ciudad libre: libre para cobrarte impuestos, libre para robarte y libre para quemar a quien la Iglesia aborreciera esa semana."},
 				{who: "narrator", en: "Bells rang from dawn to dusk, and the smoke from the pyres never quite cleared. I, of course, ran a cabaret there. Someone had to keep the city civilized.", es: "Las campanas sonaban del alba al anochecer, y el humo de las hogueras nunca terminaba de disiparse. Yo, por supuesto, tenía allí un cabaret. Alguien tenía que mantener civilizada la ciudad."},
+				{who: "narrator", en: "Ciri had passed through Novigrad too. I happen to know, because I was among the last to see her there. I mention it modestly, and often.", es: "Ciri también había pasado por Novigrad. Lo sé porque fui de los últimos en verla allí. Lo menciono con modestia, y a menudo."},
 				{who: "geralt", en: "Big city. Lots of people who saw nothing.", es: "Ciudad grande. Mucha gente que no vio nada."}
 			],
 			rumors: [
 				{en: "A fishwife at the harbor says the Eternal Fire burns brighter on Tuesdays. That's when the witch hunters work overtime.", es: "Una pescadera del puerto dice que el Fuego Eterno arde más fuerte los martes. Es cuando los cazadores de brujas hacen horas extra."},
 				{en: "A beggar on Hierarch Square claims to be the rightful king of Novigrad. He has a crown, a court and three fleas, which is more than the last one had.", es: "Un mendigo de la Plaza del Jerarca dice ser el legítimo rey de Novigrad. Tiene corona, corte y tres pulgas, que es más de lo que tenía el anterior."},
-				{en: "Oxenfurt students claim they've proven, mathematically, that the house always wins at the Passiflora. The house bought their paper and burned it.", es: "Los estudiantes de Oxenfurt aseguran haber demostrado, matemáticamente, que la casa siempre gana en el Passiflora. La casa compró su tratado y lo quemó."}
+				{en: "Novigrad customs ledger: confiscated at the gate, one deck of cards depicting sorceresses. Burned. A second deck, the same: under review by the Hierarch, personally.", es: "Registro de aduanas de Novigrad: confiscado en la puerta, un mazo de cartas con hechiceras. Quemado. Un segundo mazo, igual: en revisión por el Jerarca, personalmente."}
 			]},
-		{id: "skellige", name: "Skellige", bossAfter: 3, winCrowns: 70,
+		{id: "skellige", name: "Skellige", bossAfter: 3, required: ["avallach"], winCrowns: 70,
 			reveal: [{x: 20, y: 68, rx: 21, ry: 28}],
 			epigraph: {source: {en: "Roderick de Novembre, The History of the World", es: "Roderick de Novembre, Historia del mundo"},
 				en: "The Skelligers are a proud, seafaring people who settle disputes by duel, by feast, or, most often, by both at once.",
@@ -127,7 +130,7 @@ const campaign = {
 			rumors: [
 				{en: "An Ard Skellig fisherman says the late king's ghost walks the cliffs, looking for whoever poisoned his mead. He's checking every tavern.", es: "Un pescador de Ard Skellig dice que el fantasma del difunto rey recorre los acantilados buscando a quien envenenó su hidromiel. Está revisando cada taberna."},
 				{en: "The jarls' sons are competing for the crown. So far the contest has involved three duels, two shipwrecks and one very confused bear.", es: "Los hijos de los jarls compiten por la corona. Hasta ahora, la contienda ha incluido tres duelos, dos naufragios y un oso muy confundido."},
-				{en: "On Hindarsfjall the priestesses say Freya sees all. The smugglers say Freya is very understanding about schedules.", es: "En Hindarsfjall las sacerdotisas dicen que Freya lo ve todo. Los contrabandistas dicen que Freya es muy comprensiva con los horarios."}
+				{en: "A drinking song from An Skellig: the king is dead, the mead is not, so drink the king's, and drink a lot.", es: "Una canción de taberna de An Skellig: el rey murió, el hidromiel no; bebe el del rey, que el rey ya se fue."}
 			]},
 		{id: "kaermorhen", name: "Kaer Morhen", bossAfter: 2, winCrowns: 85,
 			reveal: [{x: 83, y: 15, rx: 12, ry: 14}],
@@ -158,7 +161,7 @@ const campaign = {
 			rumors: [
 				{en: "Sailors swear a ship of nails was seen near Undvik, sailing against the wind. The captain's drink was blamed, as usual.", es: "Los marineros juran haber visto un barco de uñas cerca de Undvik, navegando contra el viento. Se culpó a la bebida del capitán, como de costumbre."},
 				{en: "Velen widows say the witches of Bald Mountain hold a sabbath this month, with a new guest of honor. He wears armor.", es: "Las viudas de Velen dicen que las brujas de la Montaña Calva celebran un aquelarre este mes, con un nuevo invitado de honor. Lleva armadura."},
-				{en: "In every tavern on the Continent someone claims to have seen the White Wolf. In half of them he's dead. In the other half he owes money.", es: "En cada taberna del Continente alguien asegura haber visto al Lobo Blanco. En la mitad, está muerto. En la otra mitad, debe dinero."}
+				{en: "Wanted poster, Novigrad: the White Wolf, dead or alive. Someone has crossed out \"dead or alive\" and written \"good luck\".", es: "Cartel de se busca, Novigrad: el Lobo Blanco, vivo o muerto. Alguien tachó «vivo o muerto» y escribió «buena suerte»."}
 			]},
 		// Post-game side stories: both open once Eredin is beaten and have no boss
 		{id: "heartsofstone", name: "Hearts of Stone", opensAfter: "eredin", bossAfter: 0, winCrowns: 100,
@@ -188,10 +191,27 @@ const campaign = {
 			],
 			rumors: [
 				{en: "A Beauclair vintner says a beast has been killing knights by night. The knights say it's the wine. The vintner is offended.", es: "Un viñatero de Beauclair dice que una bestia mata caballeros por la noche. Los caballeros dicen que es el vino. El viñatero está ofendido."},
-				{en: "The ladies of the court say the Duchess has an older sister. The ladies of the court are no longer invited to court.", es: "Las damas de la corte dicen que la Duquesa tiene una hermana mayor. Las damas de la corte ya no están invitadas a la corte."},
+				{en: "From a lady's letter, Beauclair: \"My dear, the Duchess has a sister, and we are forbidden to say so, so I shan't. Burn this.\" The letter was not burned.", es: "De la carta de una dama de Beauclair: «Querida, la Duquesa tiene una hermana, y está prohibido decirlo, así que no lo diré. Quema esto». La carta no fue quemada."},
 				{en: "Toussaint's knights take five vows: chivalry, courage, courtesy, chastity and wine. Most keep one.", es: "Los caballeros de Toussaint hacen cinco votos: caballerosidad, valor, cortesía, castidad y vino. La mayoría cumple uno."}
 			]}
 	],
+
+	// Narrator lines after a rematch: no reward card is handed over again, and fights told as cards (opp.retold) are simply retold
+	rematch: {
+		win: [
+			{who: "narrator", en: "A rematch, and another win. No new card this time, only crowns. Geralt says crowns are the only honest reward in the world.", es: "Una revancha, y otra victoria. Esta vez no hubo carta nueva, solo coronas. Geralt dice que las coronas son la única recompensa honrada del mundo."},
+			{who: "narrator", en: "Another win. I'd write a second verse, but nobody buys second verses.", es: "Otra victoria. Escribiría una segunda estrofa, pero nadie compra segundas estrofas."},
+			{who: "narrator", en: "Geralt won again, and his opponent took it worse than the first time. Rematches are like that.", es: "Geralt volvió a ganar, y su rival se lo tomó peor que la primera vez. Las revanchas son así."},
+			{who: "narrator", en: "Geralt won again. The loser paid up with the face of someone who had hoped he'd forgotten the way back.", es: "Geralt volvió a ganar. El perdedor pagó con la cara de quien esperaba que él hubiera olvidado el camino de vuelta."}
+		],
+		retoldWin: [
+			{who: "narrator", en: "Again? Fine. Once more, from the top: Geralt won. The ending doesn't change no matter how often you ask.", es: "¿Otra vez? Está bien. Una vez más, desde el principio: Geralt ganó. El final no cambia por más que lo pidas."},
+			{who: "narrator", en: "I've told this one so often the tavern mouths the words along with me. He won. He always wins in this one.", es: "He contado esta tantas veces que la taberna mueve los labios conmigo. Ganó. En esta siempre gana."}
+		],
+		retoldLoss: [
+			{who: "narrator", en: "Tonight's telling ends badly. It happens when I'm tired. Ask me again tomorrow.", es: "El relato de esta noche acaba mal. Pasa cuando estoy cansado. Pregúntame mañana."}
+		]
+	},
 
 	// Single-elimination runs against random opponents; each round sets the AI deck pool, play level and whether heroes are removed
 	tournaments: {
@@ -199,6 +219,10 @@ const campaign = {
 			name: "Passiflora Tournament", place: "novigrad", requires: "zoltan", fee: 20, perRound: 20, champion: 80,
 			prizes: [141, 139],
 			rumor: {en: "Novigrad's finest house of pleasure hosts the city's finest gwent tournament. The Church disapproves of both, and attends both, in disguise.", es: "La casa de placer más fina de Novigrad organiza el mejor torneo de gwent de la ciudad. La Iglesia desaprueba ambas cosas y asiste a ambas, disfrazada."},
+			dialogue: {
+				entry: [{who: "narrator", en: "The Passiflora's madam took Geralt's fee, his sword and his coat, in that order, and gave him back one of the three.", es: "La madama del Passiflora le cobró la inscripción, la espada y el abrigo, en ese orden, y le devolvió una de las tres cosas."}],
+				champion: [{who: "narrator", en: "Geralt won the Passiflora tournament. The madam paid him in full and then, as is the custom of the house, charged him for the privilege.", es: "Geralt ganó el torneo del Passiflora. La madama le pagó completo y luego, como es costumbre de la casa, le cobró por el privilegio."}]
+			},
 			rounds: [{decks: "easy", level: "easy"}, {decks: "easy", level: "hard"}, {decks: "normal", level: "easy", noHeroes: true}],
 			entrants: ["Count Tybalt", "Sasha", "Finneas", "Vimme Vivaldi", "Marquise Serenity", "Elihal", "Eveline Gallo", "Stjepan"],
 			modifiers: [
@@ -213,7 +237,11 @@ const campaign = {
 		kaertrolde: {
 			name: "Kaer Trolde Tournament", place: "kaertrolde", requires: "crach", fee: 50, perRound: 50, champion: 200,
 			prizes: [140, 59, 58],
-			rumor: {en: "In Kaer Trolde a gwent tournament is a feast with cards in it. Losers drink. Winners drink. The table is usually broken by the final.", es: "En Kaer Trolde, un torneo de gwent es un banquete con cartas. Los perdedores beben. Los ganadores beben. Para la final, la mesa suele estar rota."},
+			rumor: {en: "Kaer Trolde notice: TOURNAMENT TONIGHT. Bring a deck, a cup and your own bench. The last bench was used as a weapon.", es: "Aviso en Kaer Trolde: TORNEO ESTA NOCHE. Trae un mazo, una copa y tu propia banca. La última banca se usó como arma."},
+			dialogue: {
+				entry: [{who: "narrator", en: "In Kaer Trolde the entry fee is paid in crowns, and the real fee in hangovers.", es: "En Kaer Trolde la inscripción se paga en coronas, y la de verdad, en resacas."}],
+				champion: [{who: "narrator", en: "The champion of Kaer Trolde is carried around the hall on a shield. Geralt asked them not to. They dropped him twice.", es: "Al campeón de Kaer Trolde lo pasean por el salón sobre un escudo. Geralt les pidió que no. Lo dejaron caer dos veces."}]
+			},
 			rounds: [{decks: "easy", level: "hard"}, {decks: "normal", level: "easy", noHeroes: true}, {decks: "normal", level: "normal", noHeroes: true}],
 			entrants: ["Jutta an Dimun", "Sigrdrifa", "Folan", "Gremist", "Ulf of Svorlag", "Haern Caduch", "Sjusta", "Brokva Skald"],
 			modifiers: [
@@ -229,6 +257,10 @@ const campaign = {
 			name: "Beauclair Tournament", place: "toussaint", requires: "regis", fee: 100, perRound: 100, champion: 400,
 			prizes: [26, 97, 143],
 			rumor: {en: "In Beauclair every match opens with a bow, a toast and a sonnet. Cheating is permitted, provided it rhymes.", es: "En Beauclair cada partida empieza con una reverencia, un brindis y un soneto. Hacer trampa está permitido, siempre que rime."},
+			dialogue: {
+				entry: [{who: "narrator", en: "The herald read out Geralt's titles, most of which he invented on the spot. Toussaint does not admit untitled players.", es: "El heraldo leyó los títulos de Geralt, que inventó casi todos en el momento. Toussaint no admite jugadores sin título."}],
+				champion: [{who: "narrator", en: "Geralt was named Champion of Beauclair, kissed by three baronesses and challenged to two duels before he'd left the table. Toussaint celebrates thoroughly.", es: "Nombraron a Geralt Campeón de Beauclair; tres baronesas lo besaron y lo retaron a dos duelos antes de que se levantara de la mesa. Toussaint celebra a fondo."}]
+			},
 			rounds: [{decks: "normal", level: "easy", noHeroes: true}, {decks: "normal", level: "normal", noHeroes: true}, {decks: "hard", level: "hard", noHeroes: true}],
 			entrants: ["Palmerin de Launfal", "Guillaume de Launfal", "Count Crespi", "Baroness Mariette", "Milton de Peyrac-Peyran", "Damien de la Tour", "Vivienne de Tabris", "Orianna"],
 			modifiers: [
@@ -263,7 +295,7 @@ const campaign = {
 					{who: "opp", en: "Fast learner. Here, a Decoy. Every player needs one, and every soldier wishes he had one.", es: "Aprendes rápido. Toma, un Decoy. Todo jugador necesita uno, y todo soldado desearía tenerlo."},
 					{who: "narrator", en: "She told him about a woman in black on a black horse, smelling of lilac. It was the first true thing he'd heard in a month.", es: "Le habló de una mujer de negro en un caballo negro, que olía a lilas. Fue lo primero cierto que él escuchaba en un mes."}
 				],
-				loss: [{who: "opp", en: "Don't sulk, witcher. Nobody wins their first hand. Except the house.", es: "No te enfurruñes, brujo. Nadie gana su primera mano. Salvo la casa."}]
+				loss: [{who: "opp", en: "Don't sulk, witcher. Nobody wins their first hand. Except the house.", es: "No te enojes, brujo. Nadie gana su primera mano. Salvo la casa."}]
 			}
 		},
 		gwynleve: {
@@ -285,7 +317,7 @@ const campaign = {
 			}
 		},
 		griffin: {
-			chapter: "prologue", name: "The Griffin", portrait: "monsters_gryffin", pin: {x: 95, y: 95}, level: "easy",
+			chapter: "prologue", name: "The Griffin", portrait: "monsters_gryffin", pin: {x: 95, y: 95}, level: "easy", retold: true,
 			deck: {faction: "monsters", leader: 96, cards: [
 				[121,1], [122,1], [103,1], [137,1], [104,1], [116,1], [110,1], [113,1], [127,1], [128,1],
 				[129,1], [117,1], [118,1], [119,1], [114,1], [115,1], [102,1], [120,1],
@@ -322,9 +354,11 @@ const campaign = {
 				],
 				win: [
 					{who: "opp", en: "Not bad, pup. Take my card, and Roach's. Someone has to keep an eye on you, and she's smarter than both of us.", es: "Nada mal, cachorro. Toma mi carta, y la de Roach. Alguien tiene que vigilarte, y ella es más lista que nosotros dos."},
-					{who: "narrator", en: "The trail led north, to Vizima and an emperor. Vesemir rode beside him. I'd give a great deal for more mornings like that one.", es: "El rastro llevaba al norte, a Vizima y a un emperador. Vesemir cabalgaba a su lado. Daría mucho por más mañanas como aquella."}
+					{who: "narrator", en: "The trail led north, to Vizima and an emperor. Vesemir rode beside him. I'd give a great deal for more mornings like that one.", es: "El rastro llevaba al norte, a Vizima y a un emperador. Vesemir cabalgaba a su lado. Daría mucho por más mañanas como aquella."},
+					{who: "chronicle", source: {en: "Kaer Morhen records (one page, water-damaged)", es: "Registros de Kaer Morhen (una página, dañada por el agua)"}, en: "Vesemir. Instructor. Fencing, alchemy, bestiary. Cooking: no.", es: "Vesemir. Instructor. Esgrima, alquimia, bestiario. Cocina: no."}
 				],
-				loss: [{who: "opp", en: "Sloppy. Again. And this time, think before you play.", es: "Descuidado. Otra vez. Y esta vez, piensa antes de jugar."}]
+				loss: [{who: "opp", en: "Sloppy. Again. And this time, think before you play.", es: "Descuidado. Otra vez. Y esta vez, piensa antes de jugar."}],
+				rematch: [{who: "narrator", en: "Long after, Geralt still replayed his games with Vesemir in his head, move by move. He tells me he wins most of them now. He doesn't sound pleased about it.", es: "Mucho después, Geralt todavía repasaba en su cabeza sus partidas con Vesemir, jugada por jugada. Me dice que ahora gana casi todas. No suena contento."}]
 			}
 		},
 
@@ -368,7 +402,8 @@ const campaign = {
 				win: [
 					{who: "opp", en: "Adequate. My card is yours, and the Empire's cards with it. Find her, witcher. She is all that is left of her mother.", es: "Aceptable. Mi carta es tuya, y con ella las cartas del Imperio. Encuéntrala, brujo. Es lo único que queda de su madre."},
 					{who: "geralt", en: "Velen, then.", es: "Entonces, a Velen."},
-					{who: "narrator", en: "He left with a purse of gold and the feeling of having been bought. Both turned out to be accurate.", es: "Se fue con una bolsa de oro y la sensación de que lo habían comprado. Ambas cosas resultaron ciertas."}
+					{who: "narrator", en: "He left with a purse of gold and the feeling of having been bought. Both turned out to be accurate.", es: "Se fue con una bolsa de oro y la sensación de que lo habían comprado. Ambas cosas resultaron ciertas."},
+					{who: "chronicle", source: {en: "Imperial Chancery of Nilfgaard, register of expenses", es: "Cancillería Imperial de Nilfgaard, registro de gastos"}, en: "Item: one witcher, retained for the recovery of a person of interest. Paid in advance. Outcome: to be determined.", es: "Partida: un brujo, contratado para la recuperación de una persona de interés. Pagado por adelantado. Resultado: por determinar."}
 				],
 				loss: [{who: "opp", en: "You disappoint me. Do not make a habit of it.", es: "Me decepcionas. No lo conviertas en costumbre."}]
 			}
@@ -382,7 +417,7 @@ const campaign = {
 				[44,1], [53,1], [50,1], [2,1], [11,1]
 			]},
 			modifiers: [], objectives: ["sweep", "noWeather"], rewards: [[32,1]],
-			rumor: {en: "The Crow's Perch quartermaster sells the Baron's grain, the Baron's arrows and, they say, the Baron's secrets. Prices on request.", es: "El intendente de Nido de Cuervos vende el grano del Barón, las flechas del Barón y, dicen, los secretos del Barón. Precios a consultar."},
+			rumor: {en: "Crow's Perch stores, Tuesday: arrows, 400. Grain, 12 sacks. \"Baron's secrets\", 1, sold. Price illegible.", es: "Almacén de Nido de Cuervos, martes: flechas, 400. Grano, 12 sacos. «Secretos del Barón», 1, vendido. Precio ilegible."},
 			dialogue: {
 				intro: [
 					{who: "opp", en: "The Baron's busy. Busy drinking, mostly. You want a word, you earn it at my table first.", es: "El Barón está ocupado. Ocupado bebiendo, sobre todo. Si quieres hablar con él, primero gánatelo en mi mesa."},
@@ -466,7 +501,7 @@ const campaign = {
 				[1,1]
 			]},
 			modifiers: [{id: "ambush"}], objectives: ["second", "noLeader"], rewards: [[27,1]],
-			rumor: {en: "On the old Nilfgaardian road, deserters from three armies have founded the only peaceful nation in Velen. Its main industry is robbery.", es: "En el viejo camino nilfgaardiano, desertores de tres ejércitos fundaron la única nación pacífica de Velen. Su principal industria es el robo."},
+			rumor: {en: "\"We're not deserters. We're early retirees.\" (a man in boots from three different armies, on the old Nilfgaardian road)", es: "«No somos desertores. Somos jubilados anticipados». (un hombre con botas de tres ejércitos distintos, en el viejo camino nilfgaardiano)"},
 			dialogue: {
 				intro: [
 					{who: "opp", en: "Nice sword. Nicer purse. Sit down and lose 'em proper, witcher.", es: "Linda espada. Mejor bolsa. Siéntate y piérdelas como se debe, brujo."},
@@ -485,19 +520,19 @@ const campaign = {
 				[1,1]
 			]},
 			modifiers: [], objectives: ["sweep", "margin20"], rewards: [[75,1]],
-			rumor: {en: "The Nilfgaardian commander in Velen is young, noble and polite. His soldiers find it deeply unsettling.", es: "El comandante nilfgaardiano en Velen es joven, noble y educado. A sus soldados eso les resulta profundamente inquietante."},
+			rumor: {en: "From a Nilfgaardian soldier's letter home: \"The commander is polite to us. Nobody knows what we did.\"", es: "De la carta de un soldado nilfgaardiano a su casa: «El comandante es educado con nosotros. Nadie sabe qué hicimos»."},
 			dialogue: {
 				intro: [
 					{who: "narrator", en: "Morvran Voorhis had been sent to Velen to win a war, and spent his days signing requisitions for boots. He welcomed any distraction.", es: "A Morvran Voorhis lo habían enviado a Velen a ganar una guerra, y pasaba los días firmando solicitudes de botas. Agradecía cualquier distracción."},
 					{who: "opp", en: "The Emperor's witcher. My orders say to assist you. They say nothing about letting you win.", es: "El brujo del Emperador. Mis órdenes dicen que te ayude. No dicen nada de dejarte ganar."},
 					{who: "geralt", en: "Wouldn't want it any other way.", es: "No lo querría de otra forma."}
 				],
-				win: [{who: "opp", en: "Well played. Take my card. May it serve you better than Velen serves me.", es: "Bien jugado. Toma mi carta. Ojalá te sirva mejor de lo que Velen me sirve a mí."}],
+				win: [{who: "opp", en: "Well played. My card is yours. May it serve you better than Velen serves me.", es: "Bien jugado. Mi carta es tuya. Ojalá te sirva mejor de lo que Velen me sirve a mí."}],
 				loss: [{who: "opp", en: "Nilfgaard does not lose to mercenaries. It merely, on occasion, pays them.", es: "Nilfgaard no pierde contra mercenarios. Solo, en ocasiones, les paga."}]
 			}
 		},
 		werewolf: {
-			chapter: "velen", name: "Werewolf", portrait: "monsters_werewolf", pin: {x: 74.5, y: 62}, level: "normal",
+			chapter: "velen", name: "Werewolf", portrait: "monsters_werewolf", pin: {x: 74.5, y: 62}, level: "normal", retold: true,
 			deck: {faction: "monsters", leader: 93, cards: [
 				[136,1], [121,1], [102,1], [117,1], [118,1],
 				[119,1], [122,1], [103,1],
@@ -516,7 +551,7 @@ const campaign = {
 			}
 		},
 		crones: {
-			chapter: "velen", name: "The Crones", portrait: "monsters_witch_velen", pin: {x: 65, y: 60}, level: "normal", boss: true, unlocks: "monsters",
+			chapter: "velen", name: "The Crones", portrait: "monsters_witch_velen", pin: {x: 65, y: 60}, level: "normal", boss: true, unlocks: "monsters", retold: true,
 			deck: {faction: "monsters", leader: 96, cards: [
 				[105,1], [106,1], [107,1], [130,1], [113,1], [127,1], [128,1], [129,1], [117,1],
 				[118,1], [119,1], [102,1],
@@ -528,12 +563,14 @@ const campaign = {
 				intro: [
 					{who: "narrator", en: "In the heart of Crookback Bog the Ladies of the Wood held court. The villagers loved them, fed them and feared them, which in Velen is the same thing.", es: "En el corazón del Pantano Jorobado, las Damas del Bosque tenían su corte. Los aldeanos las amaban, las alimentaban y les temían, lo cual en Velen es lo mismo."},
 					{who: "opp", en: "Little wolf, come to bargain with the Ladies of the Wood?", es: "Lobito, ¿vienes a negociar con las Damas del Bosque?"},
-					{who: "opp", en: "Play for the girl, then. The mist is ours, every round, and so are the children of the bog.", es: "Juega por la niña, entonces. La niebla es nuestra, en cada ronda, y también los hijos del pantano."},
-					{who: "geralt", en: "I've heard enough.", es: "Ya escuché suficiente."}
+					{who: "opp", en: "Fight for the girl, then. The mist is ours, and so are the children of the bog.", es: "Pelea por la niña, entonces. La niebla es nuestra, y también los hijos del pantano."},
+					{who: "geralt", en: "Fog won't lift. Not while they live.", es: "La niebla no se levantará. No mientras ellas vivan."}
 				],
 				win: [
 					{who: "opp", en: "Clever wolf... Take our sisters' cards. They will serve you. For now.", es: "Lobo astuto... Toma las cartas de nuestras hermanas. Te servirán. Por ahora."},
-					{who: "narrator", en: "Ciri had escaped them long before, it turned out. The orphans of the bog had not. I've left their part out of the song. Geralt asked me to.", es: "Resultó que Ciri se les había escapado mucho antes. Los huérfanos del pantano, no. He dejado su parte fuera de la canción. Geralt me lo pidió."}
+					{who: "narrator", en: "Ciri had escaped them long before, it turned out. The orphans of the bog had not. I've left their part out of the song. Geralt asked me to.", es: "Resultó que Ciri se les había escapado mucho antes. Los huérfanos del pantano, no. He dejado su parte fuera de la canción. Geralt me lo pidió."},
+					{who: "narrator", en: "As for the Baron's wife: she was found, in a manner of speaking, and the Baron carried her off toward the mountains. No version of how that ended is worth singing.", es: "En cuanto a la esposa del Barón: la encontraron, por así decirlo, y el Barón se la llevó hacia las montañas. Ninguna versión de cómo terminó aquello merece cantarse."},
+					{who: "chronicle", source: {en: "Effenberg & Talbot, Encyclopaedia Maxima Mundi", es: "Effenberg y Talbot, Encyclopaedia Maxima Mundi"}, en: "Ladies of the Wood: in Velenian folk belief, benevolent spirits who protect villages in exchange for small offerings. Harmless.", es: "Damas del Bosque: en las creencias populares de Velen, espíritus benévolos que protegen las aldeas a cambio de pequeñas ofrendas. Inofensivas."}
 				],
 				loss: [{who: "opp", en: "Back to the bog with you, little wolf!", es: "¡De vuelta al pantano, lobito!"}]
 			}
@@ -557,7 +594,8 @@ const campaign = {
 				],
 				win: [
 					{who: "opp", en: "Bravo! Take my card. Every army needs a bard to sing of its victories, and to invent a few.", es: "¡Bravo! Toma mi carta. Todo ejército necesita un bardo que cante sus victorias, y que invente algunas."},
-					{who: "narrator", en: "For the record, I let him win. The audience adored it. My creditors, less so.", es: "Que conste que lo dejé ganar. Al público le encantó. A mis acreedores, no tanto."}
+					{who: "narrator", en: "For the record, I let him win. The audience adored it. My creditors, less so.", es: "Que conste que lo dejé ganar. Al público le encantó. A mis acreedores, no tanto."},
+					{who: "narrator", en: "Afterwards I told him what I knew: Ciri had found trouble in Novigrad, left it worse, and taken a ship for Skellige. He listened to every word, which was a first.", es: "Después le conté lo que sabía: Ciri había encontrado problemas en Novigrad, los había dejado peor y había tomado un barco a Skellige. Escuchó cada palabra, lo cual fue una novedad."}
 				],
 				loss: [{who: "opp", en: "And the crowd goes wild! For me, naturally.", es: "¡Y el público enloquece! Por mí, naturalmente."}]
 			}
@@ -612,11 +650,11 @@ const campaign = {
 			rumor: {en: "King Radovid has put a price on a sorceress who can turn into an owl. Since then, every owl in Redania has been arrested at least once.", es: "El rey Radovid puso precio a la cabeza de una hechicera que puede convertirse en búho. Desde entonces, cada búho de Redania ha sido arrestado al menos una vez."},
 			dialogue: {
 				intro: [
-					{who: "narrator", en: "In Radovid's camp the Lodge of Sorceresses was plotting again. Philippa received Geralt with an owl's patience.", es: "En el campamento de Radovid, la Logia de Hechiceras volvía a conspirar. Philippa recibió a Geralt con la paciencia de un búho."},
+					{who: "narrator", en: "Hiding from Radovid's hunters, the Lodge of Sorceresses was plotting again. Philippa received Geralt with an owl's patience.", es: "Escondida de los cazadores de Radovid, la Logia de Hechiceras volvía a conspirar. Philippa recibió a Geralt con la paciencia de un búho."},
 					{who: "opp", en: "The Lodge has eyes everywhere, witcher. You'll find your hand a little lighter.", es: "La Logia tiene ojos en todas partes, brujo. Notarás tu mano algo más ligera."},
 					{who: "geralt", en: "Figures.", es: "Era de esperar."}
 				],
-				win: [{who: "opp", en: "Impressive. Take my card. Consider it an investment. The Lodge always collects.", es: "Impresionante. Toma mi carta. Considérala una inversión. La Logia siempre cobra."}],
+				win: [{who: "opp", en: "Impressive. My card, then. Consider it an investment. The Lodge always collects.", es: "Impresionante. Mi carta, entonces. Considérala una inversión. La Logia siempre cobra."}],
 				loss: [{who: "opp", en: "Predictable. Men usually are.", es: "Predecible. Los hombres suelen serlo."}]
 			}
 		},
@@ -656,7 +694,8 @@ const campaign = {
 				],
 				win: [
 					{who: "opp", en: "Ha! Fair and square. The Scoia'tael cards are yours, and mine too. Now, about that mead...", es: "¡Ja! Limpio y justo. Las cartas de los Scoia'tael son tuyas, y la mía también. Ahora, sobre ese hidromiel..."},
-					{who: "narrator", en: "Word spread fast: the Passiflora was hosting a tournament, and they had saved a seat for a witcher.", es: "La noticia corrió rápido: el Passiflora organizaba un torneo, y habían guardado un asiento para un brujo."}
+					{who: "narrator", en: "Word spread fast: the Passiflora was hosting a tournament and had saved a seat for a witcher. Geralt had a different seat in mind, on the next ship to Skellige.", es: "La noticia corrió rápido: el Passiflora organizaba un torneo y había guardado un asiento para un brujo. Geralt tenía otro asiento en mente, en el próximo barco a Skellige."},
+					{who: "chronicle", source: {en: "Novigrad city tax register", es: "Registro de impuestos de la ciudad de Novigrad"}, en: "Received from Z. Chivay, dwarf: nothing. Owed by Z. Chivay: see attached pages 1 to 40.", es: "Recibido de Z. Chivay, enano: nada. Adeudado por Z. Chivay: véanse las páginas adjuntas 1 a 40."}
 				],
 				loss: [{who: "opp", en: "Mead's on you, witcher!", es: "¡El hidromiel lo pagas tú, brujo!"}]
 			}
@@ -673,16 +712,17 @@ const campaign = {
 			rumor: {en: "Crach an Craite's daughter once lifted a curse with patience and a sack of flour, they say. Her brothers would have used axes and made it worse.", es: "Dicen que la hija de Crach an Craite rompió una vez una maldición con paciencia y un saco de harina. Sus hermanos habrían usado hachas y lo habrían empeorado."},
 			dialogue: {
 				intro: [
+					{who: "narrator", en: "Cerys an Craite was the youngest of Crach's children and, by general agreement, the only one who thought before she swung.", es: "Cerys an Craite era la menor de los hijos de Crach y, según todos, la única que pensaba antes de golpear."},
 					{who: "opp", en: "Witcher. My father's council squabbles and my brother drinks. Let's see if you think faster than they do.", es: "Brujo. El consejo de mi padre discute y mi hermano bebe. Veamos si piensas más rápido que ellos."},
 					{who: "geralt", en: "Low bar.", es: "No es mucho pedir."},
 					{who: "opp", en: "Then clear it. And mind the squall. It hits in the first round, every time.", es: "Entonces supéralo. Y cuidado con la borrasca. Llega en la primera ronda, siempre."}
 				],
-				win: [{who: "opp", en: "Clever. Take my card. The shield maidens follow whoever earns it.", es: "Astuto. Toma mi carta. Las doncellas escuderas siguen a quien se lo gana."}],
+				win: [{who: "opp", en: "Clever. The card's yours. The shield maidens follow whoever earns it.", es: "Astuto. La carta es tuya. Las doncellas escuderas siguen a quien se lo gana."}],
 				loss: [{who: "opp", en: "Brawn without wits. You'd fit right in on Ard Skellig.", es: "Fuerza sin ingenio. Encajarías de maravilla en Ard Skellig."}]
 			}
 		},
 		icegiant: {
-			chapter: "skellige", name: "Ice Giant of Undvik", portrait: "monsters_frost_giant", pin: {x: 9, y: 78}, level: "hard",
+			chapter: "skellige", name: "Ice Giant of Undvik", portrait: "monsters_frost_giant", pin: {x: 9, y: 78}, level: "hard", retold: true,
 			deck: {faction: "monsters", leader: 96, cards: [
 				[123,1], [121,1], [114,1], [115,1], [111,1], [130,1], [109,1], [112,1], [104,1], [110,1],
 				[116,1], [137,1], [127,1], [128,1], [129,1], [117,1], [118,1], [119,1], [5,1]
@@ -699,7 +739,7 @@ const campaign = {
 					{who: "narrator", en: "The giant fell, Hjalmar claimed the glory, and the skalds sang of it for a week. They left Geralt out of the song entirely. I have since corrected that.", es: "El gigante cayó, Hjalmar se llevó la gloria y los escaldos lo cantaron durante una semana. A Geralt lo dejaron fuera de la canción por completo. Yo ya lo he corregido."},
 					{who: "narrator", en: "Hjalmar pressed his own card on Geralt, \"so you'll know who to call\". Half the crew who sailed to Undvik did not sail home.", es: "Hjalmar le dio a Geralt su propia carta, «para que sepas a quién llamar». La mitad de la tripulación que zarpó a Undvik no volvió a casa."}
 				],
-				loss: [{who: "geralt", en: "Too cold to think. Again.", es: "Hace demasiado frío para pensar. Otra vez."}]
+				loss: [{who: "geralt", en: "Too cold to think.", es: "Hace demasiado frío para pensar."}]
 			}
 		},
 		lugos: {
@@ -709,10 +749,11 @@ const campaign = {
 				[185,1], [200,3]
 			]},
 			modifiers: [], objectives: ["second", "hand3"], rewards: [[201,1], [183,1]],
-			rumor: {en: "On Spikeroog, Madman Lugos is called mad by his enemies, his friends and his own son. He takes it as a title.", es: "En Spikeroog, a Lugos el Loco lo llaman loco sus enemigos, sus amigos y su propio hijo. Él lo toma como un título."},
+			rumor: {en: "\"My father isn't mad. He's just Skelliger, only louder.\" (Blueboy Lugos, crying into his mead)", es: "«Mi padre no está loco. Solo es skelligense, pero más ruidoso». (Blueboy Lugos, llorando sobre su hidromiel)"},
 			dialogue: {
 				intro: [
-					{who: "opp", en: "A witcher on Spikeroog! Play me, wolf, and if I lose you get my card AND my idiot son's!", es: "¡Un brujo en Spikeroog! Juega conmigo, lobo, y si pierdo te llevas mi carta ¡Y la de mi idiota de hijo!"},
+					{who: "narrator", en: "On Skellige, being called Madman is a compliment. Lugos had earned it twice over and was working on a third.", es: "En Skellige, que te llamen Loco es un cumplido. Lugos se lo había ganado dos veces y trabajaba en la tercera."},
+					{who: "opp", en: "A witcher on Spikeroog! Play me, wolf, and if I lose you get my card AND my idiot son's!", es: "¡Un brujo en Spikeroog! Juega conmigo, lobo, y si pierdo te llevas mi carta, ¡y la de mi idiota de hijo!"},
 					{who: "geralt", en: "Generous.", es: "Generoso."},
 					{who: "opp", en: "Berserkers are generous. Right up until the mushrooms kick in.", es: "Los berserkers son generosos. Justo hasta que les hacen efecto los hongos."}
 				],
@@ -734,7 +775,7 @@ const campaign = {
 					{who: "opp", en: "The gods favor the patient, witcher. Let us see if they favor you.", es: "Los dioses favorecen al paciente, brujo. Veamos si te favorecen a ti."},
 					{who: "geralt", en: "I'll take my chances.", es: "Me arriesgaré."}
 				],
-				win: [{who: "opp", en: "Freya smiles on you. Take my card, and use the mardroeme wisely.", es: "Freya te sonríe. Toma mi carta, y usa el mardroeme con prudencia."}],
+				win: [{who: "opp", en: "Freya smiles on you. Carry my card, and use the mardroeme wisely.", es: "Freya te sonríe. Lleva mi carta, y usa el mardroeme con prudencia."}],
 				loss: [{who: "opp", en: "Patience, Geralt. The gods are in no hurry.", es: "Paciencia, Geralt. Los dioses no tienen prisa."}]
 			}
 		},
@@ -753,7 +794,10 @@ const campaign = {
 					{who: "geralt", en: "You talk in riddles.", es: "Hablas con acertijos."},
 					{who: "opp", en: "And you play like a human. We shall see which serves better.", es: "Y tú juegas como un humano. Veremos qué sirve mejor."}
 				],
-				win: [{who: "opp", en: "Hm. Take my card, and keep it close. We will meet again, at Kaer Morhen.", es: "Hm. Toma mi carta y guárdala bien. Volveremos a vernos, en Kaer Morhen."}],
+				win: [
+					{who: "opp", en: "Hm. My card is yours. We will meet again, at Kaer Morhen.", es: "Hm. Mi carta es tuya. Volveremos a vernos, en Kaer Morhen."},
+					{who: "narrator", en: "And there, in the mist, he finally gave Geralt a straight answer: Ciri was alive, and close. It is the only straight answer I ever heard of him giving.", es: "Y allí, en la niebla, por fin le dio a Geralt una respuesta directa: Ciri estaba viva, y cerca. Es la única respuesta directa que he sabido que diera."}
+				],
 				loss: [{who: "opp", en: "Va faill, Gwynbleidd. Come back when you can see through the mist.", es: "Va faill, Gwynbleidd. Vuelve cuando puedas ver a través de la niebla."}]
 			}
 		},
@@ -764,7 +808,7 @@ const campaign = {
 				[208,1], [181,1], [210,3], [202,1], [209,2], [182,1], [198,1], [5,1], [10,1]
 			]},
 			modifiers: [{id: "weather", card: 204, rounds: [1, 3]}], objectives: ["sweep", "margin20"], rewards: [[212,1]],
-			rumor: {en: "The jarl of Kaer Trolde has buried a king, raised two children and outlived most of his enemies. He still laughs louder than anyone at the feast.", es: "El jarl de Kaer Trolde ha enterrado a un rey, criado a dos hijos y sobrevivido a casi todos sus enemigos. Aún así ríe más fuerte que nadie en los banquetes."},
+			rumor: {en: "The jarl of Kaer Trolde has buried a king, raised two children and outlived most of his enemies. He still laughs louder than anyone at the feast.", es: "El jarl de Kaer Trolde ha enterrado a un rey, criado a dos hijos y sobrevivido a casi todos sus enemigos. Aun así ríe más fuerte que nadie en los banquetes."},
 			dialogue: {
 				intro: [
 					{who: "narrator", en: "Crach an Craite, jarl of Kaer Trolde, had known Geralt for years and owed him a favor. On Skellige, that means you get to lose to him first.", es: "Crach an Craite, jarl de Kaer Trolde, conocía a Geralt desde hacía años y le debía un favor. En Skellige, eso significa que tienes derecho a perder contra él primero."},
@@ -774,7 +818,8 @@ const campaign = {
 				],
 				win: [
 					{who: "opp", en: "Ha! Well fought, wolf. The clans' cards are yours, and King Bran's too. He'd have liked you.", es: "¡Ja! Bien peleado, lobo. Las cartas de los clanes son tuyas, y la del rey Bran también. Le habrías caído bien."},
-					{who: "narrator", en: "The jarls toasted him all night, and by morning they were planning a tournament in his honor. By noon they were fighting over who would host it.", es: "Los jarls brindaron por él toda la noche, y al amanecer ya planeaban un torneo en su honor. Al mediodía se peleaban por quién lo organizaría."}
+					{who: "narrator", en: "The jarls toasted him all night, and by morning they were planning a tournament in his honor. By noon they were fighting over who would host it.", es: "Los jarls brindaron por él toda la noche, y al amanecer ya planeaban un torneo en su honor. Al mediodía se peleaban por quién lo organizaría."},
+					{who: "chronicle", source: {en: "Roderick de Novembre, The History of the World", es: "Roderick de Novembre, Historia del mundo"}, en: "King Bran of Skellige died peacefully in his sleep, mourned by all. The succession that followed was, by island standards, orderly.", es: "El rey Bran de Skellige murió plácidamente mientras dormía, llorado por todos. La sucesión que siguió fue, para los estándares de las islas, ordenada."}
 				],
 				loss: [{who: "opp", en: "Back to your boat, landlubber!", es: "¡De vuelta a tu barca, marinero de agua dulce!"}]
 			}
@@ -788,14 +833,15 @@ const campaign = {
 				[55,1], [45,1], [35,1], [36,1], [37,1], [32,1], [5,1], [1,1]
 			]},
 			modifiers: [], objectives: ["sweep", "hand3"], rewards: [[5,1]],
-			rumor: {en: "A witcher called Lambert hates everyone, they say. Those who know him well call that an exaggeration. He only hates most people.", es: "Dicen que un brujo llamado Lambert odia a todo el mundo. Quienes lo conocen bien dicen que es una exageración. Solo odia a casi todos."},
+			rumor: {en: "Sign on a Kaer Morhen door, in Lambert's hand: KNOCK AND DIE. Underneath, in Eskel's: he means it about half the time.", es: "Letrero en una puerta de Kaer Morhen, con la letra de Lambert: TOCA Y MUERE. Debajo, con la de Eskel: lo dice en serio la mitad de las veces."},
 			dialogue: {
 				intro: [
-					{who: "opp", en: "Look who finally came home. Fancy losing to me in front of Vesemir?", es: "Mira quién volvió por fin a casa. ¿Te apetece perder contra mí delante de Vesemir?"},
-					{who: "geralt", en: "Try not to sulk this time.", es: "Intenta no enfurruñarte esta vez."}
+					{who: "narrator", en: "Lambert had come home for the fight and spent the first night complaining about it. That was how you knew he'd stay.", es: "Lambert había vuelto a casa para la pelea y pasó la primera noche quejándose de ello. Así se sabía que se quedaría."},
+					{who: "opp", en: "Look who finally came home. Fancy losing to me in front of Vesemir?", es: "Mira quién volvió por fin a casa. ¿Se te antoja perder contra mí delante de Vesemir?"},
+					{who: "geralt", en: "Try not to sulk this time.", es: "Intenta no hacer berrinche esta vez."}
 				],
 				win: [{who: "opp", en: "Tch. Take the horn and get out of my sight. And don't tell Eskel.", es: "Bah. Llévate el cuerno y desaparece de mi vista. Y no se lo cuentes a Eskel."}],
-				loss: [{who: "opp", en: "Ha! Write that down, Vesemir!", es: "¡Ja! ¡Apúntalo, Vesemir!"}]
+				loss: [{who: "opp", en: "Ha! Somebody write that down!", es: "¡Ja! ¡Que alguien lo apunte!"}]
 			}
 		},
 		eskel: {
@@ -808,6 +854,7 @@ const campaign = {
 			rumor: {en: "The witcher Eskel keeps a goat at Kaer Morhen. He says it's for the milk. Everyone knows it's for the company.", es: "El brujo Eskel tiene una cabra en Kaer Morhen. Dice que es por la leche. Todos saben que es por la compañía."},
 			dialogue: {
 				intro: [
+					{who: "narrator", en: "Eskel spent the days before the battle sharpening every blade in the keep, twice. Witchers don't pray. That is the closest they come.", es: "Eskel pasó los días previos a la batalla afilando cada hoja de la fortaleza, dos veces. Los brujos no rezan. Es lo más parecido que hacen."},
 					{who: "opp", en: "Geralt. The Hunt is coming and we're playing cards. Feels like old times.", es: "Geralt. La Cacería viene y nosotros jugando a las cartas. Como en los viejos tiempos."},
 					{who: "geralt", en: "Old times were worse.", es: "Los viejos tiempos eran peores."},
 					{who: "opp", en: "True. Deal.", es: "Cierto. Reparte."}
@@ -832,7 +879,7 @@ const campaign = {
 					{who: "opp", en: "Then you'll have learned something.", es: "Entonces habrás aprendido algo."}
 				],
 				win: [{who: "opp", en: "Not bad. Keep my card. And keep it close.", es: "Nada mal. Quédate con mi carta. Y tenla cerca."}],
-				loss: [{who: "opp", en: "Again. And this time, focus.", es: "Otra vez. Y esta vez, concéntrate."}]
+				loss: [{who: "opp", en: "Disappointing. You used to read me better than that.", es: "Decepcionante. Antes me leías mejor."}]
 			}
 		},
 		letho: {
@@ -849,12 +896,15 @@ const campaign = {
 					{who: "geralt", en: "One game. Then we talk.", es: "Una partida. Luego hablamos."},
 					{who: "narrator", en: "Letho had killed kings for money, and for Nilfgaard. Geralt let him in anyway. When the Hunt is coming you don't count your friends; you count swords.", es: "Letho había matado reyes por dinero, y por Nilfgaard. Geralt lo dejó entrar de todos modos. Cuando viene la Cacería no cuentas amigos; cuentas espadas."}
 				],
-				win: [{who: "opp", en: "Fair. Take my card. When the Hunt comes, I'll be on the walls.", es: "Justo. Toma mi carta. Cuando llegue la Cacería, estaré en las murallas."}],
+				win: [
+					{who: "opp", en: "Fair. Card's yours. When the Hunt comes, I'll be on the walls.", es: "Justo. La carta es tuya. Cuando llegue la Cacería, estaré en las murallas."},
+					{who: "narrator", en: "Geralt could have settled an old debt with Letho that day. He chose an extra sword over justice. I've never decided whether that was wise, and neither has he.", es: "Geralt podría haber saldado ese día una vieja deuda con Letho. Eligió una espada más en lugar de justicia. Nunca he decidido si fue sabio, y él tampoco."}
+				],
 				loss: [{who: "opp", en: "The School of the Viper doesn't lose, Wolf.", es: "La Escuela de la Víbora no pierde, Lobo."}]
 			}
 		},
 		battle: {
-			chapter: "kaermorhen", name: "Battle of Kaer Morhen", portrait: "monsters_eredin_silver", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard", boss: true,
+			chapter: "kaermorhen", name: "Battle of Kaer Morhen", portrait: "monsters_eredin_silver", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard", boss: true, retold: true,
 			deck: {faction: "monsters", leader: 93, cards: [
 				[113,1], [102,1], [111,1], [130,1], [121,1], [114,1], [115,1], [109,1], [112,1], [123,1],
 				[98,1], [99,1], [100,1], [101,1], [117,1], [118,1], [119,1], [5,1]
@@ -872,15 +922,16 @@ const campaign = {
 				win: [
 					{who: "narrator", en: "The vanguard broke. Ciri stood among the defenders, sword in hand, and for one moment everything was as it should be.", es: "La vanguardia se quebró. Ciri estaba entre los defensores, espada en mano, y por un momento todo fue como debía ser."},
 					{who: "narrator", en: "Then Vesemir fell in the courtyard, and Ciri's grief shattered the frost. The Hunt withdrew. Nobody cheered.", es: "Entonces Vesemir cayó en el patio, y el dolor de Ciri hizo añicos la escarcha. La Cacería se retiró. Nadie lo celebró."},
+					{who: "ciri", en: "He held the gate for me, Geralt. Like he held everything.", es: "Sostuvo la puerta por mí, Geralt. Como lo sostenía todo."},
 					{who: "narrator", en: "Two cards were found in the snow afterwards: Ciri's, and a Red Rider commander's. I've never asked Geralt why he kept both.", es: "Después encontraron dos cartas en la nieve: la de Ciri y la de un comandante de los Jinetes Rojos. Nunca le he preguntado a Geralt por qué conservó ambas."}
 				],
-				loss: [{who: "geralt", en: "Hold the gate! Again!", es: "¡Mantengan la puerta! ¡Otra vez!"}]
+				loss: [{who: "geralt", en: "Hold the gate! Hold it!", es: "¡Mantengan la puerta! ¡Aguanten!"}]
 			}
 		},
 
 		// ---------- Chapter VI: The Wild Hunt ----------
 		imlerith: {
-			chapter: "hunt", name: "Imlerith", portrait: "monsters_imlerith", pin: {x: 65, y: 66}, level: "hard",
+			chapter: "hunt", name: "Imlerith", portrait: "monsters_imlerith", pin: {x: 65, y: 66}, level: "hard", retold: true,
 			deck: {faction: "monsters", leader: 96, cards: [
 				[124,1], [108,1], [111,1], [130,1], [121,1], [114,1], [115,1], [113,1], [102,1], [131,1],
 				[132,1], [133,1], [134,1], [135,1], [117,1], [118,1], [119,1], [5,1]
@@ -901,7 +952,7 @@ const campaign = {
 			}
 		},
 		caranthir: {
-			chapter: "hunt", name: "Caranthir", portrait: "monsters_eredin_bronze", pin: {x: 22, y: 30}, place: "naglfar", level: "hard", requires: "imlerith",
+			chapter: "hunt", name: "Caranthir", portrait: "monsters_eredin_bronze", pin: {x: 22, y: 30}, place: "naglfar", level: "hard", requires: "imlerith", retold: true,
 			deck: {faction: "monsters", leader: 94, cards: [
 				[123,1], [109,1], [112,1], [120,1], [137,1], [104,1], [110,1], [116,1],
 				[98,1], [99,1], [100,1], [101,1], [127,1], [128,1], [129,1], [5,1], [1,1]
@@ -910,8 +961,8 @@ const campaign = {
 			rumor: {en: "Sailors say the Hunt's navigator can open a door anywhere, even under the sea. They don't say where the doors lead.", es: "Los marineros dicen que el navegante de la Cacería puede abrir una puerta en cualquier parte, incluso bajo el mar. No dicen adónde llevan esas puertas."},
 			dialogue: {
 				intro: [
-					{who: "narrator", en: "Naglfar, the Hunt's ship of nails, lay moored in the frozen sea. Its navigator, Caranthir, greeted Geralt with a blizzard.", es: "Naglfar, el barco de uñas de la Cacería, estaba amarrado en el mar helado. Su navegante, Caranthir, recibió a Geralt con una ventisca."},
-					{who: "opp", en: "You are far from home, witcher. Here the cold answers to me, in every round.", es: "Estás lejos de casa, brujo. Aquí el frío me obedece a mí, en cada ronda."},
+					{who: "narrator", en: "Naglfar, the Hunt's ship of nails, lay moored in the frozen sea. Its navigator, Caranthir, greeted Geralt with a blizzard that never let up.", es: "Naglfar, el barco de uñas de la Cacería, estaba amarrado en el mar helado. Su navegante, Caranthir, recibió a Geralt con una ventisca que nunca amainó."},
+					{who: "opp", en: "You are far from home, witcher. Here, the cold answers to me.", es: "Estás lejos de casa, brujo. Aquí, el frío me obedece a mí."},
 					{who: "geralt", en: "Cold doesn't bother me.", es: "El frío no me molesta."}
 				],
 				win: [
@@ -922,7 +973,7 @@ const campaign = {
 			}
 		},
 		eredin: {
-			chapter: "hunt", name: "Eredin Bréacc Glas", portrait: "monsters_eredin_gold", pin: {x: 22, y: 30}, place: "naglfar", level: "expert", boss: true, requires: "caranthir", credits: true,
+			chapter: "hunt", name: "Eredin Bréacc Glas", portrait: "monsters_eredin_gold", pin: {x: 22, y: 30}, place: "naglfar", level: "expert", boss: true, requires: "caranthir", credits: true, retold: true,
 			deck: {faction: "monsters", leader: 95, cards: [
 				[108,1], [126,1], [125,1], [111,1], [130,1], [121,1], [114,1], [115,1], [123,1], [109,1],
 				[112,1], [131,1], [132,1], [133,1], [134,1], [135,1], [98,1], [99,1], [100,1], [101,1],
@@ -934,8 +985,8 @@ const campaign = {
 				intro: [
 					{who: "opp", en: "Gwynbleidd. You have come far, for a human. It ends here.", es: "Gwynbleidd. Has llegado lejos, para ser un humano. Aquí termina todo."},
 					{who: "geralt", en: "For one of us.", es: "Para uno de los dos."},
-					{who: "opp", en: "Then let us play. The frost is mine, and so is the first move.", es: "Entonces juguemos. La escarcha es mía, y también el primer movimiento."},
-					{who: "narrator", en: "Every card he'd won, every friend he'd made, all of it came down to that table. He said none of this. He never does. I'm saying it for him.", es: "Cada carta que había ganado, cada amigo que había hecho, todo se reducía a esa mesa. Él no dijo nada de eso. Nunca lo dice. Lo digo yo por él."}
+					{who: "opp", en: "Then come. The frost is mine, and so is the first blow.", es: "Entonces ven. La escarcha es mía, y también el primer golpe."},
+					{who: "narrator", en: "Every card he'd won, every friend he'd made, all of it came down to this last fight, which I tell as one last game. He said none of this. He never does. I'm saying it for him.", es: "Cada carta que había ganado, cada amigo que había hecho, todo se reducía a esta última pelea, que cuento como una última partida. Él no dijo nada de eso. Nunca lo dice. Lo digo yo por él."}
 				],
 				win: [
 					{who: "opp", en: "Impossible... a mere... human...", es: "Imposible... un simple... humano..."},
@@ -944,6 +995,7 @@ const campaign = {
 				loss: [{who: "opp", en: "Kneel, Gwynbleidd. Your road ends in ice.", es: "Arrodíllate, Gwynbleidd. Tu camino termina en el hielo."}],
 				credits: [
 					{who: "narrator", en: "Ciri was safe. The Hunt was broken. The Continent, as always, thanked no one.", es: "Ciri estaba a salvo. La Cacería, derrotada. El Continente, como siempre, no le dio las gracias a nadie."},
+					{who: "ciri", en: "Thank you, Geralt. For everything. Now go and lose at cards somewhere warm.", es: "Gracias, Geralt. Por todo. Ahora ve a perder a las cartas a algún lugar cálido."},
 					{who: "narrator", en: "Geralt kept the cards, of course: every face from White Orchard to the Naglfar, and one with his own grim face on it.", es: "Geralt se quedó con las cartas, por supuesto: cada rostro desde Huerto Blanco hasta el Naglfar, y una con su propia cara de pocos amigos."},
 					{who: "narrator", en: "As for me, I wrote it all down. Embellished nothing. Well, almost nothing.", es: "En cuanto a mí, lo puse todo por escrito. No adorné nada. Bueno, casi nada."},
 					{who: "chronicle", source: {en: "Roderick de Novembre, The History of the World", es: "Roderick de Novembre, Historia del mundo"}, en: "The so-called Wild Hunt was dispersed that winter by a coalition of northern sorcerers. No witcher is recorded as having taken part.", es: "La llamada Cacería Salvaje fue dispersada aquel invierno por una coalición de hechiceros norteños. No consta que ningún brujo participara."},
@@ -961,7 +1013,7 @@ const campaign = {
 				[45,1], [32,1], [10,1], [5,1], [1,1]
 			]},
 			modifiers: [], objectives: ["sweep", "noLeader"], rewards: [[17,1]],
-			rumor: {en: "The Redanian nobleman who leads the Wild Boars once let a man cut his head off at a feast, they say. Then he complained about the wine.", es: "Dicen que el noble redanio que dirige a los Jabalíes Salvajes dejó una vez que le cortaran la cabeza en un banquete. Después se quejó del vino."},
+			rumor: {en: "A Redanian drinking song: von Everec lost his head, von Everec stayed undead, von Everec bought the round instead.", es: "Una canción de taberna redania: von Everec perdió la cabeza, von Everec no murió, von Everec pagó la ronda y la fiesta siguió."},
 			dialogue: {
 				intro: [
 					{who: "narrator", en: "Olgierd von Everec had been cursed with immortality and had grown terribly bored of it. A game of gwent was the most fun he'd had in a century.", es: "Olgierd von Everec había sido maldecido con la inmortalidad y estaba terriblemente aburrido de ella. Una partida de gwent era lo más divertido que le había pasado en un siglo."},
@@ -969,7 +1021,7 @@ const campaign = {
 					{who: "geralt", en: "And if I lose?", es: "¿Y si pierdo?"},
 					{who: "opp", en: "Then you'll be as bored as I am.", es: "Entonces estarás tan aburrido como yo."}
 				],
-				win: [{who: "opp", en: "Ha! Marvellous. Take my card. I find I have no use for things anymore.", es: "¡Ja! Maravilloso. Toma mi carta. Descubro que ya no me sirven de nada las cosas."}],
+				win: [{who: "opp", en: "Ha! Marvellous. Have my card. I find I have no use for things anymore.", es: "¡Ja! Maravilloso. Quédate con mi carta. Descubro que ya no me sirven de nada las cosas."}],
 				loss: [{who: "opp", en: "Another round! Life is long. Unfortunately.", es: "¡Otra ronda! La vida es larga. Por desgracia."}]
 			}
 		},
@@ -1034,7 +1086,7 @@ const campaign = {
 			}
 		},
 		dettlaff: {
-			chapter: "bloodandwine", name: "Dettlaff van der Eretein", portrait: "monsters_katakan", pin: {x: 88, y: 96}, place: "toussaint", level: "hard", requires: "regis",
+			chapter: "bloodandwine", name: "Dettlaff van der Eretein", portrait: "monsters_katakan", pin: {x: 88, y: 96}, place: "toussaint", level: "hard", requires: "regis", retold: true,
 			deck: {faction: "monsters", leader: 96, cards: [
 				[131,1], [132,1], [133,1], [134,1], [135,1], [108,1], [111,1], [130,1], [121,1], [114,1],
 				[115,1], [123,1], [109,1], [112,1], [117,1], [118,1], [119,1], [10,2], [5,1], [1,1]
@@ -1043,10 +1095,10 @@ const campaign = {
 			rumor: {en: "A gentle craftsman of toys and little boxes has gone missing in Beauclair, they say. The same week, the killings began. Nobody connects the two. Yet.", es: "Dicen que en Beauclair desapareció un amable artesano de juguetes y cajitas. Esa misma semana empezaron los asesinatos. Nadie relaciona una cosa con la otra. Todavía."},
 			dialogue: {
 				intro: [
-					{who: "narrator", en: "Beauclair burned that night. Dettlaff van der Eretein, the Higher Vampire, demanded a game, and the city's fate rode on it. No pressure.", es: "Esa noche Beauclair ardía. Dettlaff van der Eretein, el vampiro superior, exigió una partida, y el destino de la ciudad dependía de ella. Sin presión."},
-					{who: "opp", en: "You. Witcher. Play. Now.", es: "Tú. Brujo. Juega. Ahora."},
+					{who: "narrator", en: "Beauclair burned that night, under a fog that never lifted. Dettlaff van der Eretein, the Higher Vampire, called Geralt out, and the city's fate rode on it. No pressure.", es: "Esa noche Beauclair ardía, bajo una niebla que nunca se levantó. Dettlaff van der Eretein, el vampiro superior, desafió a Geralt, y el destino de la ciudad dependía de ello. Sin presión."},
+					{who: "opp", en: "You. Witcher. Now.", es: "Tú. Brujo. Ahora."},
 					{who: "geralt", en: "It's dark. And foggy.", es: "Está oscuro. Y hay niebla."},
-					{who: "opp", en: "The night is mine. Every round. And I strike first.", es: "La noche es mía. Cada ronda. Y ataco primero."}
+					{who: "opp", en: "The night is mine. And I strike first.", es: "La noche es mía. Y ataco primero."}
 				],
 				win: [
 					{who: "narrator", en: "Dettlaff had been lied to by the woman he loved, and he answered with a massacre. I don't excuse him. I only note that love has started worse wars.", es: "A Dettlaff le había mentido la mujer que amaba, y respondió con una masacre. No lo disculpo. Solo señalo que el amor ha empezado guerras peores."},

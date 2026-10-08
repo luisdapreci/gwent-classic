@@ -1,5 +1,5 @@
 // Bump to drop old caches after changing asset files in place.
-const VERSION = "gwent-v27";
+const VERSION = "gwent-v28";
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 

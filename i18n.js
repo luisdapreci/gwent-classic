@@ -534,6 +534,7 @@ const I18N = {
 		"Skip": "Saltar",
 		"Geralt": "Geralt",
 		"Dandelion": "Dandelion",
+		"Ciri": "Ciri",
 		"Journal": "Diario",
 		"Choose a place on the map or a chapter below.": "Elige un lugar en el mapa o un capítulo de abajo.",
 		"Locked": "Bloqueado",

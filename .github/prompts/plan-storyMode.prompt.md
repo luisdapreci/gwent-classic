@@ -189,7 +189,13 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
 - **Match rules in the story:** every modifier an opponent applies is explained in its intro, diegetically and wryly (usually by Dandelion).
 - **Rumors:** one-line hearsay from minor characters (ferrymen, washerwomen, drunks), often wrong or exaggerated.
 - **Every line:** original writing (no quotes copied from the books or the game), win lines name the right reward cards, Spanish is neutral/LatAm (tú, ustedes), card names stay in English. Caps: 240 characters in English, 280 in Spanish.
-- **Structure:** each chapter has an `epigraph` (chronicle quote), an `opener` (2–4 narrator/chronicle/Geralt lines, played once when the chapter opens) and 3+ `rumors`. Each opponent and tournament has a `rumor`. Intros 2–4 lines, wins 1–3, losses 1.
+- **Structure:** each chapter has an `epigraph` (chronicle quote), an `opener` (2–4 narrator/chronicle/Geralt lines, played once when the chapter opens; post-game chapters on their first visit) and 3+ `rumors`. Each opponent and tournament has a `rumor`. Intros 2–4 lines, wins 1–4, losses 1.
+- **Gwent rule:** people play real gwent; monsters, the Hunt and battles are fights that Dandelion tells as cards (stated in the White Orchard opener). Those opponents are flagged `retold` and must talk about fighting, not dealing.
+- **Story gates:** scenes the next chapter depends on are `required` (Innkeeper, the Baron before the Crones, Avallac'h before Crach).
+- **Rematches** never repeat reward lines: `dialogue.rematch` if present (Vesemir), else a line from `campaign.rematch` (`win`, or `retoldWin`/`retoldLoss` for `retold` opponents); rematch losses use the normal loss line.
+- **Speakers:** `geralt`, `opp`, `narrator`, `chronicle`, and `ciri` (her card art) for the few moments she speaks. Bosses close with a chronicle line when it adds a deflating counterpoint.
+- **Tournaments** have `dialogue.entry` (on paying the fee) and `dialogue.champion` (after winning the final).
+- **Rumor forms vary:** hearsay, overheard quotes, notices, ledgers, letters, songs.
 
 **Save**
 - One localStorage save, plus Export/Import to a JSON file from the story settings.
