@@ -416,11 +416,15 @@
 
 .story-rewards { display: flex; flex-wrap: wrap; gap: calc(0.5 * var(--u)); }
 .story-card-btn {
+	position: relative;
 	padding: 0;
 	border: none;
 	background: none;
 	line-height: 0;
 }
+.story-card-btn[data-title]::after { left: 50%; translate: -50% 0; line-height: 1.2; }
+/* the result screen already captions each card with its name */
+.story-result-rewards .story-card-btn[data-title]::after { display: none; }
 .story-card {
 	display: block;
 	width: calc(4.5 * var(--u));
