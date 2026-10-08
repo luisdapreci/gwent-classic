@@ -1345,38 +1345,49 @@ const StoryUI = {
 		const terms = StoryMode.termsWarning(opp, deck.cards);
 		const labels = StoryMode.objectiveLabels(opp);
 		const crowns = StoryMode.nextWinCrowns(id);
+		const record = [opp.boss && t("Chapter boss"), beaten && t("Won {w} \u00b7 Lost {l}", {w: progress.wins, l: progress.losses})].filter(Boolean);
 		const out = [
-			storyEl("button", {class: "btn-ghost story-back-link", text: "\u2039 " + t("Back"), onclick: () => this.back()}),
+			this.topBar(
+				storyEl("button", {class: "btn-gold", text: t("Challenge"), disabled: !!(reason || warning || terms), onclick: () => this.challenge(id)}),
+				progress.seen && storyEl("button", {class: "btn-ghost", text: t("Replay Story"), onclick: () => this.dialogue(opp, "intro")})),
 			storyEl("div", {class: "story-opponent-head"},
 				this.portrait(opp, true),
 				storyEl("div", {},
 					storyEl("h2", {text: t(opp.name)}),
 					storyEl("p", {class: "story-kicker", text: this.levelText(opp)}),
-					opp.boss && storyEl("p", {class: "story-dim", text: t("Chapter boss")}),
-					beaten && storyEl("p", {class: "story-dim", text: t("Won {w} \u00b7 Lost {l}", {w: progress.wins, l: progress.losses})}),
-					reason && storyEl("p", {class: "story-warn", text: reason}))),
-			opp.rumor && storyEl("p", {class: "story-rumor", text: StoryMode.text(opp.rumor)})
+					record.length > 0 && storyEl("p", {class: "story-dim", text: record.join(" \u00b7 ")}),
+					reason && storyEl("p", {class: "story-warn", text: reason}),
+					...this.deckSummary(deck, warning + terms),
+					opp.rumor && storyEl("p", {class: "story-rumor", text: StoryMode.text(opp.rumor)})))
 		];
 		if (opp.modifiers.length)
 			out.push(storyEl("h3", {text: t("Special rules")}), storyEl("ul", {class: "story-list"}, opp.modifiers.map(m => storyEl("li", {text: StoryMode.modifierText(m)}))));
-		out.push(storyEl("h3", {text: t("Objectives")}),
-			storyEl("ul", {class: "story-list stars"}, labels.map((l, i) => storyEl("li", {class: progress.stars[i] ? "earned" : "", text: l}))));
-		out.push(storyEl("h3", {text: beaten ? t("Rematch reward") : t("Reward")}),
-			storyEl("p", {text: t("{n} crowns and a card of your choice", {n: crowns})}));
-		if (!beaten) {
-			out.push(storyEl("div", {class: "story-rewards"}, opp.rewards.map(([i]) => this.cardThumb(i))));
-			if (opp.unlocks)
-				out.push(storyEl("p", {class: "story-dim", text: t("Unlocks the {name} faction.", {name: t(factions[opp.unlocks].name)})}));
-		} else
+		out.push(storyEl("div", {class: "story-cols"},
+			storyEl("section", {},
+				storyEl("h3", {text: t("Objectives")}),
+				storyEl("ul", {class: "story-list stars"}, labels.map((l, i) => storyEl("li", {class: progress.stars[i] ? "earned" : "", text: l})))),
+			storyEl("section", {},
+				storyEl("h3", {text: beaten ? t("Rematch reward") : t("Reward")}),
+				storyEl("p", {class: "story-tight", text: t("{n} crowns and a card of your choice", {n: crowns})}),
+				!beaten && storyEl("div", {class: "story-rewards"}, opp.rewards.map(([i]) => this.cardThumb(i))),
+				!beaten && opp.unlocks && storyEl("p", {class: "story-dim", text: t("Unlocks the {name} faction.", {name: t(factions[opp.unlocks].name)})}))));
+		if (beaten)
 			out.push(...this.wagerSection());
-		out.push(storyEl("h3", {text: t("Your deck")}),
-			storyEl("p", {text: t(factions[deck.faction].name) + " \u00b7 " + t("{n} unit cards", {n: DeckMaker.countCards(deck.cards).units})}),
-			(warning || terms) && storyEl("p", {class: "story-warn", text: warning + terms}));
-		out.push(storyEl("div", {class: "story-buttons"},
-			storyEl("button", {class: "btn-gold", text: t("Challenge"), disabled: !!(reason || warning || terms), onclick: () => this.challenge(id)}),
-			storyEl("button", {class: "btn-ghost", text: t("Edit Deck"), onclick: () => StoryMode.openDeck()}),
-			progress.seen && storyEl("button", {class: "btn-ghost", text: t("Replay Story"), onclick: () => this.dialogue(opp, "intro")})));
 		return out;
+	},
+
+	// Back link with the view's actions beside it, so they never need scrolling to
+	topBar(...actions) {
+		return storyEl("div", {class: "story-topbar"},
+			storyEl("button", {class: "btn-ghost story-back-link", text: "\u2039 " + t("Back"), onclick: () => this.back()}),
+			actions);
+	},
+
+	deckSummary(deck, warning) {
+		return [
+			storyEl("p", {class: "story-dim", text: t("Your deck") + ": " + t(factions[deck.faction].name) + " \u00b7 " + t("{n} unit cards", {n: DeckMaker.countCards(deck.cards).units})}),
+			warning ? storyEl("p", {class: "story-warn", text: warning}) : null
+		];
 	},
 
 	// Entry screen, or the current round of a run in progress (one run at a time)
@@ -1385,25 +1396,42 @@ const StoryUI = {
 		const run = StoryMode.data.tournament;
 		const crowns = StoryMode.data.crowns;
 		const {deck, warning} = StoryMode.playerDeck();
+		const active = run?.id === id;
+		const opp = active && StoryMode.tournamentOpponent(run);
+		const terms = active ? StoryMode.termsWarning(opp, deck.cards) : "";
+		const busy = !active && run && StoryMode.tournament(run.id);
+		const actions = active ? [
+			storyEl("button", {class: "btn-gold", text: t("Play Round {n}", {n: run.round + 1}), disabled: !!(warning || terms), onclick: () => this.challengeTournament()}),
+			storyEl("button", {class: "btn-ghost", text: t("Withdraw"), onclick: async () => {
+				if (await ui.confirm(t("Withdraw from the tournament?"), t("Your entry fee is not refunded."), t("Withdraw"), t("Cancel"))) {
+					StoryMode.withdrawTournament();
+					this.render();
+				}
+			}})
+		] : [
+			storyEl("button", {class: "btn-gold", text: t("Enter \u00b7 {n} crowns", {n: tour.fee}), disabled: !!(busy || warning || crowns < tour.fee), onclick: () => {
+				if (StoryMode.enterTournament(id)) {
+					AudioManager.playSFX("ui_card_bank");
+					this.render();
+					this.dialogue({name: tour.name, dialogue: tour.dialogue}, "entry");
+				}
+			}})
+		];
 		const out = [
-			storyEl("button", {class: "btn-ghost story-back-link", text: "\u2039 " + t("Back"), onclick: () => this.back()}),
+			this.topBar(...actions),
 			storyEl("div", {class: "story-opponent-head"},
 				this.trophy(tour, true),
 				storyEl("div", {},
 					storyEl("h2", {text: t(tour.name)}),
 					storyEl("p", {class: "story-kicker", text: t(campaign.places[tour.place]?.name ?? "") + " \u00b7 " + t("{n} rounds", {n: tour.rounds.length})}),
-					storyEl("p", {class: "story-dim", text: t("Single elimination: lose once and you're out. Each round is tougher than the last.")}))),
-			tour.rumor && storyEl("p", {class: "story-rumor", text: StoryMode.text(tour.rumor)})
-		];
-		const deckInfo = terms => [
-			storyEl("h3", {text: t("Your deck")}),
-			storyEl("p", {text: t(factions[deck.faction].name) + " \u00b7 " + t("{n} unit cards", {n: DeckMaker.countCards(deck.cards).units})}),
-			(warning || terms) && storyEl("p", {class: "story-warn", text: warning + terms})
+					storyEl("p", {class: "story-dim", text: t("Single elimination: lose once and you're out. Each round is tougher than the last.")}),
+					...this.deckSummary(deck, warning + terms),
+					busy && storyEl("p", {class: "story-warn", text: t("Finish the {name} first.", {name: t(busy.name)})}),
+					!active && !busy && crowns < tour.fee && storyEl("p", {class: "story-warn", text: t("You need {n} crowns to enter.", {n: tour.fee})}),
+					tour.rumor && storyEl("p", {class: "story-rumor", text: StoryMode.text(tour.rumor)})))
 		];
 
-		if (run?.id === id) {
-			const opp = StoryMode.tournamentOpponent(run);
-			const terms = StoryMode.termsWarning(opp, deck.cards);
+		if (active) {
 			out.push(storyEl("ol", {class: "story-bracket"}, tour.rounds.map((r, i) => storyEl("li", {class: i < run.round ? "won" : i === run.round ? "current" : ""},
 				storyEl("span", {text: t("Round {n}", {n: i + 1})}),
 				storyEl("b", {text: i <= run.round ? t(StoryMode.tournamentOpponent(run, i).name) : "?"})))));
@@ -1415,39 +1443,17 @@ const StoryUI = {
 			out.push(storyEl("p", {class: "story-dim", text: run.round + 1 < tour.rounds.length
 				? t("Win to earn {n} crowns and advance.", {n: tour.perRound})
 				: t("Win the final to earn {n} crowns and the grand prize.", {n: tour.perRound + tour.champion})}));
-			out.push(...this.wagerSection(), ...deckInfo(terms));
-			out.push(storyEl("div", {class: "story-buttons"},
-				storyEl("button", {class: "btn-gold", text: t("Play Round {n}", {n: run.round + 1}), disabled: !!(warning || terms), onclick: () => this.challengeTournament()}),
-				storyEl("button", {class: "btn-ghost", text: t("Edit Deck"), onclick: () => StoryMode.openDeck()}),
-				storyEl("button", {class: "btn-ghost", text: t("Withdraw"), onclick: async () => {
-					if (await ui.confirm(t("Withdraw from the tournament?"), t("Your entry fee is not refunded."), t("Withdraw"), t("Cancel"))) {
-						StoryMode.withdrawTournament();
-						this.render();
-					}
-				}})));
+			out.push(...this.wagerSection());
 			return out;
 		}
 
 		const prizes = tour.prizes.filter(i => !StoryMode.owned(i));
-		const busy = run && StoryMode.tournament(run.id);
 		out.push(storyEl("h3", {text: t("Prizes")}),
 			storyEl("ul", {class: "story-list"},
 				storyEl("li", {text: t("Entry fee: {n} crowns", {n: tour.fee})}),
 				storyEl("li", {text: t("{n} crowns for each round you win", {n: tour.perRound})}),
 				storyEl("li", {text: prizes.length ? t("Champion: {n} more crowns and a leader card", {n: tour.champion}) : t("Champion: {n} more crowns and a hero of your choice", {n: tour.champion})})),
-			prizes.length > 0 && storyEl("div", {class: "story-rewards"}, prizes.map(i => this.cardThumb(i))),
-			...deckInfo(""),
-			busy && storyEl("p", {class: "story-warn", text: t("Finish the {name} first.", {name: t(busy.name)})}),
-			!busy && crowns < tour.fee && storyEl("p", {class: "story-warn", text: t("You need {n} crowns to enter.", {n: tour.fee})}),
-			storyEl("div", {class: "story-buttons"},
-				storyEl("button", {class: "btn-gold", text: t("Enter \u00b7 {n} crowns", {n: tour.fee}), disabled: !!(busy || warning || crowns < tour.fee), onclick: () => {
-					if (StoryMode.enterTournament(id)) {
-						AudioManager.playSFX("ui_card_bank");
-						this.render();
-						this.dialogue({name: tour.name, dialogue: tour.dialogue}, "entry");
-					}
-				}}),
-				storyEl("button", {class: "btn-ghost", text: t("Edit Deck"), onclick: () => StoryMode.openDeck()})));
+			prizes.length > 0 && storyEl("div", {class: "story-rewards"}, prizes.map(i => this.cardThumb(i))));
 		return out;
 	},
 

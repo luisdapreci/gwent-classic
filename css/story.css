@@ -269,7 +269,7 @@
 	text-shadow: 0 0 calc(0.8 * var(--u)) var(--gold-glow);
 }
 #story-panel h3, #story-modal-box h3 {
-	margin: calc(1 * var(--u)) 0 calc(0.4 * var(--u));
+	margin: calc(0.8 * var(--u)) 0 calc(0.35 * var(--u));
 	color: var(--gold-2);
 	font: 700 max(calc(0.85 * var(--u)), var(--fs-xs))/1.2 var(--font-caps);
 	letter-spacing: 0.18em;
@@ -353,14 +353,40 @@
 	box-shadow: 0 0 0 max(calc(0.15 * var(--u)), 2px) var(--ring);
 }
 .story-portrait.large {
-	width: calc(9 * var(--u));
-	height: calc(12.8 * var(--u));
+	width: calc(7.5 * var(--u));
+	height: calc(10.7 * var(--u));
 	border-radius: calc(0.5 * var(--u));
 	background-size: cover;
 	background-position: center top;
 }
 
 .story-opponent-head { display: flex; gap: calc(1 * var(--u)); align-items: flex-start; }
+.story-opponent-head > .story-portrait { flex: none; }
+.story-opponent-head > div:last-child { flex: 1; min-width: 0; }
+.story-opponent-head p { margin: 0 0 calc(0.3 * var(--u)); }
+.story-opponent-head .story-kicker { margin-bottom: calc(0.4 * var(--u)); }
+.story-opponent-head .story-rumor { margin-top: calc(0.5 * var(--u)); }
+.story-topbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: calc(0.4 * var(--u));
+	margin-bottom: calc(0.8 * var(--u));
+}
+.story-topbar > button {
+	margin: 0;
+	padding: calc(0.3 * var(--u)) calc(0.7 * var(--u));
+	font-size: max(calc(0.75 * var(--u)), var(--fs-xs));
+	letter-spacing: 0.08em;
+}
+.story-topbar > .story-back-link { margin-right: auto; }
+.story-topbar > .btn-gold:disabled { filter: grayscale(1) brightness(0.6); }
+.story-cols {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(max(calc(11 * var(--u)), 140px), 1fr));
+	column-gap: calc(1 * var(--u));
+}
+.story-tight { margin: 0 0 calc(0.4 * var(--u)); }
 .story-list { margin: 0; padding: 0; list-style: none; }
 .story-list > li { margin-bottom: calc(0.35 * var(--u)); padding-left: calc(1.2 * var(--u)); text-indent: calc(-1.2 * var(--u)); }
 .story-list > li::before { content: "\2022  "; color: var(--gold-2); }
@@ -413,6 +439,7 @@
 .story-wager { display: flex; flex-wrap: wrap; gap: calc(0.35 * var(--u)); }
 .story-wager > button[aria-checked="true"] { color: var(--gold-1); border-color: var(--gold-1); box-shadow: 0 0 calc(0.8 * var(--u)) var(--gold-glow); }
 .story-wager > button:disabled { opacity: 0.4; }
+.story-wager + p { margin: calc(0.4 * var(--u)) 0 0; font-size: 0.92em; }
 
 .story-buttons {
 	display: flex;

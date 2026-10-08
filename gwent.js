@@ -3067,6 +3067,7 @@ class Carousel {
 				e.addEventListener("pointerout", evt => evt.pointerType === "mouse" && Carousel.curr?.nudge(0));
 			});
 			Carousel.initSwipe(Carousel.elem.children[0]);
+			Carousel.initWheel();
 		}
 		this.elem = Carousel.elem;
 		
@@ -3195,6 +3196,34 @@ class Carousel {
 		};
 		strip.addEventListener("pointerup", end);
 		strip.addEventListener("pointercancel", end);
+	}
+
+	// Mouse wheel / trackpad: one card per notch (trackpad deltas accumulate), down or right = next
+	static initWheel() {
+		let acc = 0, resetTimer;
+		Carousel.elem.addEventListener("wheel", e => {
+			const c = Carousel.curr;
+			if (!c || Carousel.elem.classList.contains("hide"))
+				return;
+			e.preventDefault();
+			Carousel.stopFling();
+			const scale = e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 400 : 1;
+			const delta = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * scale;
+			if (Math.sign(delta) !== Math.sign(acc))
+				acc = 0;
+			acc += delta;
+			clearTimeout(resetTimer);
+			resetTimer = setTimeout(() => acc = 0, 200);
+			const step = 90;
+			while (Math.abs(acc) >= step) {
+				c.nudge(0);
+				if (!c.scroll(Math.sign(acc))) {
+					acc = 0;
+					break;
+				}
+				acc -= Math.sign(acc) * step;
+			}
+		}, {passive: false});
 	}
 
 	static fling(dir, count, delay = 45) {
