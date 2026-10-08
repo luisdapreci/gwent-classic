@@ -38,12 +38,13 @@ const campaign = {
 	},
 
 	// Fixed rewards of chapters not written yet: never offered as random rewards or in shops
-	reserved: [184, 197, 201, 183, 195, 0, 15, 72, 3, 93, 124, 94, 8, 95, 17, 18, 19, 14, 7, 60, 212],
+	reserved: [15, 72, 3, 93, 124, 94, 8, 95, 17, 18, 19, 14, 7, 60],
 
 	// Locations shared by several opponents (one map pin opening a list)
 	places: {
 		crowsperch: {name: "Crow's Perch", x: 52, y: 56},
-		novigrad: {name: "Novigrad", x: 49, y: 29}
+		novigrad: {name: "Novigrad", x: 49, y: 29},
+		kaertrolde: {name: "Kaer Trolde", x: 17, y: 51}
 	},
 
 	// Crowns for a first win by chapter (bosses x2 the first time, rematches x0.5)
@@ -55,7 +56,9 @@ const campaign = {
 		{id: "velen", name: "Velen", bossAfter: 2, winCrowns: 30,
 			reveal: [{x: 62, y: 58, rx: 22, ry: 20}]},
 		{id: "novigrad", name: "Novigrad & Oxenfurt", bossAfter: 3, winCrowns: 50,
-			reveal: [{x: 57, y: 31, rx: 15, ry: 13}]}
+			reveal: [{x: 57, y: 31, rx: 15, ry: 13}]},
+		{id: "skellige", name: "Skellige", bossAfter: 3, winCrowns: 70,
+			reveal: [{x: 20, y: 68, rx: 21, ry: 28}]}
 	],
 
 	// Single-elimination runs against random opponents; each round sets the AI deck pool, play level and whether heroes are removed
@@ -71,6 +74,20 @@ const campaign = {
 				{id: "weather", card: 11, rounds: [1]},
 				{id: "ambush", name: "Card Sharp"},
 				{id: "extraDraw", side: "both", name: "House Rules"},
+				{id: "informants", name: "Loaded Deck"}
+			]
+		},
+		kaertrolde: {
+			name: "Kaer Trolde Tournament", place: "kaertrolde", requires: "crach", fee: 50, perRound: 50, champion: 200,
+			prizes: [140, 59, 58],
+			rounds: [{decks: "easy", level: "hard"}, {decks: "normal", level: "easy", noHeroes: true}, {decks: "normal", level: "normal", noHeroes: true}],
+			entrants: ["Jutta an Dimun", "Sigrdrifa", "Folan", "Gremist", "Ulf of Svorlag", "Haern Caduch", "Sjusta", "Brokva Skald"],
+			modifiers: [
+				null, null,
+				{id: "weather", card: 204, rounds: [1], name: "Sea Squall"},
+				{id: "weather", card: 2, rounds: [1]},
+				{id: "ambush", name: "Raiders"},
+				{id: "extraDraw", side: "both", name: "Jarl's Feast"},
 				{id: "informants", name: "Loaded Deck"}
 			]
 		}
@@ -440,6 +457,113 @@ const campaign = {
 					{who: "narrator", en: "Word spread fast: the Passiflora was hosting a tournament, and they had saved a seat for a witcher.", es: "La noticia corrió rápido: el Passiflora organizaba un torneo, y habían guardado un asiento para un brujo."}
 				],
 				loss: [{who: "opp", en: "Mead's on you, witcher!", es: "¡El hidromiel lo pagas tú, brujo!"}]
+			}
+		},
+
+		// ---------- Chapter IV: Skellige ----------
+		cerys: {
+			chapter: "skellige", name: "Cerys an Craite", portrait: "skellige_cerys", pin: {x: 12, y: 71}, level: "normal",
+			deck: {faction: "skellige", leader: 211, cards: [
+				[184,1], [187,1], [188,1], [189,1], [192,2], [190,1], [191,1], [205,1], [200,3], [185,1],
+				[182,1], [193,1], [208,1], [181,1], [1,1]
+			]},
+			modifiers: [{id: "weather", card: 204, rounds: [1]}], objectives: ["noLeader", "hand3"], rewards: [[184,1]],
+			dialogue: {
+				intro: [
+					{who: "opp", en: "Witcher. My father's council squabbles and my brother drinks. Let's see if you think faster than they do.", es: "Brujo. El consejo de mi padre discute y mi hermano bebe. Veamos si piensas más rápido que ellos."},
+					{who: "geralt", en: "Low bar.", es: "No es mucho pedir."},
+					{who: "opp", en: "Then clear it.", es: "Entonces supéralo."}
+				],
+				win: [{who: "opp", en: "Clever. Take my card. The shield maidens follow whoever earns it.", es: "Astuto. Toma mi carta. Las doncellas escuderas siguen a quien se lo gana."}],
+				loss: [{who: "opp", en: "Brawn without wits. You'd fit right in on Ard Skellig.", es: "Fuerza sin ingenio. Encajarías de maravilla en Ard Skellig."}]
+			}
+		},
+		icegiant: {
+			chapter: "skellige", name: "Ice Giant of Undvik", portrait: "monsters_frost_giant", pin: {x: 9, y: 78}, level: "hard",
+			deck: {faction: "monsters", leader: 96, cards: [
+				[123,1], [121,1], [114,1], [115,1], [111,1], [130,1], [109,1], [112,1], [104,1], [110,1],
+				[116,1], [137,1], [127,1], [128,1], [129,1], [117,1], [118,1], [119,1], [5,1]
+			]},
+			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Eternal Winter"}], objectives: ["noWeather", "sweep"], rewards: [[197,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "Undvik was a frozen ruin, and in its heart slept a giant. Hjalmar an Craite had sworn to slay it. Geralt had sworn to keep Hjalmar alive, which was harder.", es: "Undvik era una ruina helada, y en su corazón dormía un gigante. Hjalmar an Craite había jurado matarlo. Geralt había jurado mantener vivo a Hjalmar, lo cual era más difícil."},
+					{who: "geralt", en: "Frost everywhere. Better not crowd the front line.", es: "Escarcha por todas partes. Mejor no saturar la primera línea."}
+				],
+				win: [{who: "narrator", en: "The giant fell, Hjalmar claimed the glory, and the skalds sang of it for a week. They left Geralt out of the song entirely. I have since corrected that.", es: "El gigante cayó, Hjalmar se llevó la gloria y los escaldos lo cantaron durante una semana. A Geralt lo dejaron fuera de la canción por completo. Yo ya lo he corregido."}],
+				loss: [{who: "geralt", en: "Too cold to think. Again.", es: "Hace demasiado frío para pensar. Otra vez."}]
+			}
+		},
+		lugos: {
+			chapter: "skellige", name: "Madman Lugos", portrait: "skellige_madmad_lugos", pin: {x: 3.5, y: 54}, level: "normal",
+			deck: {faction: "skellige", leader: 211, cards: [
+				[201,1], [183,1], [181,1], [210,3], [202,2], [192,3], [205,1], [208,1], [191,1], [190,1],
+				[185,1], [200,3]
+			]},
+			modifiers: [], objectives: ["second", "hand3"], rewards: [[201,1], [183,1]],
+			dialogue: {
+				intro: [
+					{who: "opp", en: "A witcher on Spikeroog! Play me, wolf, and if I lose you get my card AND my idiot son's!", es: "¡Un brujo en Spikeroog! Juega conmigo, lobo, y si pierdo te llevas mi carta ¡Y la de mi idiota de hijo!"},
+					{who: "geralt", en: "Generous.", es: "Generoso."},
+					{who: "opp", en: "Berserkers are generous. Right up until the mushrooms kick in.", es: "Los berserkers son generosos. Justo hasta que les hacen efecto los hongos."}
+				],
+				win: [{who: "opp", en: "Bah! Take us both. Blueboy, stop crying!", es: "¡Bah! Llévanos a los dos. ¡Blueboy, deja de llorar!"}],
+				loss: [{who: "opp", en: "HA! Spikeroog wins again!", es: "¡JA! ¡Spikeroog gana otra vez!"}]
+			}
+		},
+		ermion: {
+			chapter: "skellige", name: "Ermion", portrait: "skellige_ermion", pin: {x: 39, y: 62}, level: "normal",
+			deck: {faction: "skellige", leader: 211, cards: [
+				[195,1], [190,1], [191,1], [205,1], [208,1], [193,1], [192,1], [187,1], [209,1], [185,2],
+				[182,1], [198,1], [1,1]
+			]},
+			modifiers: [], objectives: ["margin20", "noLeader"], rewards: [[195,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "On Hindarsfjall, Ermion the druid tended his sacred grove and his sacred mushrooms. Mostly the mushrooms.", es: "En Hindarsfjall, el druida Ermion cuidaba su bosque sagrado y sus hongos sagrados. Sobre todo los hongos."},
+					{who: "opp", en: "The gods favor the patient, witcher. Let us see if they favor you.", es: "Los dioses favorecen al paciente, brujo. Veamos si te favorecen a ti."}
+				],
+				win: [{who: "opp", en: "Freya smiles on you. Take my card, and use the mardroeme wisely.", es: "Freya te sonríe. Toma mi carta, y usa el mardroeme con prudencia."}],
+				loss: [{who: "opp", en: "Patience, Geralt. The gods are in no hurry.", es: "Paciencia, Geralt. Los dioses no tienen prisa."}]
+			}
+		},
+		avallach: {
+			chapter: "skellige", name: "Avallac'h", portrait: "neutral_mysterious_elf", pin: {x: 34, y: 82}, level: "normal",
+			deck: {faction: "scoiatael", leader: 142, cards: [
+				[0,1], [154,1], [165,1], [158,1], [148,1], [149,1], [150,1], [147,1], [144,1], [174,1],
+				[176,1], [177,1], [178,1], [179,1], [180,1], [155,1], [156,1], [157,1], [159,1], [5,1]
+			]},
+			modifiers: [{id: "weather", card: 9, rounds: [1, 2, 3], name: "Mist"}], objectives: ["sweep", "noWeather"], rewards: [[0,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "On the Isle of Mists, where Ciri had last been seen, the fog never lifts. Waiting in it was an elf who never gave a straight answer.", es: "En la Isla de las Nieblas, donde vieron a Ciri por última vez, la niebla nunca se disipa. En ella esperaba un elfo que jamás daba una respuesta directa."},
+					{who: "opp", en: "Gwynbleidd. You came for Zireael. First, a game. Elves are patient, and the mist is ours.", es: "Gwynbleidd. Viniste por Zireael. Primero, una partida. Los elfos somos pacientes, y la niebla es nuestra."},
+					{who: "geralt", en: "You talk in riddles.", es: "Hablas con acertijos."},
+					{who: "opp", en: "And you play like a human. We shall see which serves better.", es: "Y tú juegas como un humano. Veremos qué sirve mejor."}
+				],
+				win: [{who: "opp", en: "Hm. Take my card, and keep it close. We will meet again, at Kaer Morhen.", es: "Hm. Toma mi carta y guárdala bien. Volveremos a vernos, en Kaer Morhen."}],
+				loss: [{who: "opp", en: "Va faill, Gwynbleidd. Come back when you can see through the mist.", es: "Va faill, Gwynbleidd. Vuelve cuando puedas ver a través de la niebla."}]
+			}
+		},
+		crach: {
+			chapter: "skellige", name: "Crach an Craite", portrait: "skellige_crach_an_craite", pin: {x: 17, y: 51}, place: "kaertrolde", level: "hard", boss: true, unlocks: "skellige",
+			deck: {faction: "skellige", leader: 211, cards: [
+				[192,3], [187,1], [188,1], [189,1], [185,2], [186,1], [190,1], [191,1], [193,1], [205,1],
+				[208,1], [181,1], [210,3], [202,1], [209,2], [182,1], [198,1], [5,1], [10,1]
+			]},
+			modifiers: [{id: "weather", card: 204, rounds: [1, 3]}], objectives: ["sweep", "margin20"], rewards: [[212,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "Skellige: cold winds, colder ale, and jarls who settle arguments with axes or, on civilized days, with gwent.", es: "Skellige: vientos fríos, cerveza más fría y jarls que zanjan las disputas con hachas o, en los días civilizados, con gwent."},
+					{who: "opp", en: "Geralt! Ciri's trail runs through my islands. First, show me you still have a warrior's nerve.", es: "¡Geralt! El rastro de Ciri pasa por mis islas. Primero, demuéstrame que aún tienes temple de guerrero."},
+					{who: "geralt", en: "Storm's coming.", es: "Se acerca una tormenta."},
+					{who: "opp", en: "There's always a storm in Skellige. Deal.", es: "En Skellige siempre hay tormenta. Reparte."}
+				],
+				win: [
+					{who: "opp", en: "Ha! Well fought, wolf. The clans' cards are yours, and King Bran's too. He'd have liked you.", es: "¡Ja! Bien peleado, lobo. Las cartas de los clanes son tuyas, y la del rey Bran también. Le habrías caído bien."},
+					{who: "narrator", en: "The jarls toasted him all night, and by morning they were already planning a tournament in his honor.", es: "Los jarls brindaron por él toda la noche, y al amanecer ya planeaban un torneo en su honor."}
+				],
+				loss: [{who: "opp", en: "Back to your boat, landlubber!", es: "¡De vuelta a tu barca, marinero de agua dulce!"}]
 			}
 		}
 	}

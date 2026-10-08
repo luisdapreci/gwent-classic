@@ -1154,7 +1154,7 @@ const StoryUI = {
 		if (!place)
 			return;
 		AudioManager.playSFX("ui_card");
-		if (place.ids.length === 1)
+		if (place.ids.length === 1 && !StoryMode.tournamentsAt(key).length)
 			return this.openOpponent(place.ids[0], {kind: "journal"});
 		this.view = {kind: "place", place: key};
 		this.render();

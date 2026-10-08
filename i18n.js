@@ -693,7 +693,29 @@ const I18N = {
 		"Sigismund Dijkstra": "Sigismund Dijkstra",
 		"Philippa Eilhart": "Philippa Eilhart",
 		"Vernon Roche": "Vernon Roche",
-		"Zoltan Chivay": "Zoltan Chivay"
+		"Zoltan Chivay": "Zoltan Chivay",
+		"Skellige": "Skellige",
+		"Kaer Trolde": "Kaer Trolde",
+		"Cerys an Craite": "Cerys an Craite",
+		"Ice Giant of Undvik": "Gigante de hielo de Undvik",
+		"Madman Lugos": "Lugos el Loco",
+		"Ermion": "Ermion",
+		"Avallac'h": "Avallac'h",
+		"Crach an Craite": "Crach an Craite",
+		"Eternal Winter": "Invierno eterno",
+		"Mist": "Niebla",
+		"Kaer Trolde Tournament": "Torneo de Kaer Trolde",
+		"Jutta an Dimun": "Jutta an Dimun",
+		"Sigrdrifa": "Sigrdrifa",
+		"Folan": "Folan",
+		"Gremist": "Gremist",
+		"Ulf of Svorlag": "Ulf de Svorlag",
+		"Haern Caduch": "Haern Caduch",
+		"Sjusta": "Sjusta",
+		"Brokva Skald": "Escaldo de Brokva",
+		"Sea Squall": "Borrasca marina",
+		"Raiders": "Saqueadores",
+		"Jarl's Feast": "Festín del jarl"
 	}
 };
 
