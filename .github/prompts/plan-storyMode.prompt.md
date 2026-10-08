@@ -300,7 +300,12 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
      - Eredin is flagged `credits: true`. His first win plays Dandelion's epilogue (`dialogue.credits`) and then a "The End" card with totals.
      - Balance changes from the plan: Ermion, Avallac'h and Yennefer play at Normal AI. Skellige bond decks and sorceress medic decks swing win rates the most. Heroes ignore weather, so they are pulled from decks that use frost in every round.
      - Kaer Trolde rounds: easy decks/Hard AI → normal decks without heroes/Easy AI → normal decks without heroes/Normal AI (measured about 66% / 38% / 21%).
-   - R4: post-game.
+   - R4 (implemented): post-game.
+     - Two chapters with no boss, "Hearts of Stone" and "Blood and Wine". Both use `opensAfter: "eredin"`.
+     - Order: Olgierd → O'Dimm → the Maelstrom. The Maelstrom has `hidden: true`, so it stays off the map and out of the journal until O'Dimm is beaten.
+     - Toussaint: Regis → Dettlaff and the Beauclair tournament (requires Regis). They share the "Road to Toussaint" pin at 88,96, kept inside the map so it isn't clipped.
+     - Balance changes from the plan: Regis plays at Normal with 3 vampires instead of 5, and Dettlaff at Hard instead of Expert. Beauclair rounds use normal/normal/hard decks without heroes at Easy/Normal/Hard AI.
+     - `campaign.reserved` is now empty.
 3. **Lore liberties:**
    - Avallac'h appears as the "Mysterious Elf" card.
    - Lambert, Eskel, the Baron, Caranthir and Detlaff have no cards, so their portraits are stand-ins.

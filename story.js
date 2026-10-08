@@ -167,12 +167,20 @@ const StoryMode = {
 		return Object.keys(campaign.opponents).filter(id => campaign.opponents[id].chapter === chapterId);
 	},
 
+	// Secret opponents stay off the map and journal until they can be challenged
+	isHidden(id) {
+		return !!this.opponent(id).hidden && !this.isAvailable(id) && !this.beaten(id);
+	},
+
 	chapterBoss(chapterId) {
 		return this.chapterOpponents(chapterId).find(id => campaign.opponents[id].boss);
 	},
 
 	isChapterOpen(chapterId) {
 		const i = campaign.chapters.findIndex(c => c.id === chapterId);
+		const after = campaign.chapters[i]?.opensAfter;
+		if (after)
+			return this.beaten(after);
 		return i === 0 || i > 0 && this.beaten(this.chapterBoss(campaign.chapters[i - 1].id));
 	},
 
@@ -220,11 +228,11 @@ const StoryMode = {
 		return "";
 	},
 
-	// Map locations: opponents sharing a place get one pin; only open chapters are shown
+	// Map locations: opponents sharing a place get one pin; only open chapters (and secrets once available) are shown
 	places() {
 		const places = new Map();
 		for (const [id, opp] of Object.entries(campaign.opponents)) {
-			if (!this.isChapterOpen(opp.chapter))
+			if (!this.isChapterOpen(opp.chapter) || this.isHidden(id))
 				continue;
 			const key = opp.place ?? id;
 			const place = campaign.places?.[opp.place];
@@ -1187,7 +1195,7 @@ const StoryUI = {
 	journalView() {
 		const rows = campaign.chapters.map(chapter => {
 			const open = StoryMode.isChapterOpen(chapter.id);
-			const ids = StoryMode.chapterOpponents(chapter.id);
+			const ids = StoryMode.chapterOpponents(chapter.id).filter(id => !StoryMode.isHidden(id));
 			const beaten = ids.filter(id => StoryMode.beaten(id)).length;
 			const stars = ids.reduce((a, id) => a + StoryMode.progressOf(id).stars.filter(Boolean).length, 0);
 			const status = !open ? t("Locked") : beaten === ids.length ? t("Completed") : t("{n} of {total} defeated", {n: beaten, total: ids.length});
@@ -1229,7 +1237,7 @@ const StoryUI = {
 
 	listView(place, chapterId = place?.chapter) {
 		const chapter = StoryMode.chapter(chapterId);
-		const ids = place ? place.ids : StoryMode.chapterOpponents(chapterId);
+		const ids = place ? place.ids : StoryMode.chapterOpponents(chapterId).filter(id => !StoryMode.isHidden(id));
 		const from = this.view;
 		const rows = ids.map(id => {
 			const opp = StoryMode.opponent(id);

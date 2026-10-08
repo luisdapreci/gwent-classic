@@ -38,7 +38,7 @@ const campaign = {
 	},
 
 	// Fixed rewards of chapters not written yet: never offered as random rewards or in shops
-	reserved: [17, 18, 19, 14, 7, 60],
+	reserved: [],
 
 	// Locations shared by several opponents (one map pin opening a list)
 	places: {
@@ -46,7 +46,8 @@ const campaign = {
 		novigrad: {name: "Novigrad", x: 49, y: 29},
 		kaertrolde: {name: "Kaer Trolde", x: 17, y: 51},
 		kaermorhen: {name: "Kaer Morhen", x: 83, y: 15},
-		naglfar: {name: "Naglfar", x: 22, y: 30}
+		naglfar: {name: "Naglfar", x: 22, y: 30},
+		toussaint: {name: "Road to Toussaint", x: 88, y: 96}
 	},
 
 	// Crowns for a first win by chapter (bosses x2 the first time, rematches x0.5)
@@ -65,7 +66,12 @@ const campaign = {
 			reveal: [{x: 83, y: 15, rx: 12, ry: 14}]},
 		// Linear: each opponent requires the previous one
 		{id: "hunt", name: "The Wild Hunt", bossAfter: 2, winCrowns: 100,
-			reveal: [{x: 22, y: 30, rx: 13, ry: 13}, {x: 65, y: 66, rx: 6, ry: 6}]}
+			reveal: [{x: 22, y: 30, rx: 13, ry: 13}, {x: 65, y: 66, rx: 6, ry: 6}]},
+		// Post-game side stories: both open once Eredin is beaten and have no boss
+		{id: "heartsofstone", name: "Hearts of Stone", opensAfter: "eredin", bossAfter: 0, winCrowns: 100,
+			reveal: [{x: 65, y: 33, rx: 7, ry: 6}, {x: 13, y: 93, rx: 7, ry: 7}]},
+		{id: "bloodandwine", name: "Blood and Wine", opensAfter: "eredin", bossAfter: 0, winCrowns: 100,
+			reveal: [{x: 88, y: 94, rx: 9, ry: 8}]}
 	],
 
 	// Single-elimination runs against random opponents; each round sets the AI deck pool, play level and whether heroes are removed
@@ -95,6 +101,20 @@ const campaign = {
 				{id: "weather", card: 2, rounds: [1]},
 				{id: "ambush", name: "Raiders"},
 				{id: "extraDraw", side: "both", name: "Jarl's Feast"},
+				{id: "informants", name: "Loaded Deck"}
+			]
+		},
+		beauclair: {
+			name: "Beauclair Tournament", place: "toussaint", requires: "regis", fee: 100, perRound: 100, champion: 400,
+			prizes: [26, 97, 143],
+			rounds: [{decks: "normal", level: "easy", noHeroes: true}, {decks: "normal", level: "normal", noHeroes: true}, {decks: "hard", level: "hard", noHeroes: true}],
+			entrants: ["Palmerin de Launfal", "Guillaume de Launfal", "Count Crespi", "Baroness Mariette", "Milton de Peyrac-Peyran", "Damien de la Tour", "Vivienne de Tabris", "Orianna"],
+			modifiers: [
+				null, null,
+				{id: "weather", card: 9, rounds: [1]},
+				{id: "weather", card: 11, rounds: [1]},
+				{id: "ambush", name: "First Joust"},
+				{id: "extraDraw", side: "both", name: "Wine Tasting"},
 				{id: "informants", name: "Loaded Deck"}
 			]
 		}
@@ -724,6 +744,101 @@ const campaign = {
 					{who: "narrator", en: "As for me, I wrote it all down. Embellished nothing. Well, almost nothing.", es: "En cuanto a mí, lo puse todo por escrito. No adorné nada. Bueno, casi nada."},
 					{who: "narrator", en: "The tables of the Continent are still open, dear reader. Rematches, tournaments, rumors from the south... The tale goes on as long as you keep playing.", es: "Las mesas del Continente siguen abiertas, querido lector. Revanchas, torneos, rumores del sur... La historia continúa mientras sigas jugando."}
 				]
+			}
+		},
+
+		// ---------- Post-game: Hearts of Stone ----------
+		olgierd: {
+			chapter: "heartsofstone", name: "Olgierd von Everec", portrait: "neutral_olgierd", pin: {x: 68, y: 33.5}, level: "hard",
+			deck: {faction: "realms", leader: 22, cards: [
+				[17,1], [28,3], [30,3], [29,2], [46,1], [52,1], [33,1], [34,1], [54,1], [55,1],
+				[45,1], [32,1], [10,1], [5,1], [1,1]
+			]},
+			modifiers: [], objectives: ["sweep", "noLeader"], rewards: [[17,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "Olgierd von Everec had been cursed with immortality and had grown terribly bored of it. A game of gwent was the most fun he'd had in a century.", es: "Olgierd von Everec había sido maldecido con la inmortalidad y estaba terriblemente aburrido de ella. Una partida de gwent era lo más divertido que le había pasado en un siglo."},
+					{who: "opp", en: "A witcher! Excellent. Sit, play, and if you win, I might even feel something.", es: "¡Un brujo! Excelente. Siéntate, juega y, si ganas, puede que hasta sienta algo."},
+					{who: "geralt", en: "And if I lose?", es: "¿Y si pierdo?"},
+					{who: "opp", en: "Then you'll be as bored as I am.", es: "Entonces estarás tan aburrido como yo."}
+				],
+				win: [{who: "opp", en: "Ha! Marvellous. Take my card. I find I have no use for things anymore.", es: "¡Ja! Maravilloso. Toma mi carta. Descubro que ya no me sirven de nada las cosas."}],
+				loss: [{who: "opp", en: "Another round! Life is long. Unfortunately.", es: "¡Otra ronda! La vida es larga. Por desgracia."}]
+			}
+		},
+		odimm: {
+			chapter: "heartsofstone", name: "Gaunter O'Dimm", portrait: "neutral_gaunter_odimm", pin: {x: 62, y: 31}, level: "expert", requires: "olgierd",
+			deck: {faction: "realms", leader: 22, cards: [
+				[18,1], [19,3], [28,3], [30,3], [29,2], [33,1], [34,1], [46,1], [52,1], [48,1],
+				[50,1], [54,1], [55,1], [45,1], [32,1], [10,1], [5,1], [1,2], [4,1]
+			]},
+			modifiers: [{id: "leaderBlocked", name: "O'Dimm's Bargain"}], objectives: ["margin20", "hand3"], rewards: [[18,1], [19,3]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "At the Gustfields crossroads, a friendly little man in a plain hat was waiting. I won't say his name. Some names are better left unsaid.", es: "En la encrucijada de Gustfields esperaba un hombrecillo amable con un sombrero sencillo. No diré su nombre. Hay nombres que es mejor no pronunciar."},
+					{who: "opp", en: "Geralt! A game between friends. Only one small condition: your leader stays out of it. A bargain's a bargain.", es: "¡Geralt! Una partida entre amigos. Solo una pequeña condición: tu líder no participa. Un trato es un trato."},
+					{who: "geralt", en: "I don't remember agreeing.", es: "No recuerdo haber aceptado."},
+					{who: "opp", en: "Oh, you did. Long ago.", es: "Oh, sí que aceptaste. Hace mucho."}
+				],
+				win: [
+					{who: "opp", en: "Well played. Truly. Take my cards. We'll meet again; I'm a patient man.", es: "Bien jugado. De verdad. Toma mis cartas. Volveremos a vernos; soy un hombre paciente."},
+					{who: "narrator", en: "The crossroads were empty when Geralt looked up. I still don't like to talk about it.", es: "La encrucijada estaba vacía cuando Geralt levantó la vista. Todavía no me gusta hablar de ello."}
+				],
+				loss: [{who: "opp", en: "Tsk. A bargain is a bargain, witcher.", es: "Tsk. Un trato es un trato, brujo."}]
+			}
+		},
+		maelstrom: {
+			chapter: "heartsofstone", name: "The Maelstrom", portrait: "neutral_villen", pin: {x: 13, y: 93}, level: "expert", requires: "odimm", hidden: true,
+			deck: {faction: "monsters", leader: 96, cards: [
+				[111,1], [130,1], [121,1], [114,1], [115,1], [123,1], [109,1], [112,1], [108,1], [125,1],
+				[98,1], [99,1], [100,1], [101,1], [117,1], [118,1], [119,1], [127,1], [128,1], [129,1],
+				[10,1], [5,1]
+			]},
+			modifiers: [{id: "weather", card: 204, rounds: [1, 2, 3], name: "Endless Storm"}], objectives: ["sweep", "noWeather"], rewards: [[14,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "There is a whirlpool off the southern coast of Skellige that sailors refuse to name. Geralt sailed into it. For a card game. I have tried to talk him out of worse.", es: "Frente a la costa sur de Skellige hay un remolino que los marineros se niegan a nombrar. Geralt navegó hacia él. Por una partida de cartas. He intentado disuadirlo de cosas peores."},
+					{who: "geralt", en: "Storm every round. Of course.", es: "Tormenta en cada ronda. Cómo no."}
+				],
+				win: [{who: "narrator", en: "At the bottom of the Maelstrom waited a golden dragon in human form, who said he'd been hoping for a decent opponent for three hundred years.", es: "En el fondo del Maelstrom esperaba un dragón dorado con forma humana, que dijo llevar trescientos años esperando un rival decente."}],
+				loss: [{who: "geralt", en: "The sea wins this round.", es: "El mar gana esta ronda."}]
+			}
+		},
+
+		// ---------- Post-game: Blood and Wine ----------
+		regis: {
+			chapter: "bloodandwine", name: "Regis", portrait: "neutral_emiel", pin: {x: 88, y: 96}, place: "toussaint", level: "normal",
+			deck: {faction: "monsters", leader: 93, cards: [
+				[7,1], [131,1], [132,1], [135,1], [111,1], [130,1], [102,1], [113,1],
+				[121,1], [120,1], [5,1], [1,1]
+			]},
+			modifiers: [], objectives: ["noLeader", "hand3"], rewards: [[7,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "And then there was Toussaint, where the wine is sweet, the knights are earnest, and an old friend was waiting: Emiel Regis, barber-surgeon and, strictly speaking, a vampire.", es: "Y luego estaba Toussaint, donde el vino es dulce, los caballeros sinceros, y un viejo amigo esperaba: Emiel Regis, barbero-cirujano y, en sentido estricto, vampiro."},
+					{who: "opp", en: "Geralt. Shall we? I have had a few centuries to practice.", es: "Geralt. ¿Jugamos? He tenido unos cuantos siglos para practicar."},
+					{who: "geralt", en: "Go easy on me.", es: "No seas duro conmigo."}
+				],
+				win: [{who: "opp", en: "Splendid. My card is yours, my friend. As for Dettlaff... I fear he will be less gracious.", es: "Espléndido. Mi carta es tuya, amigo mío. En cuanto a Dettlaff... me temo que será menos cortés."}],
+				loss: [{who: "opp", en: "Patience, Geralt. I can wait. I'm rather good at it.", es: "Paciencia, Geralt. Puedo esperar. Se me da bastante bien."}]
+			}
+		},
+		dettlaff: {
+			chapter: "bloodandwine", name: "Dettlaff van der Eretein", portrait: "monsters_katakan", pin: {x: 88, y: 96}, place: "toussaint", level: "hard", requires: "regis",
+			deck: {faction: "monsters", leader: 96, cards: [
+				[131,1], [132,1], [133,1], [134,1], [135,1], [108,1], [111,1], [130,1], [121,1], [114,1],
+				[115,1], [123,1], [109,1], [112,1], [117,1], [118,1], [119,1], [10,2], [5,1], [1,1]
+			]},
+			modifiers: [{id: "ambush", name: "Night of Long Fangs"}, {id: "weather", card: 9, rounds: [1, 2, 3]}], objectives: ["margin20", "sweep"], rewards: [[60,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "Beauclair burned that night. Dettlaff van der Eretein, the Higher Vampire, demanded a game, and the city's fate rode on it. No pressure.", es: "Esa noche Beauclair ardía. Dettlaff van der Eretein, el vampiro superior, exigió una partida, y el destino de la ciudad dependía de ella. Sin presión."},
+					{who: "opp", en: "You. Witcher. Play. Now.", es: "Tú. Brujo. Juega. Ahora."},
+					{who: "geralt", en: "It's dark. And foggy.", es: "Está oscuro. Y hay niebla."},
+					{who: "opp", en: "The night is mine.", es: "La noche es mía."}
+				],
+				win: [{who: "narrator", en: "Dettlaff fell, Beauclair was saved, and the Duchess pinned a medal on Geralt that he has never once worn. With it came a card bearing an emperor's face, a gift from Nilfgaard's embassy.", es: "Dettlaff cayó, Beauclair se salvó, y la Duquesa le prendió a Geralt una medalla que jamás se ha puesto. Con ella llegó una carta con el rostro de un emperador, regalo de la embajada de Nilfgaard."}],
+				loss: [{who: "opp", en: "Weak.", es: "Débil."}]
 			}
 		}
 	}

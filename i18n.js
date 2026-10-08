@@ -733,7 +733,29 @@ const I18N = {
 		"Navigator's Blizzard": "Ventisca del navegante",
 		"The End": "Fin",
 		"Path of the Witcher": "La senda del brujo",
-		"Thank you for playing. Rematches and tournaments stay open on the map.": "Gracias por jugar. Las revanchas y los torneos siguen disponibles en el mapa."
+		"Thank you for playing. Rematches and tournaments stay open on the map.": "Gracias por jugar. Las revanchas y los torneos siguen disponibles en el mapa.",
+		"Hearts of Stone": "Corazones de piedra",
+		"Blood and Wine": "Sangre y vino",
+		"Road to Toussaint": "Camino a Toussaint",
+		"Olgierd von Everec": "Olgierd von Everec",
+		"Gaunter O'Dimm": "Gaunter O'Dimm",
+		"The Maelstrom": "El Maelstrom",
+		"Regis": "Regis",
+		"Dettlaff van der Eretein": "Dettlaff van der Eretein",
+		"O'Dimm's Bargain": "El trato de O'Dimm",
+		"Endless Storm": "Tormenta sin fin",
+		"Night of Long Fangs": "La noche de los colmillos largos",
+		"Beauclair Tournament": "Torneo de Beauclair",
+		"Palmerin de Launfal": "Palmerin de Launfal",
+		"Guillaume de Launfal": "Guillaume de Launfal",
+		"Count Crespi": "Conde Crespi",
+		"Baroness Mariette": "Baronesa Mariette",
+		"Milton de Peyrac-Peyran": "Milton de Peyrac-Peyran",
+		"Damien de la Tour": "Damien de la Tour",
+		"Vivienne de Tabris": "Vivienne de Tabris",
+		"Orianna": "Orianna",
+		"First Joust": "Primera justa",
+		"Wine Tasting": "Cata de vinos"
 	}
 };
 
