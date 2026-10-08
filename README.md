@@ -124,7 +124,7 @@ The four toggle buttons are in the center column of the deck builder and in the 
 
 | Setting | Notes |
 | --- | --- |
-| Music | Local MP3s in `sfx/music/`. The Kaer Morhen theme plays in the menus and the Gwent soundtrack plays in matches, with a crossfade between them. If the browser blocks autoplay, music starts on your first click or key press. |
+| Music | Local MP3s in `sfx/music/` (128 kbps; full-quality originals go in the ignored `sfx/music-src/`). Kaer Morhen plays in the menus and The Trail on the story map. Matches alternate between the Gwent soundtrack and Drink Up, There's More!, and story bosses get Silver for Monsters (Monsters) or Steel for Humans (everyone else). Tracks crossfade and only download the first time they play. If the browser blocks autoplay, music starts on your first click or key press. |
 | Sound effects | Card placement, abilities, weather, round and match results, menu sounds. |
 | Game messages | In-game notifications such as round start, pass and faction perks. |
 | Visual effects | Particle bursts, screen shake, sunlight, score pulses and card flips. Also disabled automatically when the OS asks for reduced motion. |

@@ -976,6 +976,7 @@ const StoryUI = {
 		const opening = !this.isOpen();
 		this.el.classList.remove("hide");
 		document.body.classList.add("story-map");
+		ui.setMusicTrack("map");
 		if (opening)
 			this.focusChapter();
 		this.render();

@@ -1764,7 +1764,7 @@ class Game {
 	async startGame() {
 		const session = this.session;
 		EventManager.gameOpened.dispatch();
-		ui.setMusicTrack("game");
+		ui.setMusicTrack(ui.matchMusic(this.story, player_op.deck.faction));
 		if (this.story)
 			StoryMode.applyModifiers(this.story);
 		// Online clients register hooks in seat order so effects run in the same order on both
@@ -2075,7 +2075,8 @@ class Game {
 		if (showBuilder)
 			document.getElementById("deck-customization").classList.remove("hide");
 		AudioManager.playSFX('menu_opening');
-		ui.setMusicTrack("menu");
+		// Story matches go back to the map, so its music starts here instead of a brief menu fade-in
+		ui.setMusicTrack(this.story ? "map" : "menu");
 		this.setState(GameState.CUSTOMIZE);
 	}
 
@@ -2422,6 +2423,7 @@ class UI {
 		document.getElementById("click-background").addEventListener("click", () => ui.cancel(), false);
 		this.music = {};
 		this.musicTrack = "menu";
+		this.matchCount = 0;
 		this.toggleMusic_elem = document.getElementById("toggle-music");
 		this.toggleSettings.push(this.toggleMusic_elem);
 		this.toggleMusic_elem.classList.toggle("fade", !Settings.music.isEnabled());
@@ -2502,16 +2504,20 @@ class UI {
 		this.handoff_elem.classList.add("hide");
 	}
 	
-	// Initializes the background music (menu: Kaer Morhen, game: Gwent mix)
+	// Initializes the background music; a track only downloads the first time it plays
 	initMusic(){
 		const tracks = {
-			menu: "The Witcher 3_ Wild Hunt - Kaer Morhen Extended.mp3",
-			game: "The Witcher 3_ Wild Hunt Soundtrack - Gwent Full Mix.mp3"
+			menu: "kaer-morhen",
+			map: "the-trail",
+			gwent: "gwent",
+			tavern: "drink-up",
+			monsters: "silver-for-monsters",
+			humans: "steel-for-humans"
 		};
 		// No <audio> elements: media elements make the OS show a media notification
 		const ctx = this.musicContext = new (window.AudioContext || window.webkitAudioContext)();
 		for (const [name, file] of Object.entries(tracks))
-			this.music[name] = new MusicTrack(ctx, "sfx/music/" + encodeURIComponent(file), ctx.destination);
+			this.music[name] = new MusicTrack(ctx, `sfx/music/${file}.mp3`, ctx.destination);
 		document.addEventListener("visibilitychange", () => {
 			if (document.hidden)
 				ctx.suspend().catch(() => {});
@@ -2526,7 +2532,14 @@ class UI {
 		return !!this.music[this.musicTrack]?.playing && this.musicContext.state === "running";
 	}
 
-	// Switches between "menu" and "game" music with a crossfade
+	// Story bosses get a battle theme for their faction; other matches alternate the Gwent mix and Drink Up
+	matchMusic(story, faction){
+		if (story?.opp.boss)
+			return faction === "monsters" ? "monsters" : "humans";
+		return this.matchCount++ % 2 ? "tavern" : "gwent";
+	}
+
+	// Switches to a track from initMusic with a crossfade
 	setMusicTrack(name){
 		this.musicTrack = name;
 		this.applyMusicSetting();
@@ -4688,6 +4701,7 @@ function openTitleScreen(sfx = true) {
 	titleScreen.classList.remove("hide");
 	void titleScreen.offsetWidth; // reflow so the opacity transition runs
 	titleScreen.classList.remove("leaving");
+	ui.setMusicTrack("menu");
 	if (sfx)
 		AudioManager.playSFX("menu_opening");
 }
