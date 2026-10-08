@@ -38,13 +38,15 @@ const campaign = {
 	},
 
 	// Fixed rewards of chapters not written yet: never offered as random rewards or in shops
-	reserved: [15, 72, 3, 93, 124, 94, 8, 95, 17, 18, 19, 14, 7, 60],
+	reserved: [17, 18, 19, 14, 7, 60],
 
 	// Locations shared by several opponents (one map pin opening a list)
 	places: {
 		crowsperch: {name: "Crow's Perch", x: 52, y: 56},
 		novigrad: {name: "Novigrad", x: 49, y: 29},
-		kaertrolde: {name: "Kaer Trolde", x: 17, y: 51}
+		kaertrolde: {name: "Kaer Trolde", x: 17, y: 51},
+		kaermorhen: {name: "Kaer Morhen", x: 83, y: 15},
+		naglfar: {name: "Naglfar", x: 22, y: 30}
 	},
 
 	// Crowns for a first win by chapter (bosses x2 the first time, rematches x0.5)
@@ -58,7 +60,12 @@ const campaign = {
 		{id: "novigrad", name: "Novigrad & Oxenfurt", bossAfter: 3, winCrowns: 50,
 			reveal: [{x: 57, y: 31, rx: 15, ry: 13}]},
 		{id: "skellige", name: "Skellige", bossAfter: 3, winCrowns: 70,
-			reveal: [{x: 20, y: 68, rx: 21, ry: 28}]}
+			reveal: [{x: 20, y: 68, rx: 21, ry: 28}]},
+		{id: "kaermorhen", name: "Kaer Morhen", bossAfter: 2, winCrowns: 85,
+			reveal: [{x: 83, y: 15, rx: 12, ry: 14}]},
+		// Linear: each opponent requires the previous one
+		{id: "hunt", name: "The Wild Hunt", bossAfter: 2, winCrowns: 100,
+			reveal: [{x: 22, y: 30, rx: 13, ry: 13}, {x: 65, y: 66, rx: 6, ry: 6}]}
 	],
 
 	// Single-elimination runs against random opponents; each round sets the AI deck pool, play level and whether heroes are removed
@@ -564,6 +571,159 @@ const campaign = {
 					{who: "narrator", en: "The jarls toasted him all night, and by morning they were already planning a tournament in his honor.", es: "Los jarls brindaron por él toda la noche, y al amanecer ya planeaban un torneo en su honor."}
 				],
 				loss: [{who: "opp", en: "Back to your boat, landlubber!", es: "¡De vuelta a tu barca, marinero de agua dulce!"}]
+			}
+		},
+
+		// ---------- Chapter V: Kaer Morhen ----------
+		lambert: {
+			chapter: "kaermorhen", name: "Lambert", portrait: null, pin: {x: 83, y: 15}, place: "kaermorhen", level: "normal",
+			deck: {faction: "realms", leader: 22, cards: [
+				[28,3], [30,3], [29,2], [52,1], [46,1], [48,1], [50,1], [44,1], [53,1], [54,1],
+				[55,1], [45,1], [35,1], [36,1], [37,1], [32,1], [5,1], [1,1]
+			]},
+			modifiers: [], objectives: ["sweep", "hand3"], rewards: [[5,1]],
+			dialogue: {
+				intro: [
+					{who: "opp", en: "Look who finally came home. Fancy losing to me in front of Vesemir?", es: "Mira quién volvió por fin a casa. ¿Te apetece perder contra mí delante de Vesemir?"},
+					{who: "geralt", en: "Try not to sulk this time.", es: "Intenta no enfurruñarte esta vez."}
+				],
+				win: [{who: "opp", en: "Tch. Take the horn and get out of my sight.", es: "Bah. Llévate el cuerno y desaparece de mi vista."}],
+				loss: [{who: "opp", en: "Ha! Write that down, Vesemir!", es: "¡Ja! ¡Apúntalo, Vesemir!"}]
+			}
+		},
+		eskel: {
+			chapter: "kaermorhen", name: "Eskel", portrait: null, pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard",
+			deck: {faction: "realms", leader: 23, cards: [
+				[28,2], [30,2], [40,4], [42,1], [43,1], [52,1], [46,1], [31,1], [44,1], [53,1],
+				[54,1], [32,1], [27,1], [29,2], [1,2], [4,1]
+			]},
+			modifiers: [], objectives: ["noLeader", "second"], rewards: [[1,1]],
+			dialogue: {
+				intro: [
+					{who: "opp", en: "Geralt. The Hunt is coming and we're playing cards. Feels like old times.", es: "Geralt. La Cacería viene y nosotros jugando a las cartas. Como en los viejos tiempos."},
+					{who: "geralt", en: "Old times were worse.", es: "Los viejos tiempos eran peores."},
+					{who: "opp", en: "True. Deal.", es: "Cierto. Reparte."}
+				],
+				win: [{who: "opp", en: "Good game. Here, a decoy. Saves lives, even in gwent.", es: "Buena partida. Toma, un señuelo. Salva vidas, incluso en el gwent."}],
+				loss: [{who: "opp", en: "Don't tell Lambert I won. He'll want a rematch.", es: "No le digas a Lambert que gané. Querrá la revancha."}]
+			}
+		},
+		yennefer: {
+			chapter: "kaermorhen", name: "Yennefer of Vengerberg", portrait: "neutral_yennefer", pin: {x: 83, y: 15}, place: "kaermorhen", level: "normal",
+			deck: {faction: "realms", leader: 22, cards: [
+				[15,1], [48,1], [50,1], [31,1], [30,1], [28,2], [54,1], [45,1], [32,1],
+				[46,1], [52,1], [1,1]
+			]},
+			modifiers: [], objectives: ["margin20", "noWeather"], rewards: [[15,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "Yennefer of Vengerberg did nothing halfway, and that included gwent. She brought the Lodge's favorite cards and no mercy whatsoever.", es: "Yennefer de Vengerberg no hacía nada a medias, y eso incluía el gwent. Trajo las cartas favoritas de la Logia y ni una pizca de piedad."},
+					{who: "opp", en: "If you're going to stand between Ciri and the Hunt, Geralt, I want to see you think.", es: "Si vas a interponerte entre Ciri y la Cacería, Geralt, quiero verte pensar."},
+					{who: "geralt", en: "And if I lose?", es: "¿Y si pierdo?"},
+					{who: "opp", en: "Then you'll have learned something.", es: "Entonces habrás aprendido algo."}
+				],
+				win: [{who: "opp", en: "Not bad. Keep my card. And keep it close.", es: "Nada mal. Quédate con mi carta. Y tenla cerca."}],
+				loss: [{who: "opp", en: "Again. And this time, focus.", es: "Otra vez. Y esta vez, concéntrate."}]
+			}
+		},
+		letho: {
+			chapter: "kaermorhen", name: "Letho of Gulet", portrait: "nilfgaard_letho", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard",
+			deck: {faction: "nilfgaard", leader: 57, cards: [
+				[72,1], [65,1], [69,1], [62,1], [63,1], [71,4], [76,3], [82,1], [92,1], [80,1],
+				[67,1], [79,1], [78,1], [87,1], [10,1], [1,1]
+			]},
+			modifiers: [], objectives: ["sweep", "noLeader"], rewards: [[72,1]],
+			dialogue: {
+				intro: [
+					{who: "opp", en: "Geralt. The Kingslayer, at your service. Heard you need allies for a war.", es: "Geralt. El Matarreyes, a tu servicio. Me dijeron que necesitas aliados para una guerra."},
+					{who: "geralt", en: "One game. Then we talk.", es: "Una partida. Luego hablamos."}
+				],
+				win: [{who: "opp", en: "Fair. Take my card. When the Hunt comes, I'll be on the walls.", es: "Justo. Toma mi carta. Cuando llegue la Cacería, estaré en las murallas."}],
+				loss: [{who: "opp", en: "The School of the Viper doesn't lose, Wolf.", es: "La Escuela de la Víbora no pierde, Lobo."}]
+			}
+		},
+		battle: {
+			chapter: "kaermorhen", name: "Battle of Kaer Morhen", portrait: "monsters_eredin_silver", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard", boss: true,
+			deck: {faction: "monsters", leader: 93, cards: [
+				[113,1], [102,1], [111,1], [130,1], [121,1], [114,1], [115,1], [109,1], [112,1], [123,1],
+				[98,1], [99,1], [100,1], [101,1], [117,1], [118,1], [119,1], [5,1]
+			]},
+			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Breath of the Hunt"}, {id: "extraDraw", name: "Defenders"}],
+			objectives: ["noLeader", "hand3"], rewards: [[3,1], [93,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "And then the Hunt came to Kaer Morhen. The frost arrived first, as it always did, and then the riders.", es: "Y entonces la Cacería llegó a Kaer Morhen. Primero llegó la escarcha, como siempre, y luego los jinetes."},
+					{who: "opp", en: "Surrender Zireael, and we will spare your little fortress.", es: "Entreguen a Zireael y perdonaremos su pequeña fortaleza."},
+					{who: "geralt", en: "Everyone to the walls!", es: "¡Todos a las murallas!"},
+					{who: "narrator", en: "Every friend Geralt had ever made stood beside him. In gwent terms, he drew an extra card.", es: "Cada amigo que Geralt había hecho en su vida estaba a su lado. En términos de gwent, robó una carta extra."}
+				],
+				win: [
+					{who: "narrator", en: "The vanguard broke. Ciri stood among the defenders, sword in hand, and for one moment everything was as it should be.", es: "La vanguardia se quebró. Ciri estaba entre los defensores, espada en mano, y por un momento todo fue como debía ser."},
+					{who: "narrator", en: "It did not last. Few things in my stories do.", es: "No duró. Pocas cosas en mis historias duran."}
+				],
+				loss: [{who: "geralt", en: "Hold the gate! Again!", es: "¡Mantengan la puerta! ¡Otra vez!"}]
+			}
+		},
+
+		// ---------- Chapter VI: The Wild Hunt ----------
+		imlerith: {
+			chapter: "hunt", name: "Imlerith", portrait: "monsters_imlerith", pin: {x: 65, y: 66}, level: "hard",
+			deck: {faction: "monsters", leader: 96, cards: [
+				[124,1], [108,1], [111,1], [130,1], [121,1], [114,1], [115,1], [113,1], [102,1], [131,1],
+				[132,1], [133,1], [134,1], [135,1], [117,1], [118,1], [119,1], [5,1]
+			]},
+			modifiers: [{id: "ambush", name: "Sabbath"}, {id: "weather", card: 2, rounds: [1]}], objectives: ["margin20", "noWeather"], rewards: [[124,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "On Bald Mountain the witches held their sabbath, and Imlerith, the Hunt's general, waited at the top.", es: "En la Montaña Calva las brujas celebraban su aquelarre, e Imlerith, el general de la Cacería, esperaba en la cima."},
+					{who: "opp", en: "The White Wolf. I will enjoy breaking you.", es: "El Lobo Blanco. Disfrutaré rompiéndote."},
+					{who: "geralt", en: "Get in line.", es: "Ponte a la cola."}
+				],
+				win: [{who: "narrator", en: "Imlerith fell on his own altar, and the witches' sabbath ended early that year.", es: "Imlerith cayó sobre su propio altar, y ese año el aquelarre de las brujas terminó temprano."}],
+				loss: [{who: "opp", en: "Kneel, wolf.", es: "Arrodíllate, lobo."}]
+			}
+		},
+		caranthir: {
+			chapter: "hunt", name: "Caranthir", portrait: "monsters_eredin_bronze", pin: {x: 22, y: 30}, place: "naglfar", level: "hard", requires: "imlerith",
+			deck: {faction: "monsters", leader: 94, cards: [
+				[123,1], [109,1], [112,1], [120,1], [137,1], [104,1], [110,1], [116,1],
+				[98,1], [99,1], [100,1], [101,1], [127,1], [128,1], [129,1], [5,1], [1,1]
+			]},
+			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Navigator's Blizzard"}], objectives: ["sweep", "hand3"], rewards: [[94,1]],
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "Naglfar, the Hunt's ship of nails, lay moored in the frozen sea. Its navigator, Caranthir, greeted Geralt with a blizzard.", es: "Naglfar, el barco de uñas de la Cacería, estaba amarrado en el mar helado. Su navegante, Caranthir, recibió a Geralt con una ventisca."},
+					{who: "opp", en: "You are far from home, witcher. Here, the cold answers to me.", es: "Estás lejos de casa, brujo. Aquí, el frío me obedece a mí."}
+				],
+				win: [{who: "opp", en: "The king... will finish what I... could not.", es: "El rey... terminará lo que yo... no pude."}],
+				loss: [{who: "opp", en: "Freeze, and be forgotten.", es: "Congélate, y que te olviden."}]
+			}
+		},
+		eredin: {
+			chapter: "hunt", name: "Eredin Bréacc Glas", portrait: "monsters_eredin_gold", pin: {x: 22, y: 30}, place: "naglfar", level: "expert", boss: true, requires: "caranthir", credits: true,
+			deck: {faction: "monsters", leader: 95, cards: [
+				[108,1], [126,1], [125,1], [111,1], [130,1], [121,1], [114,1], [115,1], [123,1], [109,1],
+				[112,1], [131,1], [132,1], [133,1], [134,1], [135,1], [98,1], [99,1], [100,1], [101,1],
+				[10,2], [5,1], [1,1]
+			]},
+			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Breath of the Hunt"}, {id: "ambush"}], objectives: ["noLeader", "margin20"], rewards: [[8,1], [95,1]],
+			dialogue: {
+				intro: [
+					{who: "opp", en: "Gwynbleidd. You have come far, for a human. It ends here.", es: "Gwynbleidd. Has llegado lejos, para ser un humano. Aquí termina todo."},
+					{who: "geralt", en: "Every card I've won, every friend I've made. All of it, for this game.", es: "Cada carta que gané, cada amigo que hice. Todo, para esta partida."},
+					{who: "opp", en: "Then let us play. The frost is mine, and so is the first move.", es: "Entonces juguemos. La escarcha es mía, y también el primer movimiento."}
+				],
+				win: [
+					{who: "opp", en: "Impossible... a mere... human...", es: "Imposible... un simple... humano..."},
+					{who: "narrator", en: "And that, dear reader, is how the White Wolf beat the King of the Wild Hunt at his own game.", es: "Y así, querido lector, fue como el Lobo Blanco venció al Rey de la Cacería Salvaje en su propio juego."}
+				],
+				loss: [{who: "opp", en: "Kneel, Gwynbleidd. Your road ends in ice.", es: "Arrodíllate, Gwynbleidd. Tu camino termina en el hielo."}],
+				credits: [
+					{who: "narrator", en: "Ciri was safe. The Hunt was broken. The Continent, as always, thanked no one.", es: "Ciri estaba a salvo. La Cacería, derrotada. El Continente, como siempre, no le dio las gracias a nadie."},
+					{who: "narrator", en: "Geralt kept the cards, of course: every face from White Orchard to the Naglfar, and one with his own grim face on it.", es: "Geralt se quedó con las cartas, por supuesto: cada rostro desde Huerto Blanco hasta el Naglfar, y una con su propia cara de pocos amigos."},
+					{who: "narrator", en: "As for me, I wrote it all down. Embellished nothing. Well, almost nothing.", es: "En cuanto a mí, lo puse todo por escrito. No adorné nada. Bueno, casi nada."},
+					{who: "narrator", en: "The tables of the Continent are still open, dear reader. Rematches, tournaments, rumors from the south... The tale goes on as long as you keep playing.", es: "Las mesas del Continente siguen abiertas, querido lector. Revanchas, torneos, rumores del sur... La historia continúa mientras sigas jugando."}
+				]
 			}
 		}
 	}

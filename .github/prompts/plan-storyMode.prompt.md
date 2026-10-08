@@ -294,7 +294,12 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
 2. **Release stages:**
    - R1 (first implementation): every system (map, dialogue, pre-match panel, modifiers, objectives, rewards, wagers, shop, collection, stats, save export/import) plus the Prologue, Vizima and Velen content. This tests the whole loop and unlocks Nilfgaard and Monsters. Tournament code waits for R2.
    - R2 (implemented): Novigrad & Oxenfurt + Passiflora tournament. Chapter III has `bossAfter: 3`; Dijkstra and Philippa run at Normal AI because the informants discard costs about 25% win rate. Passiflora rounds: easy decks/Easy AI → easy decks/Hard AI → normal decks without heroes/Easy AI (measured about 83% / 52% / 33%). Named modifiers (`name`, e.g. "Partisans") prefix the rule text.
-   - R3: Skellige, Kaer Morhen and The Hunt.
+   - R3 (implemented): Skellige, Kaer Morhen and The Hunt.
+     - Kaer Trolde shares a pin with Crach. A single-opponent pin that also has a tournament opens a list.
+     - The Hunt is linear: Caranthir `requires` Imlerith, and Eredin `requires` Caranthir.
+     - Eredin is flagged `credits: true`. His first win plays Dandelion's epilogue (`dialogue.credits`) and then a "The End" card with totals.
+     - Balance changes from the plan: Ermion, Avallac'h and Yennefer play at Normal AI. Skellige bond decks and sorceress medic decks swing win rates the most. Heroes ignore weather, so they are pulled from decks that use frost in every round.
+     - Kaer Trolde rounds: easy decks/Hard AI → normal decks without heroes/Easy AI → normal decks without heroes/Normal AI (measured about 66% / 38% / 21%).
    - R4: post-game.
 3. **Lore liberties:**
    - Avallac'h appears as the "Mysterious Elf" card.

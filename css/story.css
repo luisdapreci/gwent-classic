@@ -523,6 +523,7 @@
 .story-stats { display: grid; grid-template-columns: 1fr auto; gap: calc(0.4 * var(--u)) calc(2 * var(--u)); }
 .story-stats > dd { margin: 0; color: var(--gold-1); font-family: var(--font-display); text-align: right; }
 .story-stats > dt { color: var(--text-dim); }
+#story-modal-box.result .story-credits-stats { max-width: calc(24 * var(--u)); margin: calc(1.4 * var(--u)) auto; text-align: left; }
 
 /* ---------------- dialogue ---------------- */
 

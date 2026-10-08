@@ -715,7 +715,25 @@ const I18N = {
 		"Brokva Skald": "Escaldo de Brokva",
 		"Sea Squall": "Borrasca marina",
 		"Raiders": "Saqueadores",
-		"Jarl's Feast": "Festín del jarl"
+		"Jarl's Feast": "Festín del jarl",
+		"Kaer Morhen": "Kaer Morhen",
+		"The Wild Hunt": "La Cacería Salvaje",
+		"Naglfar": "Naglfar",
+		"Lambert": "Lambert",
+		"Eskel": "Eskel",
+		"Yennefer of Vengerberg": "Yennefer de Vengerberg",
+		"Letho of Gulet": "Letho de Gulet",
+		"Battle of Kaer Morhen": "Batalla de Kaer Morhen",
+		"Imlerith": "Imlerith",
+		"Caranthir": "Caranthir",
+		"Eredin Bréacc Glas": "Eredin Bréacc Glas",
+		"Breath of the Hunt": "Aliento de la Cacería",
+		"Defenders": "Defensores",
+		"Sabbath": "Aquelarre",
+		"Navigator's Blizzard": "Ventisca del navegante",
+		"The End": "Fin",
+		"Path of the Witcher": "La senda del brujo",
+		"Thank you for playing. Rematches and tournaments stay open on the map.": "Gracias por jugar. Las revanchas y los torneos siguen disponibles en el mapa."
 	}
 };
 

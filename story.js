@@ -711,6 +711,8 @@ const StoryMode = {
 		if (story?.result) {
 			await StoryUI.dialogue(story.opp, story.result.won ? "win" : "loss");
 			await StoryUI.showResult(story.result, story.opp);
+			if (story.result.won && !story.rematch && story.opp.credits)
+				await StoryUI.showCredits(story.opp);
 		}
 		await this.openMap();
 	},
@@ -1533,6 +1535,27 @@ const StoryUI = {
 		stars.querySelectorAll(".new").forEach((s, i) => setTimeout(() => fx.burst(s, "gold"), 300 + i * 250));
 		if (run?.champion)
 			setTimeout(() => fx.burst(stars, "gold"), 300);
+		return done;
+	},
+
+	// Dandelion's epilogue, then a closing card with the player's totals
+	async showCredits(opp) {
+		await this.dialogue(opp, "credits");
+		const data = StoryMode.data;
+		const total = card_dict.reduce((a, c, i) => a + StoryMode.maxCopies(i), 0);
+		const owned = Object.values(data.collection).reduce((a, n) => a + n, 0);
+		const stars = Object.values(data.progress).reduce((a, p) => a + p.stars.filter(Boolean).length, 0);
+		const row = (label, value) => [storyEl("dt", {text: label}), storyEl("dd", {text: String(value)})];
+		const done = this.openModal(
+			storyEl("div", {class: "story-result-title"}, storyEl("h2", {text: t("The End")}), storyEl("p", {class: "story-kicker", text: t("Path of the Witcher")})),
+			storyEl("dl", {class: "story-stats story-credits-stats"},
+				row(t("Wins"), data.stats.wins), row(t("Losses"), data.stats.losses), row(t("Stars"), stars),
+				row(t("Tournaments won"), data.stats.tournamentsWon), row(t("Crowns earned"), data.stats.crownsEarned),
+				row(t("Collection"), Math.floor(100 * owned / total) + "%")),
+			storyEl("p", {class: "story-dim", text: t("Thank you for playing. Rematches and tournaments stay open on the map.")}),
+			this.closeButton(t("Continue")));
+		this.modalBox.classList.add("result");
+		AudioManager.playSFX("game_win");
 		return done;
 	},
 
