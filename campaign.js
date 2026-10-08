@@ -235,7 +235,7 @@ const campaign = {
 			]
 		},
 		kaertrolde: {
-			name: "Kaer Trolde Tournament", place: "kaertrolde", requires: "crach", fee: 50, perRound: 50, champion: 200,
+			name: "Kaer Trolde Tournament", place: "kaertrolde", requires: "crach", fee: 50, perRound: 50, champion: 200, emblem: "skellige_svanrige",
 			prizes: [140, 59, 58],
 			rumor: {en: "Kaer Trolde notice: TOURNAMENT TONIGHT. Bring a deck, a cup and your own bench. The last bench was used as a weapon.", es: "Aviso en Kaer Trolde: TORNEO ESTA NOCHE. Trae un mazo, una copa y tu propia banca. La última banca se usó como arma."},
 			dialogue: {
@@ -384,7 +384,7 @@ const campaign = {
 			}
 		},
 		emhyr: {
-			chapter: "vizima", name: "Emhyr var Emreis", portrait: "nilfgaard_emhyr_bronze", pin: {x: 93.5, y: 62}, level: "normal", boss: true, unlocks: "nilfgaard",
+			chapter: "vizima", name: "Emhyr var Emreis", portrait: "nilfgaard_emhyr_copper", pin: {x: 93.5, y: 62}, level: "normal", boss: true, unlocks: "nilfgaard",
 			deck: {faction: "nilfgaard", leader: 58, cards: [
 				[63,1], [65,1], [71,2],
 				[79,1], [78,1], [87,1], [66,1], [92,1], [82,1], [9,1],

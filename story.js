@@ -266,6 +266,16 @@ const StoryMode = {
 		return this.artURL(opp.portrait ? "lg/" + opp.portrait + ".jpg" : "icons/deck_shield_" + opp.deck.faction + ".png");
 	},
 
+	// Custom properties for a round portrait: art plus its framing from portrait-frames.js (keyed by lg/ image name)
+	frameStyle(name, art) {
+		const f = name && portraitFrames[name];
+		return f ? {"--art": art, "--art-x": f[0] + "%", "--art-y": f[1] + "%", "--art-zoom": f[2] + "%"} : {"--art": art};
+	},
+
+	portraitStyle(opp) {
+		return this.frameStyle(opp.portrait, this.portraitArt(opp));
+	},
+
 	// A modifier's rule, prefixed by its flavor name (e.g. "Partisans: Your opponent goes first.")
 	modifierText(m) {
 		const name = m.name ?? {ambush: "Ambush", terms: "Terms"}[m.id];
@@ -1044,7 +1054,7 @@ const StoryUI = {
 			// Lock and count are child spans: the pin's ::after is the shared data-title tooltip
 			const pin = storyEl("button", {
 				class: classes, "aria-label": t(place.name) + (available.length ? "" : " (" + t("Locked") + ")"), "data-title": t(place.name),
-				style: {"--x": place.x, "--y": place.y, "--art": StoryMode.portraitArt(shown.opp)},
+				style: {"--x": place.x, "--y": place.y, ...StoryMode.portraitStyle(shown.opp)},
 				onclick: () => this.openPlace(place.key)
 			},
 				storyEl("span", {class: "pin-art", "aria-hidden": "true"}),
@@ -1196,7 +1206,7 @@ const StoryUI = {
 	},
 
 	portrait(opp, large = false) {
-		return storyEl("div", {class: "story-portrait faction-" + opp.deck.faction + (large ? " large" : ""), style: {"--art": StoryMode.portraitArt(opp)}});
+		return storyEl("div", {class: "story-portrait faction-" + opp.deck.faction + (large ? " large" : ""), style: StoryMode.portraitStyle(opp)});
 	},
 
 	cardThumb(index, unowned = false) {
@@ -1270,10 +1280,12 @@ const StoryUI = {
 			storyEl("div", {}, storyEl("b", {text: t(tour.name)}), storyEl("small", {text: status})));
 	},
 
-	// A tournament's emblem: the art of its first leader prize
+	// A tournament's emblem: its `emblem` lg/ image, else the art of its first leader prize
 	trophy(tour, large = false) {
 		const prize = card_dict[tour.prizes[0]];
-		return storyEl("div", {class: "story-portrait faction-" + prize.deck + (large ? " large" : ""), style: {"--art": StoryMode.artURL(StoryMode.cardImage(tour.prizes[0]).slice(4))}});
+		const art = tour.emblem ?? prize.deck + "_" + prize.filename;
+		return storyEl("div", {class: "story-portrait faction-" + prize.deck + (large ? " large" : ""),
+			style: StoryMode.frameStyle(art, StoryMode.artURL("lg/" + art + ".jpg"))});
 	},
 
 	openTournament(id, from = this.view) {

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portrait Framer - Gwent Story Pins</title>
+<style>
+:root {
+	--ink: #070605;
+	--gold-1: #f6dc9a;
+	--gold-2: #d4a84f;
+	--gold-glow: rgba(232, 182, 84, 0.55);
+	--text: #ebdfc4;
+	--dim: #a8957a;
+	--line: #3a2e1c;
+	--panel: #14100b;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+	margin: 0;
+	display: grid;
+	grid-template-columns: 290px 1fr 340px;
+	background: #0b0907;
+	color: var(--text);
+	font: 14px/1.4 system-ui, sans-serif;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+h2 { margin: 0 0 4px; font: 600 18px/1.2 Georgia, serif; color: var(--gold-1); }
+code { color: var(--dim); }
+
+/* same background rule the game uses for .pin-art / .story-portrait */
+.art {
+	border-radius: 50%;
+	background: var(--art) var(--art-x, 50%) var(--art-y, 18%) / var(--art-zoom, 170%) auto no-repeat, var(--ink);
+	box-shadow: 0 0 0 2px var(--gold-2), 0 0 0 3px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.9);
+	flex: none;
+}
+
+#list { overflow: auto; border-right: 1px solid var(--line); padding: 8px; }
+#filter { width: 100%; margin-bottom: 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--text); }
+.item {
+	display: flex; gap: 10px; align-items: center; width: 100%;
+	padding: 6px 8px; border: 0; border-radius: 6px; background: none; text-align: left;
+}
+.item:hover { background: #1c160f; }
+.item.active { background: #2a2013; outline: 1px solid var(--gold-2); }
+.item .art { width: 40px; height: 40px; }
+.item b { display: block; font-weight: 600; }
+.item small { display: block; color: var(--dim); font-size: 11px; word-break: break-all; }
+.item .tag { margin-left: auto; font-size: 11px; color: var(--gold-1); white-space: nowrap; }
+
+#editor { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; overflow: hidden; user-select: none; }
+#stage { --d: min(58vh, 40vw); position: relative; width: var(--d); height: var(--d); touch-action: none; cursor: grab; }
+#stage.dragging { cursor: grabbing; }
+#stage img { position: absolute; max-width: none; pointer-events: none; }
+#ghost { position: absolute; inset: 0; opacity: 0.25; }
+#circle { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: var(--ink); box-shadow: 0 0 0 3px var(--gold-2), 0 0 0 6px rgba(0, 0, 0, 0.8); }
+#cross { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .2s; }
+#stage:hover #cross { opacity: 1; }
+#cross::before, #cross::after { content: ""; position: absolute; background: rgba(246, 220, 154, 0.35); }
+#cross::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+#cross::after { top: 50%; left: 0; right: 0; height: 1px; }
+
+#previews { position: relative; z-index: 1; box-shadow: 0 0 0 1px var(--line), 0 0 24px black; display: flex; gap: 26px; align-items: flex-end; padding: 14px 22px; border-radius: 10px; background: url("../img/map/continent-1280.jpg") 52% 56% / 900px auto, #10161a; }
+#previews figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#previews figcaption { font-size: 11px; color: var(--text); text-shadow: 0 0 3px black, 0 0 3px black; white-space: nowrap; }
+
+#side { overflow: auto; border-left: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+.row { display: grid; grid-template-columns: 52px 1fr 64px; gap: 8px; align-items: center; }
+.row input[type=number] { width: 100%; padding: 3px 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--text); }
+.row input[type=range] { width: 100%; accent-color: var(--gold-2); }
+.buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.buttons button { padding: 6px 10px; border: 1px solid var(--gold-2); border-radius: 6px; background: #1c160f; }
+.buttons button:hover { background: #2a2013; }
+.buttons button.primary { background: var(--gold-2); color: var(--ink); font-weight: 600; }
+#output { width: 100%; height: 170px; resize: vertical; padding: 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--dim); font: 11px/1.35 Consolas, monospace; }
+#status { min-height: 1.4em; color: var(--gold-1); }
+.help { margin: 0; padding-left: 18px; color: var(--dim); font-size: 12px; }
+</style>
+</head>
+<body>
+<nav id="list"><input id="filter" type="search" placeholder="Filter..." autocomplete="off"></nav>
+
+<main id="editor">
+	<div id="stage" title="Drag to pan, scroll to zoom">
+		<div id="ghost"><img alt=""></div>
+		<div id="circle"><img alt=""></div>
+		<div id="cross"></div>
+	</div>
+	<div id="previews"></div>
+</main>
+
+<aside id="side">
+	<div>
+		<h2 id="name"></h2>
+		<code id="key"></code>
+	</div>
+	<div>
+		<div class="row"><label for="x-range">X %</label><input id="x-range" type="range" min="0" max="100" step="0.5"><input id="x-num" type="number" min="0" max="100" step="0.5"></div>
+		<div class="row"><label for="y-range">Y %</label><input id="y-range" type="range" min="0" max="100" step="0.5"><input id="y-num" type="number" min="0" max="100" step="0.5"></div>
+		<div class="row"><label for="z-range">Zoom %</label><input id="z-range" type="range" min="100" max="600" step="0.5"><input id="z-num" type="number" min="100" max="600" step="0.5"></div>
+	</div>
+	<div class="buttons">
+		<button id="prev">&larr; Prev</button>
+		<button id="next">Next &rarr;</button>
+		<button id="reset" title="Back to the default 50% 18% / 170%">Default</button>
+		<button id="revert" title="Back to the value in portrait-frames.js">Revert</button>
+	</div>
+	<ul class="help">
+		<li>Drag the big circle to pan, scroll to zoom around the cursor (hold Shift for fine zoom).</li>
+		<li>Arrows nudge 0.5% (Shift: 2.5%), +/- zoom, PageUp/PageDown switch portrait.</li>
+		<li>Edits are kept in this browser until saved.</li>
+	</ul>
+	<div>
+		<h2>portrait-frames.js</h2>
+		<textarea id="output" readonly spellcheck="false"></textarea>
+	</div>
+	<div class="buttons">
+		<button id="save" class="primary" title="Write portrait-frames.js in the project folder">Save file</button>
+		<button id="download">Download</button>
+		<button id="copy">Copy</button>
+		<button id="discard" title="Forget unsaved edits">Discard edits</button>
+	</div>
+	<div id="status" role="status"></div>
+</aside>
+
+<script src="../cards.js"></script>
+<script src="../campaign.js"></script>
+<script src="../portrait-frames.js"></script>
+<script>
+"use strict"
+
+const DEFAULT = [50, 18, 170];
+const DRAFT_KEY = "gc-portrait-frames-draft";
+const $ = id => document.getElementById(id);
+
+// Every round portrait the story UI shows: opponent pins/rows and tournament trophies
+const items = (() => {
+	const byKey = new Map();
+	const add = (key, label, sub, boss) => {
+		const item = byKey.get(key) ?? byKey.set(key, {key, labels: [], subs: [], boss: false}).get(key);
+		item.labels.push(label);
+		item.subs.push(sub);
+		item.boss ||= boss;
+	};
+	for (const opp of Object.values(campaign.opponents))
+		if (opp.portrait)
+			add(opp.portrait, opp.name, opp.chapter, !!opp.boss);
+	for (const tour of Object.values(campaign.tournaments)) {
+		const c = card_dict[tour.prizes[0]];
+		add(tour.emblem ?? c.deck + "_" + c.filename, tour.name, "trophy", false);
+	}
+	return [...byKey.values()];
+})();
+
+let saved = structuredClone(portraitFrames);
+let frames = {...structuredClone(saved), ...JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}")};
+let index = 0;
+let fileHandle = null;
+
+const same = (a, b) => (a ?? DEFAULT).every((v, i) => v === (b ?? DEFAULT)[i]);
+const frameOf = key => frames[key] ?? DEFAULT;
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+const round = (v, step) => Math.round(v / step) * step;
+const artURL = key => "url('" + new URL("../img/lg/" + key + ".jpg", location.href).href + "')";
+
+function styleArt(el, key) {
+	const [x, y, z] = frameOf(key);
+	el.style.setProperty("--art", artURL(key));
+	el.style.setProperty("--art-x", x + "%");
+	el.style.setProperty("--art-y", y + "%");
+	el.style.setProperty("--art-zoom", z + "%");
+}
+
+function persistDraft() {
+	const draft = {};
+	for (const [k, v] of Object.entries(frames))
+		if (!same(v, saved[k]))
+			draft[k] = v;
+	localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+}
+
+// ---------- list ----------
+
+function renderList() {
+	const q = $("filter").value.trim().toLowerCase();
+	document.querySelectorAll(".item").forEach(e => e.remove());
+	items.forEach((item, i) => {
+		if (q && !(item.key + " " + item.labels.join(" ")).toLowerCase().includes(q))
+			return;
+		const btn = document.createElement("button");
+		btn.className = "item" + (i === index ? " active" : "");
+		btn.dataset.i = i;
+		const art = document.createElement("span");
+		art.className = "art";
+		styleArt(art, item.key);
+		const text = document.createElement("span");
+		const b = document.createElement("b");
+		b.textContent = item.labels.join(", ");
+		const small = document.createElement("small");
+		small.textContent = item.key + " \u00b7 " + [...new Set(item.subs)].join(", ");
+		text.append(b, small);
+		const tag = document.createElement("span");
+		tag.className = "tag";
+		tag.textContent = !same(frames[item.key], saved[item.key]) ? "unsaved" : saved[item.key] ? "framed" : "";
+		btn.append(art, text, tag);
+		btn.onclick = () => select(i);
+		$("list").append(btn);
+	});
+}
+
+function refreshListItem() {
+	const btn = document.querySelector(`.item[data-i="${index}"]`);
+	if (!btn)
+		return;
+	const key = items[index].key;
+	styleArt(btn.querySelector(".art"), key);
+	btn.querySelector(".tag").textContent = !same(frames[key], saved[key]) ? "unsaved" : saved[key] ? "framed" : "";
+}
+
+// ---------- editor ----------
+
+const stage = $("stage");
+const imgs = stage.querySelectorAll("img");
+let natural = {w: 1, h: 1};
+
+function select(i) {
+	index = (i + items.length) % items.length;
+	const item = items[index];
+	$("name").textContent = item.labels.join(", ");
+	$("key").textContent = "img/lg/" + item.key + ".jpg";
+	const src = "../img/lg/" + item.key + ".jpg";
+	imgs.forEach(img => img.src = src);
+	imgs[0].onload = () => {
+		natural = {w: imgs[0].naturalWidth, h: imgs[0].naturalHeight};
+		render();
+	};
+	renderPreviews();
+	renderList();
+	render();
+	document.querySelector(".item.active")?.scrollIntoView({block: "nearest"});
+}
+
+// Image box inside the stage for a frame, mirroring background-position/size percentages
+function layout([x, y, z], d = stage.clientWidth) {
+	const w = d * z / 100, h = w * natural.h / natural.w;
+	return {w, h, left: (d - w) * x / 100, top: (d - h) * y / 100};
+}
+
+function render() {
+	const key = items[index].key;
+	const f = frameOf(key);
+	const {w, h, left, top} = layout(f);
+	imgs.forEach(img => Object.assign(img.style, {width: w + "px", height: h + "px", left: left + "px", top: top + "px"}));
+	["x", "y", "z"].forEach((n, i) => {
+		$(n + "-range").value = f[i];
+		$(n + "-num").value = f[i];
+	});
+	document.querySelectorAll("#previews .art").forEach(e => styleArt(e, key));
+	updateOutput();
+}
+
+function setFrame(f) {
+	const key = items[index].key;
+	const next = [round(clamp(f[0], 0, 100), 0.1), round(clamp(f[1], 0, 100), 0.1), round(clamp(f[2], 100, 600), 0.5)].map(v => +v.toFixed(1));
+	if (same(next, DEFAULT) && !saved[key])
+		delete frames[key];
+	else
+		frames[key] = next;
+	persistDraft();
+	render();
+	refreshListItem();
+}
+
+// Pan/zoom solve the background-position % that puts the image box at the wanted offset
+function positionFor(offset, d, size, current) {
+	return d === size ? current : offset * 100 / (d - size);
+}
+
+let drag = null;
+stage.addEventListener("pointerdown", e => {
+	const f = frameOf(items[index].key);
+	drag = {id: e.pointerId, x: e.clientX, y: e.clientY, box: layout(f), f};
+	stage.setPointerCapture(e.pointerId);
+	stage.classList.add("dragging");
+});
+stage.addEventListener("pointermove", e => {
+	if (drag?.id !== e.pointerId)
+		return;
+	const d = stage.clientWidth, {box, f} = drag;
+	setFrame([
+		positionFor(box.left + e.clientX - drag.x, d, box.w, f[0]),
+		positionFor(box.top + e.clientY - drag.y, d, box.h, f[1]),
+		f[2]]);
+});
+const endDrag = () => { drag = null; stage.classList.remove("dragging"); };
+stage.addEventListener("pointerup", endDrag);
+stage.addEventListener("pointercancel", endDrag);
+
+function zoomAt(factor, cx, cy) {
+	const d = stage.clientWidth;
+	const f = frameOf(items[index].key);
+	const box = layout(f, d);
+	const z = clamp(f[2] * factor, 100, 600);
+	const next = layout([0, 0, z], d);
+	const u = (cx - box.left) / box.w, v = (cy - box.top) / box.h;
+	setFrame([
+		positionFor(cx - u * next.w, d, next.w, f[0]),
+		positionFor(cy - v * next.h, d, next.h, f[1]),
+		z]);
+}
+
+// Unrounded zoom carried between wheel events so small trackpad deltas add up instead of rounding away
+let wheelZoom = null;
+stage.addEventListener("wheel", e => {
+	e.preventDefault();
+	const rect = stage.getBoundingClientRect();
+	// Shift+wheel arrives as deltaX in Chromium; line-mode deltas (Firefox) are ~33 px per line
+	const delta = (e.deltaY || e.deltaX) * (e.deltaMode === 1 ? 33 : 1);
+	const z = frameOf(items[index].key)[2];
+	const base = wheelZoom !== null && Math.abs(wheelZoom - z) <= 0.25 ? wheelZoom : z;
+	wheelZoom = clamp(base * Math.exp(-delta * (e.shiftKey ? 0.00008 : 0.0003)), 100, 600);
+	zoomAt(wheelZoom / z, e.clientX - rect.left, e.clientY - rect.top);
+}, {passive: false});
+
+["x", "y", "z"].forEach((n, i) => ["range", "num"].forEach(kind => $(n + "-" + kind).addEventListener("input", e => {
+	const f = [...frameOf(items[index].key)];
+	f[i] = +e.target.value;
+	setFrame(f);
+})));
+
+// Real in-game sizes: desktop at a 1920 px stage (u = 19.2 px) and the phone floors from story.css
+function renderPreviews() {
+	const boss = items[index].boss;
+	const sizes = [
+		["Phone pin", boss ? 30 : 24],
+		["Journal row", 61],
+		[boss ? "Desktop boss pin" : "Desktop pin", boss ? 63 : 50],
+		["Hovered", Math.round((boss ? 63 : 50) * 1.15)]
+	];
+	$("previews").replaceChildren(...sizes.map(([label, px]) => {
+		const fig = document.createElement("figure");
+		const art = document.createElement("div");
+		art.className = "art";
+		art.style.width = art.style.height = px + "px";
+		const cap = document.createElement("figcaption");
+		cap.textContent = label + " " + px + "px";
+		fig.append(art, cap);
+		return fig;
+	}));
+}
+
+// ---------- output ----------
+
+function fileText() {
+	const lines = Object.keys(frames).filter(k => !same(frames[k], DEFAULT)).sort()
+		.map(k => "\t" + JSON.stringify(k) + ": [" + frames[k].join(", ") + "],");
+	return '"use strict"\n\n'
+		+ "// Round portrait framing (map pins, journal rows) per img/lg/<name>.jpg: [x%, y%, zoom%] = background-position x y / background-size.\n"
+		+ "// Unlisted images use 50% 18% / 170%. Edit with tools/portrait-framer.html.\n"
+		+ "const portraitFrames = {\n" + lines.map(l => l + "\n").join("") + "};\n";
+}
+
+function updateOutput() {
+	$("output").value = fileText();
+}
+
+function status(msg) {
+	$("status").textContent = msg;
+}
+
+function markSaved() {
+	saved = structuredClone(frames);
+	localStorage.removeItem(DRAFT_KEY);
+	renderList();
+}
+
+$("save").onclick = async () => {
+	if (!window.showSaveFilePicker)
+		return $("download").onclick();
+	try {
+		fileHandle ??= await showSaveFilePicker({suggestedName: "portrait-frames.js", types: [{description: "JavaScript", accept: {"text/javascript": [".js"]}}]});
+		const w = await fileHandle.createWritable();
+		await w.write(fileText());
+		await w.close();
+		markSaved();
+		status("Saved " + fileHandle.name + " - reload the game to see it.");
+	} catch (e) {
+		if (e.name !== "AbortError")
+			status("Save failed: " + e.message);
+	}
+};
+
+$("download").onclick = () => {
+	const a = document.createElement("a");
+	a.href = URL.createObjectURL(new Blob([fileText()], {type: "text/javascript"}));
+	a.download = "portrait-frames.js";
+	document.body.append(a);
+	a.click();
+	a.remove();
+	// revoking right away can cancel the download before the browser reads the blob (empty file)
+	setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+	status("Downloaded - replace portrait-frames.js in the project folder.");
+};
+
+$("copy").onclick = async () => {
+	await navigator.clipboard.writeText(fileText());
+	status("Copied to clipboard.");
+};
+
+$("discard").onclick = () => {
+	frames = structuredClone(saved);
+	localStorage.removeItem(DRAFT_KEY);
+	renderList();
+	render();
+	status("Unsaved edits discarded.");
+};
+
+$("reset").onclick = () => setFrame(DEFAULT);
+$("revert").onclick = () => setFrame(saved[items[index].key] ?? DEFAULT);
+$("prev").onclick = () => select(index - 1);
+$("next").onclick = () => select(index + 1);
+$("filter").addEventListener("input", renderList);
+
+document.addEventListener("keydown", e => {
+	if (e.target.matches("input, textarea"))
+		return;
+	const f = [...frameOf(items[index].key)];
+	const step = e.shiftKey ? 2.5 : 0.5;
+	const keys = {
+		ArrowLeft: () => setFrame([f[0] + step, f[1], f[2]]),
+		ArrowRight: () => setFrame([f[0] - step, f[1], f[2]]),
+		ArrowUp: () => setFrame([f[0], f[1] + step, f[2]]),
+		ArrowDown: () => setFrame([f[0], f[1] - step, f[2]]),
+		"+": () => zoomAt(1.02, stage.clientWidth / 2, stage.clientHeight / 2),
+		"=": () => zoomAt(1.02, stage.clientWidth / 2, stage.clientHeight / 2),
+		"-": () => zoomAt(1 / 1.02, stage.clientWidth / 2, stage.clientHeight / 2),
+		PageUp: () => select(index - 1),
+		PageDown: () => select(index + 1)
+	};
+	if (keys[e.key]) {
+		e.preventDefault();
+		keys[e.key]();
+	}
+});
+
+window.addEventListener("resize", render);
+select(0);
+</script>
+</body>
+</html>

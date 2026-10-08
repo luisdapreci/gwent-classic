@@ -108,7 +108,7 @@
 	position: absolute;
 	inset: 0;
 	border-radius: 50%;
-	background: var(--art) center 18% / 170% auto no-repeat;
+	background: var(--art) var(--art-x, 50%) var(--art-y, 18%) / var(--art-zoom, 170%) auto no-repeat;
 	transition: filter .2s;
 }
 .story-pin.locked { --ring: #6b665e; }
@@ -349,7 +349,7 @@
 	min-width: 28px;
 	min-height: 28px;
 	border-radius: 50%;
-	background: var(--art) center 18% / 170% auto no-repeat, var(--ink);
+	background: var(--art) var(--art-x, 50%) var(--art-y, 18%) / var(--art-zoom, 170%) auto no-repeat, var(--ink);
 	box-shadow: 0 0 0 max(calc(0.15 * var(--u)), 2px) var(--ring);
 }
 .story-portrait.large {
