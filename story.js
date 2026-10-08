@@ -262,8 +262,10 @@ const StoryMode = {
 		return "img/lg/" + c.deck + "_" + c.filename + ".jpg";
 	},
 
+	// portrait: an lg/ card image name, or a path under img/ (e.g. "icons/x.png"); none = faction shield
 	portraitArt(opp) {
-		return this.artURL(opp.portrait ? "lg/" + opp.portrait + ".jpg" : "icons/deck_shield_" + opp.deck.faction + ".png");
+		const p = opp.portrait;
+		return this.artURL(!p ? "icons/deck_shield_" + opp.deck.faction + ".png" : p.includes("/") ? p : "lg/" + p + ".jpg");
 	},
 
 	// Custom properties for a round portrait: art plus its framing from portrait-frames.js (keyed by lg/ image name)

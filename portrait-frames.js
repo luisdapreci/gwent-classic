@@ -1,8 +1,9 @@
 "use strict"
 
-// Round portrait framing (map pins, journal rows) per img/lg/<name>.jpg: [x%, y%, zoom%] = background-position x y / background-size.
+// Round portrait framing (map pins, journal rows) per portrait (lg/ card name or img/ path): [x%, y%, zoom%] = background-position x y / background-size.
 // Unlisted images use 50% 18% / 170%. Edit with tools/portrait-framer.html.
 const portraitFrames = {
+	"icons/notif_me_turn.png": [87.2, 6.2, 133.5],
 	"monsters_eredin_bronze": [0, 0, 100],
 	"monsters_eredin_gold": [0, 8.5, 100],
 	"monsters_eredin_silver": [100, 7.2, 100],
@@ -25,13 +26,17 @@ const portraitFrames = {
 	"neutral_zoltan": [100, 13.9, 133.5],
 	"nilfgaard_emhyr_bronze": [100, 0, 100],
 	"nilfgaard_emhyr_copper": [0, 12.7, 100],
+	"nilfgaard_imperal_brigade": [100, 14, 133.5],
 	"nilfgaard_letho": [100, 7.5, 133.5],
 	"nilfgaard_moorvran": [100, 9.6, 133.5],
 	"nilfgaard_shilard": [100, 1, 133.5],
+	"realms_banner_nurse": [100, 6.6, 133.5],
 	"realms_dijkstra": [100, 9.9, 133.5],
 	"realms_foltest_son_of_medell": [95.4, 20.3, 100],
 	"realms_keira": [100, 2.5, 133.5],
 	"realms_philippa": [100, 8, 133.5],
+	"realms_poor_infantry": [100, 9.1, 133.5],
+	"realms_redania_1": [100, 8.1, 133.5],
 	"realms_vernon": [100, 7.9, 133.5],
 	"scoiatael_francesca_copper": [0, 31.9, 100],
 	"skellige_cerys": [100, 6.6, 133.5],
@@ -39,4 +44,5 @@ const portraitFrames = {
 	"skellige_ermion": [100, 14.4, 133.5],
 	"skellige_madmad_lugos": [100, 10.5, 133.5],
 	"skellige_svanrige": [100, 11.8, 133.5],
+	"weather_frost": [0, 21, 93.5],
 };

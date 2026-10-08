@@ -99,7 +99,7 @@ code { color: var(--dim); }
 	<div>
 		<div class="row"><label for="x-range">X %</label><input id="x-range" type="range" min="0" max="100" step="0.5"><input id="x-num" type="number" min="0" max="100" step="0.5"></div>
 		<div class="row"><label for="y-range">Y %</label><input id="y-range" type="range" min="0" max="100" step="0.5"><input id="y-num" type="number" min="0" max="100" step="0.5"></div>
-		<div class="row"><label for="z-range">Zoom %</label><input id="z-range" type="range" min="100" max="600" step="0.5"><input id="z-num" type="number" min="100" max="600" step="0.5"></div>
+		<div class="row"><label for="z-range">Zoom %</label><input id="z-range" type="range" min="50" max="600" step="0.5"><input id="z-num" type="number" min="50" max="600" step="0.5"></div>
 	</div>
 	<div class="buttons">
 		<button id="prev">&larr; Prev</button>
@@ -132,6 +132,7 @@ code { color: var(--dim); }
 "use strict"
 
 const DEFAULT = [50, 18, 170];
+const ZOOM_MIN = 50;
 const DRAFT_KEY = "gc-portrait-frames-draft";
 const $ = id => document.getElementById(id);
 
@@ -163,7 +164,8 @@ const same = (a, b) => (a ?? DEFAULT).every((v, i) => v === (b ?? DEFAULT)[i]);
 const frameOf = key => frames[key] ?? DEFAULT;
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const round = (v, step) => Math.round(v / step) * step;
-const artURL = key => "url('" + new URL("../img/lg/" + key + ".jpg", location.href).href + "')";
+const artPath = key => "../img/" + (key.includes("/") ? key : "lg/" + key + ".jpg");
+const artURL = key => "url('" + new URL(artPath(key), location.href).href + "')";
 
 function styleArt(el, key) {
 	const [x, y, z] = frameOf(key);
@@ -229,8 +231,8 @@ function select(i) {
 	index = (i + items.length) % items.length;
 	const item = items[index];
 	$("name").textContent = item.labels.join(", ");
-	$("key").textContent = "img/lg/" + item.key + ".jpg";
-	const src = "../img/lg/" + item.key + ".jpg";
+	$("key").textContent = artPath(item.key).slice(3);
+	const src = artPath(item.key);
 	imgs.forEach(img => img.src = src);
 	imgs[0].onload = () => {
 		natural = {w: imgs[0].naturalWidth, h: imgs[0].naturalHeight};
@@ -263,7 +265,7 @@ function render() {
 
 function setFrame(f) {
 	const key = items[index].key;
-	const next = [round(clamp(f[0], 0, 100), 0.1), round(clamp(f[1], 0, 100), 0.1), round(clamp(f[2], 100, 600), 0.5)].map(v => +v.toFixed(1));
+	const next = [round(clamp(f[0], 0, 100), 0.1), round(clamp(f[1], 0, 100), 0.1), round(clamp(f[2], ZOOM_MIN, 600), 0.5)].map(v => +v.toFixed(1));
 	if (same(next, DEFAULT) && !saved[key])
 		delete frames[key];
 	else
@@ -302,7 +304,7 @@ function zoomAt(factor, cx, cy) {
 	const d = stage.clientWidth;
 	const f = frameOf(items[index].key);
 	const box = layout(f, d);
-	const z = clamp(f[2] * factor, 100, 600);
+	const z = clamp(f[2] * factor, ZOOM_MIN, 600);
 	const next = layout([0, 0, z], d);
 	const u = (cx - box.left) / box.w, v = (cy - box.top) / box.h;
 	setFrame([
@@ -320,7 +322,7 @@ stage.addEventListener("wheel", e => {
 	const delta = (e.deltaY || e.deltaX) * (e.deltaMode === 1 ? 33 : 1);
 	const z = frameOf(items[index].key)[2];
 	const base = wheelZoom !== null && Math.abs(wheelZoom - z) <= 0.25 ? wheelZoom : z;
-	wheelZoom = clamp(base * Math.exp(-delta * (e.shiftKey ? 0.00008 : 0.0003)), 100, 600);
+	wheelZoom = clamp(base * Math.exp(-delta * (e.shiftKey ? 0.00008 : 0.0003)), ZOOM_MIN, 600);
 	zoomAt(wheelZoom / z, e.clientX - rect.left, e.clientY - rect.top);
 }, {passive: false});
 
@@ -357,7 +359,7 @@ function fileText() {
 	const lines = Object.keys(frames).filter(k => !same(frames[k], DEFAULT)).sort()
 		.map(k => "\t" + JSON.stringify(k) + ": [" + frames[k].join(", ") + "],");
 	return '"use strict"\n\n'
-		+ "// Round portrait framing (map pins, journal rows) per img/lg/<name>.jpg: [x%, y%, zoom%] = background-position x y / background-size.\n"
+		+ "// Round portrait framing (map pins, journal rows) per portrait (lg/ card name or img/ path): [x%, y%, zoom%] = background-position x y / background-size.\n"
 		+ "// Unlisted images use 50% 18% / 170%. Edit with tools/portrait-framer.html.\n"
 		+ "const portraitFrames = {\n" + lines.map(l => l + "\n").join("") + "};\n";
 }

@@ -277,7 +277,7 @@ const campaign = {
 	opponents: {
 		// ---------- Prologue: White Orchard ----------
 		innkeeper: {
-			chapter: "prologue", name: "Innkeeper", portrait: null, pin: {x: 83, y: 81}, level: "easy", guide: true,
+			chapter: "prologue", name: "Innkeeper", portrait: "realms_banner_nurse", pin: {x: 83, y: 81}, level: "easy", guide: true,
 			deck: {faction: "realms", leader: 22, cards: [
 				[40,3], [42,1], [43,1], [35,1], [36,1], [53,1], [44,1], [50,1], [28,2], [30,2],
 				[52,1], [46,1], [54,1], [27,1], [45,1], [48,1], [31,1], [1,1], [2,1]
@@ -299,7 +299,7 @@ const campaign = {
 			}
 		},
 		gwynleve: {
-			chapter: "prologue", name: "Capt. Peter Saar Gwynleve", portrait: null, pin: {x: 91, y: 77}, level: "easy",
+			chapter: "prologue", name: "Capt. Peter Saar Gwynleve", portrait: "nilfgaard_imperal_brigade", pin: {x: 91, y: 77}, level: "easy",
 			deck: {faction: "nilfgaard", leader: 57, cards: [
 				[61,1], [66,1], [71,3], [74,1], [76,3], [77,1], [78,1], [80,1], [85,1],
 				[87,1], [89,1], [67,1], [90,1], [91,1], [5,1], [11,1]
@@ -411,7 +411,7 @@ const campaign = {
 
 		// ---------- Chapter II: Velen ----------
 		quartermaster: {
-			chapter: "velen", name: "Crow's Perch Quartermaster", portrait: null, pin: {x: 53, y: 57}, place: "crowsperch", level: "normal",
+			chapter: "velen", name: "Crow's Perch Quartermaster", portrait: "realms_poor_infantry", pin: {x: 53, y: 57}, place: "crowsperch", level: "normal",
 			deck: {faction: "realms", leader: 22, cards: [
 				[28,3], [30,3], [40,4], [35,1], [36,1], [37,1], [32,1], [54,1],
 				[44,1], [53,1], [50,1], [2,1], [11,1]
@@ -429,7 +429,7 @@ const campaign = {
 			}
 		},
 		baron: {
-			chapter: "velen", name: "Bloody Baron", portrait: null, pin: {x: 51, y: 55}, place: "crowsperch", level: "normal",
+			chapter: "velen", name: "Bloody Baron", portrait: "realms_redania_1", pin: {x: 51, y: 55}, place: "crowsperch", level: "normal",
 			deck: {faction: "realms", leader: 23, cards: [
 				[28,2], [30,1], [52,1], [46,1], [48,1], [38,1],
 				[54,1], [55,1], [27,1], [35,1], [36,1], [37,1], [5,1], [1,1],
@@ -494,7 +494,7 @@ const campaign = {
 			}
 		},
 		deserters: {
-			chapter: "velen", name: "Deserters", portrait: null, pin: {x: 60, y: 43}, level: "normal",
+			chapter: "velen", name: "Deserters", portrait: "weather_frost", pin: {x: 60, y: 43}, level: "normal",
 			deck: {faction: "nilfgaard", leader: 57, cards: [
 				[71,4], [76,3], [90,1], [91,1], [74,1], [78,1], [89,1], [65,1], [79,1], [77,1],
 				[87,1], [66,1], [85,1], [61,1], [80,1], [92,1], [82,1], [67,1], [68,1], [2,1],
@@ -827,7 +827,7 @@ const campaign = {
 
 		// ---------- Chapter V: Kaer Morhen ----------
 		lambert: {
-			chapter: "kaermorhen", name: "Lambert", portrait: null, pin: {x: 83, y: 15}, place: "kaermorhen", level: "normal",
+			chapter: "kaermorhen", name: "Lambert", portrait: "icons/notif_me_turn.png", pin: {x: 83, y: 15}, place: "kaermorhen", level: "normal",
 			deck: {faction: "realms", leader: 22, cards: [
 				[28,3], [30,3], [29,2], [52,1], [46,1], [48,1], [50,1], [44,1], [53,1], [54,1],
 				[55,1], [45,1], [35,1], [36,1], [37,1], [32,1], [5,1], [1,1]
@@ -845,7 +845,7 @@ const campaign = {
 			}
 		},
 		eskel: {
-			chapter: "kaermorhen", name: "Eskel", portrait: null, pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard",
+			chapter: "kaermorhen", name: "Eskel", portrait: "icons/notif_me_turn.png", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard",
 			deck: {faction: "realms", leader: 23, cards: [
 				[28,2], [30,2], [40,4], [42,1], [43,1], [52,1], [46,1], [31,1], [44,1], [53,1],
 				[54,1], [32,1], [27,1], [29,2], [1,2], [4,1]
