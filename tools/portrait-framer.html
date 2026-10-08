@@ -152,6 +152,7 @@ const items = (() => {
 		const c = card_dict[tour.prizes[0]];
 		add(tour.emblem ?? c.deck + "_" + c.filename, tour.name, "trophy", false);
 	}
+	add("neutral_geralt", "Geralt", "player (board)", false);
 	return [...byKey.values()];
 })();
 

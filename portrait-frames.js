@@ -17,6 +17,7 @@ const portraitFrames = {
 	"neutral_dandelion": [100, 9.4, 133.5],
 	"neutral_emiel": [100, 4.7, 133.5],
 	"neutral_gaunter_odimm": [100, 8.9, 133.5],
+	"neutral_geralt": [100, 8.3, 133.5],
 	"neutral_mysterious_elf": [100, 9.6, 133.5],
 	"neutral_olgierd": [100, 7.4, 133.5],
 	"neutral_triss": [100, 8.2, 133.5],

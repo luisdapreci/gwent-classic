@@ -278,6 +278,16 @@ const StoryMode = {
 		return this.frameStyle(opp.portrait, this.portraitArt(opp));
 	},
 
+	// Framed portrait in a board profile circle ("me"/"op"); no style = the default silhouette
+	boardPortrait(tag, style) {
+		const el = document.querySelector("#stats-" + tag + " .profile-img");
+		for (const p of ["--art", "--art-x", "--art-y", "--art-zoom"])
+			el.style.removeProperty(p);
+		for (const [p, v] of Object.entries(style || {}))
+			el.style.setProperty(p, v);
+		el.classList.toggle("story-art", !!style);
+	},
+
 	// A modifier's rule, prefixed by its flavor name (e.g. "Partisans: Your opponent goes first.")
 	modifierText(m) {
 		const name = m.name ?? {ambush: "Ambush", terms: "Terms"}[m.id];
@@ -417,6 +427,8 @@ const StoryMode = {
 		player_me = new Player(0, t("Geralt"), deck);
 		player_op = new Player(1, t(opp.name), oppDeck);
 		player_op.controller = new ControllerAI(player_op, opp.level);
+		this.boardPortrait("me", this.frameStyle("neutral_geralt", this.artURL("lg/neutral_geralt.jpg")));
+		this.boardPortrait("op", opp.portrait && this.portraitStyle(opp));
 		game.story = {...story, wager, oppDeck, weatherPlayed: false, wentFirst: null};
 		document.body.classList.add("story");
 		document.getElementById("deck-customization").classList.add("hide");

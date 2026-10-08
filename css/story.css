@@ -111,6 +111,8 @@
 	background: var(--art) var(--art-x, 50%) var(--art-y, 18%) / var(--art-zoom, 170%) auto no-repeat;
 	transition: filter .2s;
 }
+body.story .profile-img.story-art { background: var(--art) var(--art-x, 50%) var(--art-y, 18%) / var(--art-zoom, 170%) auto no-repeat, var(--ink); }
+
 .story-pin.locked { --ring: #6b665e; }
 .story-pin.locked > .pin-art { filter: grayscale(1) brightness(0.55); }
 .story-pin > .pin-lock {
