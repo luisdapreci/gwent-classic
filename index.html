@@ -6,8 +6,8 @@
 	<title>Gwent Classic from The Witcher 3: Wild Hunt</title>
 	<meta charset="utf-8" />
 	<meta name="author" content="Arun Sundaram" />
-	<meta name="description" content="Play the original Gwent minigame from The Witcher 3 in your browser! Includes cards from Hearts of Stone and Blood & Wine!" />
-	<meta name="keywords" content="arun, sundaram, programmer, gwent, tw3, witcher, card, game, gamedev, play" />
+	<meta name="description" content="Play the original Gwent card game from The Witcher 3 in your browser: follow Geralt's story across the Continent, or play the AI and friends online. Includes Hearts of Stone and Blood and Wine cards!" />
+	<meta name="keywords" content="arun, sundaram, programmer, gwent, tw3, witcher, card, game, gamedev, play, story mode, campaign" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta name="theme-color" content="#070605" />
 	<meta name="mobile-web-app-capable" content="yes" />
@@ -19,7 +19,7 @@
 	<meta property="og:site_name" content="Gwent Classic" />
 	<meta property="og:url" content="https://witcher-gwent.vercel.app/" />
 	<meta property="og:title" content="Gwent Classic from The Witcher 3: Wild Hunt" />
-	<meta property="og:description" content="Play the original Gwent card game in your browser – vs AI or online with friends. Includes Hearts of Stone and Blood &amp; Wine cards!" />
+	<meta property="og:description" content="Play the original Gwent card game in your browser – follow Geralt's story across the Continent, take on the AI or play friends online. Includes Hearts of Stone and Blood and Wine cards!" />
 	<meta property="og:image" content="https://witcher-gwent.vercel.app/img/app/og-card.jpg" />
 	<meta property="og:image:secure_url" content="https://witcher-gwent.vercel.app/img/app/og-card.jpg" />
 	<meta property="og:image:type" content="image/jpeg" />
@@ -28,7 +28,7 @@
 	<meta property="og:image:alt" content="Gwent Classic – Witcher medallion over the faction cards" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="Gwent Classic from The Witcher 3: Wild Hunt" />
-	<meta name="twitter:description" content="Play the original Gwent card game in your browser – vs AI or online with friends." />
+	<meta name="twitter:description" content="Play the original Gwent card game in your browser – a story campaign across the Continent, AI opponents and online matches with friends." />
 	<meta name="twitter:image" content="https://witcher-gwent.vercel.app/img/app/og-card.jpg" />
 	<link rel="manifest" href="manifest.webmanifest" />
 	<!-- Chrome can fire this before the game scripts finish downloading -->
@@ -672,9 +672,11 @@
 							<span class="g-pin" style="--x:26.5; --y:50">1</span>
 							<span class="g-pin" style="--x:26.5; --y:57.4">2</span>
 							<span class="g-pin" style="--x:26.5; --y:64.9">3</span>
-							<span class="g-pin" style="--x:22.6; --y:76.4">4</span>
+							<span class="g-pin" style="--x:26.5; --y:72.4">4</span>
+							<span class="g-pin" style="--x:29.5; --y:80">5</span>
 						</div>
 						<ol class="g-legend">
+							<li><b>Story</b> &ndash; follow Geralt across the Continent, build a card collection and unlock every faction (see <i>Story Mode</i>).</li>
 							<li><b>Local Play</b> &ndash; opens the deck builder. Choose your opponent there: the <b>AI</b> (Easy to Expert) or <b>Pass and Play</b> with a friend on this device. Your last choice is remembered.</li>
 							<li><b>Online</b> &ndash; play a friend on another device.</li>
 							<li><b>Deck Builder</b> &ndash; edit your decks without starting a match.</li>
@@ -683,6 +685,61 @@
 					</div>
 					<ul class="g-notes">
 						<li>On phones and tablets, <b>Install App</b> appears here to add Gwent to your home screen and play full screen.</li>
+					</ul>
+				</article>
+
+				<article class="guide-page" data-name="Story Mode" data-icon="img/icons/notif_me_turn.png">
+					<h3>Story mode</h3>
+					<p class="guide-lead">Follow Geralt from White Orchard to the Wild Hunt, as Dandelion tells it. Beat the people (and monsters) he met at cards, grow your collection and unlock every faction.</p>
+					<div class="g-split">
+						<div class="g-shot">
+							<img src="img/guide/story.jpg" alt="Story map with an opponent selected" loading="lazy">
+							<span class="g-pin" style="--x:42.5; --y:46">1</span>
+							<span class="g-pin" style="--x:6.2; --y:93">2</span>
+							<span class="g-pin" style="--x:66.3; --y:6.5">3</span>
+							<span class="g-pin" style="--x:87.3; --y:15.4">4</span>
+							<span class="g-pin" style="--x:66.5; --y:24">5</span>
+							<span class="g-pin" style="--x:66.5; --y:44">6</span>
+							<span class="g-pin" style="--x:66.5; --y:51.5">7</span>
+							<span class="g-pin" style="--x:92.6; --y:76">8</span>
+						</div>
+						<ol class="g-legend">
+							<li><b>Map</b> &ndash; click a pin. Pulsing pins are ready, a crown marks the chapter boss, a number means several opponents in one place.</li>
+							<li><b>Zoom</b> with the wheel, a pinch or these buttons; drag to move.</li>
+							<li><b>Crowns</b>, your <b>Deck</b>, <b>Collection</b>, <b>Shop</b>, <b>Stats</b> and save <b>Options</b>.</li>
+							<li><b>Challenge</b> &ndash; starts the match.</li>
+							<li><b>Opponent</b> &ndash; faction, AI level and your current deck.</li>
+							<li><b>Special rules</b> &ndash; weather every round, an ambush, a blocked leader&hellip;</li>
+							<li><b>Objectives</b> &ndash; each one met earns a star.</li>
+							<li><b>Reward</b> &ndash; crowns and a card of your choice.</li>
+						</ol>
+					</div>
+					<ul class="g-notes">
+						<li>You start with a weak Northern Realms deck. Chapter bosses unlock Nilfgaard, Monsters, Scoia'tael and Skellige, each with a starter deck.</li>
+						<li>Beat a chapter's key opponents to face its <b>boss</b>, and beat the boss to open the next chapter. The <b>Journal</b> lists every chapter and your progress.</li>
+						<li>Each opponent has a fixed AI level, from Easy in White Orchard to Expert at the end. Losing costs nothing &ndash; adjust your deck and try again. Leaving a match counts as a loss.</li>
+						<li>Story scenes play before and after matches: click, tap or press <kbd>Enter</kbd> to continue, or <b>Skip</b>. <b>Replay Story</b> plays them again.</li>
+						<li>Beating the final boss rolls the credits, but the map still has stories to tell.</li>
+					</ul>
+				</article>
+
+				<article class="guide-page" data-name="Cards &amp; Crowns" data-icon="img/icons/coin.png">
+					<h3>Cards, crowns &amp; tournaments</h3>
+					<p class="guide-lead">In story mode you build decks only from cards you own. Win matches to grow your collection.</p>
+					<div class="g-abilities">
+						<div><img src="img/icons/coin.png" alt="" loading="lazy"><p><b>Crowns</b>Paid for every win. Bosses pay double the first time, rematches pay half, and each new star adds a bonus.</p></div>
+						<div><img src="img/icons/deck_stats_count.png" alt="" loading="lazy"><p><b>Reward cards</b>Pick 1 of 3 cards after every win. A first win also hands over the opponent's own reward cards.</p></div>
+						<div><img src="img/icons/icon_high_score.png" alt="" loading="lazy"><p><b>Stars</b>Up to 3 per opponent: one for winning and one for each objective. Rematch to earn the ones you missed.</p></div>
+						<div><img src="img/icons/icon_card_count.png" alt="" loading="lazy"><p><b>Card Trader</b>The Shop sells 8 cards from your factions and neutrals, restocked every 3 matches.</p></div>
+						<div><img src="img/icons/icon_gem_on.png" alt="" loading="lazy"><p><b>Wagers</b>On rematches and tournament rounds, stake crowns (win to double them) or a spare card (win to keep it and take one of theirs).</p></div>
+						<div><img src="img/icons/notif_win_round.png" alt="" loading="lazy"><p><b>Tournaments</b>Pay the entry fee and win 3 rounds in a row. Each round pays crowns; the champion wins a purse and a leader card.</p></div>
+						<div><img src="svg/deck.svg" alt="" loading="lazy"><p><b>Your deck</b>Each unlocked faction keeps its own deck. Usual rules: 22+ units, at most 10 specials.</p></div>
+						<div><img src="svg/install.svg" alt="" loading="lazy"><p><b>Saving</b>Progress saves itself in this browser. Story Options can export a backup or import it on another device.</p></div>
+					</div>
+					<ul class="g-notes">
+						<li>Copies beyond a card's limit are paid out in crowns instead, so no reward is wasted.</li>
+						<li>Only spare copies (ones not in any of your decks) can be staked. Losing the match, or leaving it, loses the stake.</li>
+						<li>In a tournament one loss knocks you out (the fee is not refunded); a draw replays the round.</li>
 					</ul>
 				</article>
 

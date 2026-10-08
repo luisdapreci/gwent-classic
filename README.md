@@ -1,12 +1,13 @@
 # Gwent Classic
 
-The Gwent card game from *The Witcher 3: Wild Hunt*, rebuilt for the browser. It has every card from the base game, *Hearts of Stone*, *Blood and Wine* and the next-gen update, an AI opponent, online matches with a room code, pass-and-play matches on one device, a deck builder, and a refreshed UI with a title screen, visual effects and music that changes between menus and matches.
+The Gwent card game from *The Witcher 3: Wild Hunt*, rebuilt for the browser. It has every card from the base game, *Hearts of Stone*, *Blood and Wine* and the next-gen update, a story campaign that follows Geralt across the Continent, an AI opponent, online matches with a room code, pass-and-play matches on one device, a deck builder, and a refreshed UI with a title screen, visual effects and music that changes between menus and matches. It's playable in English and Spanish and installs as an app on phones.
 
 No install, no build step. It's plain HTML, CSS and JavaScript.
 
 ## Contents
 - [Quick start](#quick-start)
 - [How to play](#how-to-play)
+- [Story mode](#story-mode)
 - [Online play](#online-play)
 - [Pass and play](#pass-and-play)
 - [Factions](#factions)
@@ -42,6 +43,60 @@ Win **two of three rounds**. The player with the higher total score when a round
 Units go in one of three rows: **Close Combat**, **Ranged** or **Siege**. Click a card in your hand to select it, then click a row to play it. Click a row, discard pile or leader to inspect it; this works during your opponent's turn too. Hovering a button or leader with the mouse (or focusing it with <kbd>Tab</kbd>) shows a short hint; touch screens skip these hints so they don't stay stuck on screen after a tap.
 
 **Keyboard:** <kbd>Tab</kbd> moves between cards, rows and buttons; <kbd>Enter</kbd> or <kbd>Space</kbd> activates the focused one. In card pickers, <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> browse, <kbd>Enter</kbd> selects and <kbd>Esc</kbd> closes. <kbd>Esc</kbd> also cancels a selected card. Game messages are announced to screen readers.
+
+The **?** button opens an illustrated How to Play guide covering the rules, every game mode and the controls.
+
+## Story mode
+A single-player campaign that follows Geralt through *The Witcher 3*, told by Dandelion. Choose **Story** on the title screen. You start with a weak Northern Realms deck and an empty purse, and build a collection by beating the people (and monsters) Geralt met along the way.
+
+### The map
+- Each pin is an opponent, or a place with several (the number on the pin; click it for the list). Pulsing pins are ready to play, a crown marks a chapter boss, a padlock means locked, and stars under a pin show the objectives you've earned.
+- Regions you haven't reached are covered in fog, and a dotted route links the bosses of the chapters you've opened. Zoom with the mouse wheel, a pinch or the **+**/**&minus;** buttons, and drag to pan.
+- The side panel starts on the **Journal**: every chapter with its progress and stars, plus any open tournaments. Chapters and places show a tavern rumor; **Replay Story** plays a chapter's opening again. <kbd>Esc</kbd> goes back.
+- The bar on top shows your **crowns** and opens your **Deck**, **Collection**, **Shop**, **Stats** and **Options**.
+
+### Chapters
+| Chapter | Boss | Unlocks |
+| --- | --- | --- |
+| Prologue: White Orchard | Vesemir | |
+| I: Vizima | Emhyr var Emreis | Nilfgaard |
+| II: Velen | The Crones | Monsters |
+| III: Novigrad & Oxenfurt | Zoltan Chivay | Scoia'tael, Passiflora tournament |
+| IV: Skellige | Crach an Craite | Skellige, Kaer Trolde tournament |
+| V: Kaer Morhen | Battle of Kaer Morhen | |
+| VI: The Wild Hunt | Eredin | Credits, post-game chapters |
+
+A chapter's boss appears once you've beaten its key opponents and enough of the others (the opponent panel says what's missing), and beating the boss opens the next chapter. The Wild Hunt is linear: each general must fall before the next. Beating Eredin rolls the credits and opens two post-game chapters, *Hearts of Stone* and *Blood and Wine* (with the Beauclair tournament); one of their opponents is a secret that only appears on the map once it can be challenged. An unlocked faction comes with its own starter deck and leader.
+
+### Opponents and matches
+Select an opponent to see their faction and AI level, your current deck, their **special rules**, the **objectives** and the **reward**, then press **Challenge**. The first challenge plays the opponent's introduction; after the match, Dandelion tells how it went and a results screen shows stars, crowns and cards.
+
+- **AI level:** fixed per opponent, from Easy in White Orchard to Expert for the final bosses. There's no difficulty setting, and Hard/Expert deck caps don't apply.
+- **Special rules:** weather played at the start of some or every round, an ambush (the opponent goes first), an extra card for you or both players in round 1, informants (you discard a random card in round 1), a blocked leader, or deck terms (for example no weather cards in your deck; **Challenge** stays disabled until your deck complies).
+- **Stars:** up to 3 per opponent: one for winning and one for each of its two objectives (win 2&ndash;0, win without using your leader, win the final round by 20+, finish with 3+ cards in hand, win without playing weather, win while going second). Rematches can earn the stars you missed.
+- **Losing** costs nothing: adjust your deck and try again. The end screen offers **Continue** (back to the map) and **Rematch**. Leaving a match early counts as a loss.
+- **Music:** chapter bosses get Silver for Monsters (Monsters) or Steel for Humans (everyone else); the map plays The Trail.
+
+### Rewards and the collection
+- **Crowns:** each win pays the chapter's rate (10 in White Orchard up to 100 for the Wild Hunt and the post-game). A boss pays double the first time, rematches pay half, and every new star adds a quarter of the rate.
+- **Cards:** after every win you pick 1 of 3 cards (from the opponent's faction if you've unlocked it, otherwise from yours, plus neutrals; heroes are rarer on rematches). A first win also gives the opponent's fixed reward cards, shown in the panel. Copies beyond a card's limit are paid out in crowns. Unpicked rewards wait on the map, even after a reload.
+- **Deck:** opens the deck builder limited to the copies and leaders you own, one deck per unlocked faction, with the usual rules (22+ units, at most 10 special cards). The faction you leave selected is the one you play with.
+- **Collection:** every card by faction, owned/maximum copies, and how much of the set you've collected.
+- **Shop (Card Trader):** 8 cards from your unlocked factions and the neutral, special and weather cards, never leaders or fixed rewards. New stock every 3 matches. Prices: 10 crowns for plain units, 30 for cards with an ability (special and weather cards included), 100 for heroes.
+- **Wagers:** on rematches and tournament rounds you can stake 10, 25 or 50 crowns (a win doubles them, a draw returns them) or a spare card, meaning a copy not used in any of your decks (win to keep it and pick a card from the opponent's deck, draw to keep it). Losing the match, or leaving it, loses the stake.
+- **Stats:** wins, losses, streaks, crowns earned, tournaments won, stars and collection per faction.
+
+### Tournaments
+| Tournament | Opens after | Entry fee | Per round won | Champion |
+| --- | --- | --- | --- | --- |
+| Passiflora (Novigrad) | Zoltan | 20 | 20 | +80 and a leader card |
+| Kaer Trolde (Skellige) | Crach | 50 | 50 | +200 and a leader card |
+| Beauclair (Toussaint) | Regis | 100 | 100 | +400 and a leader card |
+
+Three single-elimination rounds against random entrants with AI decks, each tougher than the last and possibly with a special rule. The bracket is drawn when you enter, so a reload resumes the same run. A draw replays the round; a loss, or leaving a match, ends the run; **Withdraw** quits at any time. The fee is never refunded, and only one run can be open at a time. Once you own all of a tournament's leaders, the champion picks a hero instead.
+
+### Saving
+Progress is saved automatically in the browser's `localStorage` (`gc-story`). **Options** exports the save as `gwent-story-save.json`, imports it on another device or browser, or resets the campaign. Imported files are validated; a save that fails validation on load is kept in `gc-story-backup` before a fresh one starts.
 
 ## Online play
 Play someone on another device. Both players need an internet connection.
@@ -109,7 +164,7 @@ Open the **Deck Builder** from the title screen.
 - **Opponent:** choose **AI** or **Pass and Play** (see [Pass and play](#pass-and-play)). The choice is remembered.
 - **AI difficulty:** pick **Easy**, **Normal**, **Hard** or **Expert** under *Opponent* (shown when playing the AI). Each difficulty has its own pool of decks, one or more per faction, each with a set leader: Easy brings weak starter decks, Normal the classic premade decks, and Hard thin decks full of heroes, spies, medics and the strongest leaders. Easy also skips its redraw and often makes random plays; Normal weighs its options with some randomness; Hard plays for card advantage: it takes free cards first (spies, decoyed spies, Avengers), answers with its cheapest card that takes the lead, passes once ahead in rounds it can afford to lose, and once you've passed it wins with the fewest cards (or gives up a round that would cost too many). On Hard your deck may have at most 180 total unit strength and 4 hero cards. Expert is the Hard AI with Hard decks, but your deck may have at most 130 total unit strength and 3 hero cards; the deck stats show these limits and turn red when exceeded. The choice is remembered.
 
-Decks are saved per faction in your browser's `localStorage`, along with the last faction you used (separately for Player 2 in pass and play).
+Decks are saved per faction in your browser's `localStorage`, along with the last faction you used (separately for Player 2 in pass and play). Story mode keeps its own decks and collection (see [Story mode](#story-mode)).
 
 Deck file format (`index` refers to the position of the card in `card_dict` in `cards.js`):
 
@@ -131,24 +186,32 @@ The four toggle buttons are in the center column of the deck builder and in the 
 
 During a match (and while waiting in an online room) the game asks the browser to keep the screen on, so phones don't dim or lock mid-game. Browsers that don't support it, or phones in battery saver, just time out as usual.
 
+The **EN**/**ES** button on the title screen switches between English and Spanish (story dialogue included; card names stay in English).
+
 ## Project structure
 | Path | Contents |
 | --- | --- |
-| `index.html` | Page markup, title screen and script/style includes |
-| `gwent.js` | Game engine: board, rows, players, AI, pass and play, UI, deck builder, settings, audio, music |
+| `index.html` | Page markup, title screen, How to Play guide, story screen and script/style includes |
+| `i18n.js` | Spanish translations (`t()`), loaded first; `translatePage()` translates the static markup |
+| `gwent.js` | Game engine: board, rows, players, AI, pass and play, UI, deck builder, guide, settings, audio, music |
 | `online.js` | Online play: lobby, PeerJS connection, move exchange, reconnects, turn timer |
+| `campaign.js` | Story content: starter decks, places, chapters, opponents (decks, rules, objectives, rewards, dialogue in English and Spanish), tournaments |
+| `story.js` | Story mode: save and collection (`StoryMode`), progression, rewards, shop, wagers, tournaments, and the map, side panel, dialogue and modals (`StoryUI`) |
+| `portrait-frames.js` | Crop and zoom of card art used in round story portraits (`portraitFrames`) |
 | `api/turn.js` | Vercel serverless function that mints Cloudflare TURN relay credentials (env `CF_TURN_KEY_ID`, `CF_TURN_API_TOKEN`) |
 | `lib/peerjs.min.js` | PeerJS 1.5.5 (MIT), loaded only when hosting or joining a room |
 | `cards.js` | Card database (`card_dict`) |
-| `decks.js` | Premade decks used by the AI |
+| `decks.js` | Decks used by the AI, per difficulty (`ai_decks`) |
 | `factions.js` | Faction perks |
 | `abilities.js` | Card and leader abilities (`ability_dict`) |
 | `fx.js` | Visual effects API (`fx.burst`, `fx.shake`, `fx.sunlight`, `fx.pulse`, `fx.flash`) |
 | `common.js` | Shared helpers |
-| `css/` | Stylesheets: `tokens`, `base`, `board`, `cards`, `overlays`, `deckbuilder`, `title`, `fx` |
-| `img/` | Board, card art (`sm/`, `lg/`) and icons |
+| `sw.js`, `manifest.webmanifest` | Service worker (offline cache) and web app manifest for installing |
+| `css/` | Stylesheets: `tokens`, `base`, `board`, `cards`, `overlays`, `deckbuilder`, `title`, `fx`, `guide`, `story` |
+| `img/` | Board, card art (`sm/`, `lg/`), icons, app icons (`app/`), guide screenshots (`guide/`) and the story map (`map/`) |
 | `svg/` | UI button icons |
-| `sfx/` | Sound effects (`card.animate(name)` plays `sfx/<name>.mp3`) |
+| `sfx/` | Sound effects (`card.animate(name)` plays `sfx/<name>.mp3`) and music (`sfx/music/`) |
+| `tools/portrait-framer.html` | Editor for `portrait-frames.js` (not deployed) |
 | `Start Gwent.bat` | Local server launcher for Windows |
 
 ## Development notes
@@ -156,12 +219,17 @@ During a match (and while waiting in an online room) the game asks the browser t
 - **Sizing:** the stage is a letterboxed 16:9 box. `var(--u)` equals 1% of the stage width; use it instead of `vw`.
 - **Board art:** row positions and score circles are baked into `img/board.jpg`. Restyle overlays freely, but don't move them.
 - **Card transforms:** `gwent.js` sets an inline `transform` on cards while moving them, so card animations in CSS should use the standalone `translate` / `scale` / `rotate` properties.
-- **Script order:** `online.js` and `fx.js` load after `gwent.js`.
+- **Script order:** `i18n.js` loads first; `online.js`, `campaign.js`, `portrait-frames.js`, `story.js` and `fx.js` load after `gwent.js`, in that order. New shell files also go in the `SHELL_FILES` list in `sw.js`; bump its `VERSION` when replacing assets in place.
 - **Online determinism:** online clients must make the same random choices in the same order. Game-state randomness uses the player's seeded `player.rng` (or `Online.rng` for the coin toss) and random picks from a container sort by `card.uid` first, because the two clients order hands, rows and graves differently. Player choices go through `Online.carousel` / `Online.rowChoice` / `Online.choice` so the opponent's client replays them.
 - **Testing audio and music:** serve over http. `file://` can fail to load larger sound and music files.
 - **Summons and resets:** `Game.reset()` empties the rows while the state can still be `PLAYING`, which fires `removed` callbacks. Abilities that put cards on the board from a `removed` callback must check `game.summonsAllowed()`.
 - **Off-turn input:** `main.noclick` blocks play while it isn't your turn, but rows, weather, discard piles and leaders stay clickable for inspection. `ui.viewCardsInContainer(container)` without an action opens a view-only carousel that never changes `ui.enablePlayer`; anything that plays a card must check `ui.isInteractive()`.
 - **Pacing:** card placement always waits `DURATION_CARD_PLACEMENT`, independent of the sound effects setting.
+- **Story matches:** `game.story` holds the running story match. `Game.startGame` calls `StoryMode.applyModifiers` before setting up the players, and the end screen, exit and rematch hand off to `StoryMode` (`onGameEnd`, `finish`, `leaveMatch`). The deck builder reads and writes story decks through `StoryMode.deckStore` while `dm.story` is set.
+- **Campaign data:** cards in `campaign.js` are `[card_dict index, count]`, and pins and fog reveals are percentages of the map image. Dialogue lines are `{who, en, es}`; `who` is `"opp"`, `"geralt"`, `"ciri"`, `"narrator"` (Dandelion) or `"chronicle"` (an in-world book quote with a `source`). Short labels such as names go through `t()`, so they need an `I18N.es` entry. Fixed rewards are never offered in random picks or the shop.
+- **Story saves:** `StoryMode.sanitize()` rebuilds every loaded or imported save from known fields only. Add any new save field there, or it's dropped.
+- **Story map art:** the game uses `img/map/continent-1280.jpg` and `continent-2560.jpg`. The full-size source map is ignored by git and Vercel.
+- **Story portraits:** round portraits (map pins, panel rows, tournament trophies) frame card art with `portraitFrames[name] = [x%, y%, zoom%]`. Open `tools/portrait-framer.html` over http to drag and zoom them and save the file.
 
 ## Credits
 - Original project by [asundr](https://github.com/asundr/gwent-classic).

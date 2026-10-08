@@ -2,7 +2,7 @@
 	"id": "./",
 	"name": "Gwent Classic",
 	"short_name": "Gwent",
-	"description": "Play the original Gwent minigame from The Witcher 3, including Hearts of Stone and Blood & Wine cards.",
+	"description": "Play the original Gwent card game from The Witcher 3: a story campaign across the Continent, AI opponents, online and pass-and-play matches, with Hearts of Stone and Blood and Wine cards.",
 	"start_url": "./",
 	"scope": "./",
 	"display": "standalone",
