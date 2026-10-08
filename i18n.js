@@ -371,6 +371,7 @@ const I18N = {
 		"Weather cards are not allowed": "No se permiten cartas de clima",
 		"Player 1's Deck": "Mazo del Jugador 1",
 		"Player 2's Deck": "Mazo del Jugador 2",
+		"Geralt's Deck": "Mazo de Geralt",
 		"{name}'s deck:": "Mazo de {name}:",
 		"Invalid deck": "Mazo no válido",
 		"{label} allows at most {max} total unit strength (deck has {n}).": "{label} permite como máximo {max} de fuerza total de unidades (el mazo tiene {n}).",

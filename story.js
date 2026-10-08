@@ -787,6 +787,7 @@ const StoryMode = {
 		document.body.classList.add("story", "deck-only");
 		document.getElementById("deck-back").textContent = "\u2039 " + t("Map");
 		dm.loadFactionDeck(this.data.activeFaction, true);
+		dm.updateDeckTitle();
 		document.getElementById("deck-customization").classList.remove("hide");
 		AudioManager.playSFX("menu_opening");
 	},
@@ -796,6 +797,7 @@ const StoryMode = {
 		document.body.classList.remove("story", "deck-only");
 		document.getElementById("deck-back").textContent = "\u2039 " + t("Main Menu");
 		dm.loadFactionDeck(Settings.getLastFaction(dm.owner).get(), true);
+		dm.updateDeckTitle();
 		document.getElementById("deck-customization").classList.add("hide");
 		this.openMap();
 	},

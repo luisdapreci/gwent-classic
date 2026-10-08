@@ -3514,7 +3514,7 @@ class DeckMaker {
 	}
 	
 	updateDeckTitle() {
-		const title = !DeckMaker.isHotseatMode() ? "Cards in Deck" : this.owner === "p2" ? "Player 2's Deck" : "Player 1's Deck";
+		const title = this.story ? "Geralt's Deck" : !DeckMaker.isHotseatMode() ? "Cards in Deck" : this.owner === "p2" ? "Player 2's Deck" : "Player 1's Deck";
 		document.getElementById("card-deck-title").textContent = t(title);
 	}
 

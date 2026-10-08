@@ -325,7 +325,8 @@
 /* opened from the title's Deck Builder: deck editing only */
 body.deck-only #start-game,
 body.deck-only #opponent-mode,
-body.deck-only #ai-difficulty { display: none; }
+body.deck-only #ai-difficulty,
+body.story #deck-owner-row { display: none; }
 
 /* online room: the opponent brings their own deck */
 body.online #opponent-mode,
