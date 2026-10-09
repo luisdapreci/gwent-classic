@@ -198,6 +198,14 @@
 	background-position: center;
 	border-radius: 100%;
 }
+/* story portraits (body.story .profile-img.story-art) are more specific and win */
+.profile-img.has-avatar {
+	background-image: var(--avatar);
+	background-size: cover;
+}
+.profile-img.editable { cursor: pointer; transition: filter .2s; }
+.profile-img.editable:hover, .profile-img.editable:focus-visible { filter: brightness(1.15) drop-shadow(0 0 calc(0.6 * var(--u)) var(--gold-glow)); }
+.profile-img.editable:focus-visible { outline: none; }
 .profile-img > div {
 	left: -10%;
 	top: -6%;
@@ -503,6 +511,7 @@ body.hotseat #field-op .card:not(.noclick) { pointer-events: auto; }
 
 /* Off turn the board can still be inspected: rows, weather, graves and leaders open view-only carousels */
 main.noclick :is(.row-cards, .row-special, #weather, .grave, .leader-box):not(.noclick),
+main.noclick .profile-img.editable,
 main.noclick > #carousel:not(.hide) { pointer-events: auto; }
 
 .row-selectable {

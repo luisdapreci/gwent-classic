@@ -440,10 +440,13 @@
 <section id="lobby" class="hide" role="dialog" aria-modal="true" aria-labelledby="lobby-heading">
 	<div class="lobby-panel">
 		<h2 id="lobby-heading">Play Online</h2>
-		<label class="lobby-name">
-			<span>Your name</span>
-			<input id="lobby-name" type="text" maxlength="16" autocomplete="nickname" spellcheck="false" />
-		</label>
+		<div class="lobby-identity">
+			<button id="lobby-avatar" type="button" aria-label="Choose your avatar" data-title="Choose your avatar"></button>
+			<label class="lobby-name">
+				<span>Your name</span>
+				<input id="lobby-name" type="text" maxlength="16" autocomplete="nickname" spellcheck="false" />
+			</label>
+		</div>
 		<div id="lobby-choose" class="lobby-cols">
 			<div class="lobby-col">
 				<h3>Host a game</h3>
@@ -867,6 +870,15 @@
 			</footer>
 		</div>
 		<button id="guide-close" aria-label="Close guide">&times;</button>
+	</div>
+</section>
+
+<section id="avatar-picker" class="hide" role="dialog" aria-modal="true" aria-labelledby="avatar-heading">
+	<div class="avatar-panel">
+		<h2 id="avatar-heading">Choose your avatar</h2>
+		<p id="avatar-for" class="hide"></p>
+		<div id="avatar-grid" role="radiogroup" aria-labelledby="avatar-heading"></div>
+		<button id="avatar-close" aria-label="Close">&times;</button>
 	</div>
 </section>
 

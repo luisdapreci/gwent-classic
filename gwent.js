@@ -23,6 +23,27 @@ function makeAccessible(elem, label) {
 		elem.setAttribute("aria-label", label);
 }
 
+// Official CD PROJEKT RED avatars: img/avatars/<id>.jpg (256x256)
+const AVATARS = [
+	["01", "Wolf medallion"], ["02", "Wolf medallion"], ["03", "Geralt"], ["04", "Geralt"], ["05", "Geralt"], ["06", "Geralt"],
+	["07", "Ciri"], ["08", "Yennefer"], ["09", "Sorceress"], ["10", "Triss"], ["11", "Eredin"], ["12", "Imlerith"],
+	["13", "Wild Hunt warrior"], ["14", "Vesemir"], ["15", "Dandelion"], ["16", "Emhyr var Emreis"], ["17", "Wolf medallion"],
+	["18", "School of the Wolf"], ["19", "Geralt"], ["20", "Geralt"], ["21", "Geralt"], ["22", "Fiend"], ["23", "Leshen"],
+	["24", "Geralt"], ["25", "Geralt"], ["26", "Leshen"], ["27", "Skellige warrior"], ["28", "Troll"]
+].map(([id, name]) => ({id, name}));
+
+// The AI opponent's avatar per faction
+const AI_AVATARS = {realms: "10", nilfgaard: "16", monsters: "11", scoiatael: "09", skellige: "27"};
+
+function isAvatar(id) {
+	return AVATARS.some(a => a.id === id);
+}
+
+// Absolute, because it is used in a custom property (resolved against the consuming stylesheet)
+function avatarURL(id) {
+	return "url('" + new URL("img/avatars/" + id + ".jpg", document.baseURI).href + "')";
+}
+
 class Controller {}
 
 // Plays the moves sent by the online opponent
@@ -636,6 +657,18 @@ class Player {
 		document.getElementById("stats-" + this.tag).getElementsByClassName("profile-img")[0].children[0].children[0];
 		let x = document.querySelector("#stats-" +this.tag+ " .profile-img > div > div");
 		x.style.backgroundImage = iconURL("deck_shield_" + deck.faction);
+		this.setAvatar("");
+	}
+	
+	// Avatar id shown in the profile circle; "" = the default silhouette
+	setAvatar(id) {
+		this.avatar = isAvatar(id) ? id : "";
+		const elem = document.querySelector("#stats-" + this.tag + " .profile-img");
+		elem.classList.toggle("has-avatar", !!this.avatar);
+		if (this.avatar)
+			elem.style.setProperty("--avatar", avatarURL(this.avatar));
+		else
+			elem.style.removeProperty("--avatar");
 	}
 	
 	// Sets default values
@@ -1777,6 +1810,7 @@ class Game {
 		// In pass and play hands stay hidden until their owner takes the device
 		ui.handViewer = null;
 		document.body.classList.toggle("hotseat", this.isHotseat());
+		avatarPicker.updateBoard();
 		board.labelRows();
 		ui.showHand(this.isHotseat() ? null : player_me);
 		await this.runEffects(this.gameStart);
@@ -2102,6 +2136,7 @@ class Game {
 		this.reset();
 		player_me.reset();
 		player_op = new Player(1, DeckMaker.opponentName(), dm.constructOpponentDeck());
+		player_op.setAvatar(AI_AVATARS[player_op.deck.faction]);
 		this.endScreen.classList.add("hide");
 		this.startGame();
 	}
@@ -2488,7 +2523,9 @@ class UI {
 	// Pass and play: covers the board until the named player confirms they have the device, then shows their hand
 	async handoff(player, message){
 		this.showHand(null);
-		this.handoff_elem.querySelector(".handoff-shield").style.backgroundImage = iconURL("deck_shield_" + player.deck.faction);
+		const shield = this.handoff_elem.querySelector(".handoff-shield");
+		shield.style.backgroundImage = player.avatar ? avatarURL(player.avatar) : iconURL("deck_shield_" + player.deck.faction);
+		shield.classList.toggle("avatar", !!player.avatar);
 		document.getElementById("handoff-name").textContent = player.name;
 		document.getElementById("handoff-desc").textContent = message;
 		this.handoff_elem.classList.remove("hide");
@@ -3847,6 +3884,8 @@ class DeckMaker {
 		
 		player_me = new Player(0, t("Player 1"), p1.deck);
 		player_op = hotseat ? new Player(1, t("Player 2"), p2.deck, true) : new Player(1, DeckMaker.opponentName(), this.constructOpponentDeck());
+		player_me.setAvatar(Settings.avatar.get());
+		player_op.setAvatar(hotseat ? Settings.p2Avatar.get() : AI_AVATARS[player_op.deck.faction]);
 		
 		this.elem.classList.add("hide");
 		game.startGame();
@@ -4390,6 +4429,9 @@ class Settings
 	static onlineName = new SavedString("gc-online-name", "");
 	static onlineTimer = new SavedString("gc-online-timer", "60");
 	static onlineRules = new SavedString("gc-online-rules", "");
+	// Player 1 (also vs AI and online) and pass-and-play Player 2
+	static avatar = new SavedString("gc-avatar", "");
+	static p2Avatar = new SavedString("gc-p2-avatar", "");
 	static realmsDeck = new SavedDeck("gc-deck-realms", premade_deck[0]);
 	static nilfgaardDeck = new SavedDeck("gc-deck-nilfgaard", premade_deck[2]);
 	static monstersDeck = new SavedDeck("gc-deck-monsters", premade_deck[4]);
@@ -4840,6 +4882,94 @@ const guide = {
 	addMouseEnterSFXBySelector("#guide button");
 }
 
+// Avatar picker: opened from the lobby or by clicking your own board portrait
+const avatarPicker = {
+	elem: document.getElementById("avatar-picker"),
+	buttons: [],
+	resolve: null,
+	returnFocus: null,
+	isOpen() { return !this.elem.classList.contains("hide"); },
+	
+	// Resolves with the picked id ("" = no avatar), or null if closed without picking
+	open(current, who = "") {
+		this.close(null);
+		this.returnFocus = document.activeElement;
+		const sub = document.getElementById("avatar-for");
+		sub.textContent = who;
+		sub.classList.toggle("hide", !who);
+		this.buttons.forEach(b => b.setAttribute("aria-checked", b.dataset.avatar === (current || "")));
+		this.elem.classList.remove("hide");
+		(this.buttons.find(b => b.getAttribute("aria-checked") === "true") ?? this.buttons[0]).focus();
+		AudioManager.playSFX("menu_opening");
+		return new Promise(resolve => this.resolve = resolve);
+	},
+	
+	close(id = null) {
+		if (!this.resolve)
+			return;
+		const resolve = this.resolve;
+		this.resolve = null;
+		this.elem.classList.add("hide");
+		this.returnFocus?.focus?.();
+		resolve(id);
+	},
+	
+	// Board portraits of local humans open the picker (not in story mode, where you are Geralt)
+	updateBoard() {
+		for (const player of [player_me, player_op]) {
+			const elem = document.querySelector("#stats-" + player.tag + " .profile-img");
+			const editable = player.isHuman() && !game.story;
+			elem.classList.toggle("editable", editable);
+			if (editable) {
+				makeAccessible(elem, t("Change avatar"));
+				elem.dataset.title = t("Change avatar");
+			} else {
+				["tabindex", "role", "aria-label", "data-title"].forEach(a => elem.removeAttribute(a));
+			}
+		}
+	},
+	
+	async pickFor(player) {
+		if (!player?.isHuman() || game.story)
+			return;
+		const id = await this.open(player.avatar, game.isHotseat() ? player.name : "");
+		if (id === null)
+			return;
+		(player === player_op ? Settings.p2Avatar : Settings.avatar).set(id);
+		player.setAvatar(id);
+		if (player === player_me && Online.connected)
+			Online.sendAvatar();
+	}
+};
+{
+	const grid = document.getElementById("avatar-grid");
+	for (const a of [{id: "", name: "No avatar"}, ...AVATARS]) {
+		const b = document.createElement("button");
+		b.dataset.avatar = a.id;
+		b.setAttribute("role", "radio");
+		b.setAttribute("aria-label", t(a.name));
+		b.title = t(a.name);
+		const img = document.createElement("img");
+		img.src = a.id ? "img/avatars/" + a.id + ".jpg" : "img/icons/profile.png";
+		img.alt = "";
+		img.loading = "lazy";
+		b.appendChild(img);
+		b.addEventListener("click", () => {
+			AudioManager.playSFX("ui_card_bank");
+			avatarPicker.close(a.id);
+		});
+		grid.appendChild(b);
+		avatarPicker.buttons.push(b);
+	}
+	document.getElementById("avatar-close").addEventListener("click", () => avatarPicker.close(null));
+	avatarPicker.elem.addEventListener("click", e => e.target === avatarPicker.elem && avatarPicker.close(null));
+	for (const tag of ["me", "op"])
+		document.querySelector("#stats-" + tag + " .profile-img").addEventListener("click", e => {
+			if (e.currentTarget.classList.contains("editable"))
+				avatarPicker.pickFor(tag === "me" ? player_me : player_op);
+		});
+}
+
 
 // Touch pointerdown doesn't grant user activation (only pointerup/touchend/click do), so retry on those
 // and keep retrying until the music actually plays.
@@ -4931,6 +5061,18 @@ document.addEventListener("visibilitychange", () => wakeLock.update());
 document.addEventListener("keydown", e => {
 	if (Popup.curr)
 		return;
+	if (avatarPicker.isOpen()) {
+		if (e.key === "Escape")
+			avatarPicker.close(null);
+		else if (e.key === "Tab") {
+			const focusable = [...avatarPicker.elem.querySelectorAll("button")];
+			const i = focusable.indexOf(document.activeElement);
+			focusable[i === -1 ? 0 : (i + (e.shiftKey ? -1 : 1) + focusable.length) % focusable.length].focus();
+		} else
+			return;
+		e.preventDefault();
+		return;
+	}
 	if (guide.isOpen()) {
 		if (e.key === "Escape")
 			guide.close();

@@ -36,6 +36,11 @@ function cleanName(name) {
 	return String(name ?? "").replace(/[\u0000-\u001f\u007f-\u009f]/g, "").replace(/\s+/g, " ").trim().slice(0, 16);
 }
 
+// Only ids from the known list ever reach an image URL
+function cleanAvatar(id) {
+	return isAvatar(id) ? id : "";
+}
+
 // FNV-1a, for comparing game states
 function hashString(str) {
 	let h = 0x811c9dc5;
@@ -85,6 +90,8 @@ const Online = {
 	guestJoined: false,
 	name: "",
 	opponentName: "",
+	avatar: "",
+	opponentAvatar: "",
 	timerSetting: 60,
 	rulesSetting: [],
 	ready: false,
@@ -415,6 +422,8 @@ const Online = {
 		game.rematch_elem.textContent = t("Rematch");
 		player_me = new Player(0, start.names[this.seat], deckFor(this.seat), true, {seat: this.seat, rng: seededRandom(start.seed + "/" + this.seat)});
 		player_op = new Player(1, start.names[op], deckFor(op), false, {seat: op, remote: true, rng: seededRandom(start.seed + "/" + op)});
+		player_me.setAvatar(this.avatar);
+		player_op.setAvatar(this.opponentAvatar);
 		if (!titleScreen.classList.contains("hide"))
 			closeTitleScreen();
 		document.getElementById("lobby").classList.add("hide");
@@ -532,8 +541,23 @@ const Online = {
 			return;
 		sessionStorage.setItem(SESSION_KEY, JSON.stringify({
 			code: this.code, role: this.role, seat: this.seat, token: this.token,
-			name: this.name, opponent: this.opponentName, timer: this.timerSetting, rules: this.rulesSetting, at: Date.now()
+			name: this.name, opponent: this.opponentName, avatar: this.avatar, opponentAvatar: this.opponentAvatar,
+			timer: this.timerSetting, rules: this.rulesSetting, at: Date.now()
 		}));
+	},
+
+	// Avatars are cosmetic: sent outside the input log, so they never affect the lockstep game
+	sendAvatar() {
+		this.avatar = cleanAvatar(Settings.avatar.get());
+		this.send({t: "avatar", id: this.avatar});
+		this.saveSession();
+	},
+
+	setOpponentAvatar(id) {
+		this.opponentAvatar = cleanAvatar(id);
+		if (this.start && player_op)
+			player_op.setAvatar(this.opponentAvatar);
+		this.saveSession();
 	},
 
 	// ================= deck builder (room) =================
@@ -860,7 +884,7 @@ const Online = {
 				if (this.token)
 					this.sendResume();
 				else
-					this.send({t: "hello", v: ONLINE_PROTOCOL, cards: card_dict.length, name: this.name});
+					this.send({t: "hello", v: ONLINE_PROTOCOL, cards: card_dict.length, name: this.name, avatar: this.avatar});
 			}
 		});
 		conn.on("data", m => this.onData(conn, m));
@@ -913,8 +937,9 @@ const Online = {
 				return reject("name");
 			this.guestJoined = true;
 			this.opponentName = name;
+			this.opponentAvatar = cleanAvatar(m.avatar);
 			this.adopt(conn);
-			this.send({t: "welcome", v: ONLINE_PROTOCOL, name: this.name, token: this.token, timer: this.timerSetting, rules: this.rulesSetting});
+			this.send({t: "welcome", v: ONLINE_PROTOCOL, name: this.name, avatar: this.avatar, token: this.token, timer: this.timerSetting, rules: this.rulesSetting});
 			this.onConnected();
 		} else if (m.t === "resume") {
 			if (!this.token || m.token !== this.token)
@@ -937,7 +962,7 @@ const Online = {
 	},
 
 	sendResume() {
-		this.send({t: "resume", token: this.token, match: this.start?.id ?? null, have: this.log[1 - this.seat].length});
+		this.send({t: "resume", token: this.token, match: this.start?.id ?? null, have: this.log[1 - this.seat].length, avatar: this.avatar});
 	},
 
 	onConnected() {
@@ -964,6 +989,7 @@ const Online = {
 				if (this.role !== "guest" || this.connected)
 					return;
 				this.opponentName = cleanName(m.name) || t("Opponent");
+				this.opponentAvatar = cleanAvatar(m.avatar);
 				this.token = String(m.token ?? "").slice(0, 64);
 				this.timerSetting = TIMER_CHOICES.includes(m.timer) ? m.timer : 0;
 				this.rulesSetting = cleanRules(m.rules);
@@ -973,6 +999,8 @@ const Online = {
 				return this.onRejected(m.reason);
 			case "resume":
 				return this.onResume(m);
+			case "avatar":
+				return this.setOpponentAvatar(m.id);
 			case "sync":
 				return this.onSync(m);
 			case "in":
@@ -1061,6 +1089,8 @@ const Online = {
 	// Both sides announce what they have; the side that still holds the match brings the other up to date
 	onResume(m) {
 		this.reconnected();
+		if ("avatar" in m)
+			this.setOpponentAvatar(m.avatar);
 		const mine = this.start?.id ?? null;
 		const theirs = typeof m.match === "string" ? m.match : null;
 		if (mine && theirs === mine) {
@@ -1170,7 +1200,7 @@ const Online = {
 		this.start = null;
 		this.turnOpen = false;
 		this.role = null;
-		this.code = this.token = this.opponentName = "";
+		this.code = this.token = this.opponentName = this.opponentAvatar = "";
 		this.guestJoined = false;
 		this.ready = this.opponentReady = false;
 		this.log = [[], []];
@@ -1201,6 +1231,8 @@ const Online = {
 		this.token = s.token;
 		this.name = cleanName(s.name);
 		this.opponentName = cleanName(s.opponent);
+		this.avatar = cleanAvatar(s.avatar);
+		this.opponentAvatar = cleanAvatar(s.opponentAvatar);
 		this.timerSetting = TIMER_CHOICES.includes(s.timer) ? s.timer : 0;
 		this.rulesSetting = cleanRules(s.rules);
 		this.guestJoined = true;
@@ -1275,6 +1307,7 @@ const Lobby = {
 		document.getElementById("lobby-choose").classList.remove("hide");
 		document.getElementById("lobby-room").classList.add("hide");
 		this.nameInput.value = Settings.onlineName.get();
+		this.showAvatar();
 		this.codeInput.value = code;
 		this.setTimer(Settings.onlineTimer.get(), true);
 		this.showRules();
@@ -1285,6 +1318,27 @@ const Lobby = {
 
 	close() {
 		this.elem.classList.add("hide");
+	},
+
+	showAvatar() {
+		const id = cleanAvatar(Settings.avatar.get());
+		const b = document.getElementById("lobby-avatar");
+		if (id)
+			b.style.setProperty("--avatar", avatarURL(id));
+		else
+			b.style.removeProperty("--avatar");
+	},
+
+	async pickAvatar() {
+		const id = await avatarPicker.open(Settings.avatar.get());
+		if (id === null)
+			return;
+		Settings.avatar.set(id);
+		this.showAvatar();
+		// A host still waiting for a guest sends it in the welcome
+		Online.avatar = cleanAvatar(id);
+		if (Online.connected)
+			Online.sendAvatar();
 	},
 
 	cancel() {
@@ -1321,6 +1375,7 @@ const Lobby = {
 		this.nameInput.value = name;
 		Settings.onlineName.set(name);
 		Online.name = name;
+		Online.avatar = cleanAvatar(Settings.avatar.get());
 		return name;
 	},
 
@@ -1394,6 +1449,7 @@ document.getElementById("title-online").addEventListener("click", () => {
 	Lobby.open();
 });
 document.getElementById("lobby-host").addEventListener("click", () => Lobby.host());
+document.getElementById("lobby-avatar").addEventListener("click", () => Lobby.pickAvatar());
 document.getElementById("lobby-join").addEventListener("click", () => Lobby.join());
 document.getElementById("lobby-cancel").addEventListener("click", () => Lobby.cancel());
 document.getElementById("lobby-copy-code").addEventListener("click", () => Lobby.copy(Online.code, t("Room code")));
