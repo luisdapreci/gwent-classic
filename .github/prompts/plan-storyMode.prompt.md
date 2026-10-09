@@ -80,7 +80,7 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
 | 39,62 | Ermion, Hindarsfjall | Skellige · Hard | none | Ermion (195) |
 | 34,82 | Avallac'h, Isle of Mists (the southern whirlpool) | Scoia'tael · Hard | Mist: Fog every round | Mysterious Elf (0) |
 
-**Chapter V: Kaer Morhen** (one pin at the castle, 83,15)
+**Chapter V: Kaer Morhen** (castle pin 83,15, plus optional valley pins: troll 76.5,12, harpies 92.5,11.5, draug 74,16.5)
 
 | Opponent | Deck · AI | Modifier / terms | Fixed reward |
 |---|---|---|---|
@@ -88,6 +88,9 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
 | Eskel | NR · Normal | none | Decoy (1) |
 | Yennefer (Lodge mages deck) | NR · Hard | none | Yennefer (15) |
 | Letho of Gulet (optional) | NG · Hard | none | Letho (72) |
+| Rock Troll (optional, lake) | NR · Normal | none | Catapult x2 (29) |
+| Harpy Nest (optional, eastern cliffs, retold) | Monsters · Hard | From Above: opponent goes first | Esterad Thyssen (33) |
+| Draug of the Morhen Eye (optional, ruined fort, retold) | Monsters · Normal | Grave Mist: Fog every round | Draug (108) |
 | ★ Battle of Kaer Morhen (Wild Hunt vanguard) | Monsters · Hard, Eredin – Commander | Breath of the Hunt: Frost every round; Defenders: you draw +1 | Ciri (3), Eredin – Commander (93) |
 
 **Chapter VI: The Hunt**

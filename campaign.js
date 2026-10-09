@@ -133,7 +133,7 @@ const campaign = {
 				{en: "A drinking song from An Skellig: the king is dead, the mead is not, so drink the king's, and drink a lot.", es: "Una canción de taberna de An Skellig: el rey murió, el hidromiel no; bebe el del rey, que el rey ya se fue."}
 			]},
 		{id: "kaermorhen", name: "Kaer Morhen", bossAfter: 2, winCrowns: 85, music: "menu",
-			reveal: [{x: 83, y: 15, rx: 12, ry: 14}],
+			reveal: [{x: 83, y: 15, rx: 15, ry: 15}],
 			epigraph: {source: {en: "Effenberg & Talbot, Encyclopaedia Maxima Mundi", es: "Effenberg y Talbot, Encyclopaedia Maxima Mundi"},
 				en: "Kaer Morhen: a ruined keep in the Blue Mountains, formerly a school of witchers. Abandoned. See also: mutants; superstition; regrettable episodes.",
 				es: "Kaer Morhen: fortaleza en ruinas en las Montañas Azules, antigua escuela de brujos. Abandonada. Véase también: mutantes; superstición; episodios lamentables."},
@@ -916,6 +916,72 @@ const campaign = {
 					{who: "narrator", en: "Geralt could have settled an old debt with Letho that day. He chose an extra sword over justice. I've never decided whether that was wise, and neither has he.", es: "Geralt podría haber saldado ese día una vieja deuda con Letho. Eligió una espada más en lugar de justicia. Nunca he decidido si fue sabio, y él tampoco."}
 				],
 				loss: [{who: "opp", en: "The School of the Viper doesn't lose, Wolf.", es: "La Escuela de la Víbora no pierde, Lobo."}]
+			}
+		},
+		// Optional fights in the valley around the keep
+		troll: {
+			chapter: "kaermorhen", name: "Rock Troll", portrait: "avatars/28.jpg", pin: {x: 76.5, y: 12}, level: "normal",
+			deck: {faction: "realms", leader: 22, cards: [
+				[29,2], [54,1], [55,1], [27,1], [215,1], [45,1], [35,1], [36,1], [37,1], [32,1],
+				[40,4], [42,1], [43,1], [53,1], [44,1], [46,1], [2,1]
+			]},
+			modifiers: [], objectives: ["hand3", "noWeather"], rewards: [[29,2]],
+			rumor: {en: "A shepherd says the troll by the lake takes his toll in cards. Travelers without cards pay in sheep. Those without sheep don't come back to complain.", es: "Un pastor dice que el trol del lago cobra su peaje en cartas. Los viajeros sin cartas pagan con ovejas. Los que no tienen ovejas no vuelven para quejarse."},
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "Below Kaer Morhen, by the lake, lived a rock troll. Trolls, unlike most things with that many teeth, can be bargained with, bribed, or beaten at cards. This one preferred cards.", es: "Bajo Kaer Morhen, junto al lago, vivía un trol de roca. Los troles, a diferencia de casi todo lo que tiene tantos dientes, aceptan tratos, sobornos o una derrota a las cartas. Este prefería las cartas."},
+					{who: "opp", en: "Witcher! Troll find many cards. Soldiers come up mountain, soldiers not go down. Cards stay. You play troll?", es: "¡Brujo! Trol encontrar muchas cartas. Soldados subir montaña, soldados no bajar. Cartas quedar. ¿Tú jugar con trol?"},
+					{who: "geralt", en: "What happened to the soldiers?", es: "¿Qué les pasó a los soldados?"},
+					{who: "opp", en: "Troll not say. Troll like Catapult. Rocks fly far, go boom. Like troll.", es: "Trol no decir. A trol gustar Catapult. Piedras volar lejos, hacer bum. Como trol."}
+				],
+				win: [
+					{who: "opp", en: "Hrrm. Witcher win. Take Catapult. Two Catapult. Troll keep rocks. Rocks better anyway.", es: "Jrrm. Brujo ganar. Llevar Catapult. Dos Catapult. Trol quedar piedras. Piedras mejores de todos modos."},
+					{who: "narrator", en: "Geralt never learned what became of the soldiers. The troll's cave smelled of vodka and old boots, he told me, and he decided not to ask twice.", es: "Geralt nunca supo qué fue de los soldados. La cueva del trol olía a vodka y a botas viejas, me contó, y decidió no preguntar dos veces."}
+				],
+				loss: [{who: "opp", en: "Troll win! Witcher sad? Troll give rock. Rock good for sad.", es: "¡Trol ganar! ¿Brujo triste? Trol dar piedra. Piedra buena para triste."}]
+			}
+		},
+		harpies: {
+			chapter: "kaermorhen", name: "Harpy Nest", portrait: "monsters_celaeno_harpy", pin: {x: 92.5, y: 11.5}, level: "hard", retold: true,
+			deck: {faction: "monsters", leader: 96, cards: [
+				[103,1], [122,1], [116,1], [137,1], [104,1], [121,1], [114,1], [109,1], [115,1],
+				[102,1], [111,1], [123,1], [130,1], [127,1], [128,1], [129,1], [117,1], [118,1], [119,1], [5,2], [10,1], [2,1], [1,1]
+			]},
+			modifiers: [{id: "ambush", name: "From Above"}], objectives: ["margin20", "hand3"], rewards: [[33,1]],
+			rumor: {en: "Harpies steal anything that glitters, the valley folk say. A tinker lost a spoon, a ring and his best teeth to them. The gold ones.", es: "La gente del valle dice que las arpías roban todo lo que brilla. Un calderero perdió con ellas una cuchara, un anillo y sus mejores dientes. Los de oro."},
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "On the eastern cliffs, harpies had nested above the only road from the valley, and they screamed at every supply cart bound for the keep.", es: "En los acantilados del este, las arpías habían anidado sobre el único camino desde el valle, y chillaban a cada carro de provisiones que subía a la fortaleza."},
+					{who: "narrator", en: "Again I tell it as cards; the truth is mostly feathers, mud and a witcher swearing. Harpies always strike first. It is the whole of their strategy, and it usually works.", es: "Otra vez lo cuento como cartas; la verdad es sobre todo plumas, barro y un brujo maldiciendo. Las arpías siempre atacan primero. Es toda su estrategia, y casi siempre les funciona."},
+					{who: "geralt", en: "Wait for the dive.", es: "Espera a que se lancen."}
+				],
+				win: [
+					{who: "narrator", en: "In the nest, among buttons, spoons and a bishop's ring, Geralt found a card of Esterad Thyssen, King of Kovir, gilt edges and all. Harpies have taste, if nothing else.", es: "En el nido, entre botones, cucharas y el anillo de un obispo, Geralt encontró una carta de Esterad Thyssen, rey de Kovir, con bordes dorados y todo. Las arpías tienen buen gusto, si nada más."},
+					{who: "narrator", en: "The carts came up the next day. Nobody thanked him, which, he told me, is how he knows a job was done right.", es: "Los carros subieron al día siguiente. Nadie le dio las gracias, lo cual, me dijo, es como sabe que un trabajo se hizo bien."}
+				],
+				loss: [{who: "geralt", en: "Too many. Need to thin the flock.", es: "Demasiadas. Hay que diezmar la bandada."}]
+			}
+		},
+		draug: {
+			chapter: "kaermorhen", name: "Draug of the Morhen Eye", portrait: "monsters_draug", pin: {x: 74, y: 16.5}, level: "normal", retold: true,
+			deck: {faction: "monsters", leader: 96, cards: [
+				[108,1], [130,1], [115,1], [113,1], [120,1], [117,1], [118,1], [119,1], [102,1], [111,1],
+				[109,1], [112,1], [114,1], [121,1], [123,1], [127,1], [128,1], [129,1]
+			]},
+			modifiers: [{id: "weather", card: 9, rounds: [1, 2, 3], name: "Grave Mist"}], objectives: ["sweep", "noLeader"], rewards: [[108,1]],
+			rumor: {en: "A dead commander still holds the ruined fort on the Morhen Eye, the shepherds say. He lost that siege two hundred years ago. Nobody has had the heart to tell him.", es: "Los pastores dicen que un comandante muerto todavía defiende el fuerte en ruinas del Ojo de Morhen. Perdió ese asedio hace doscientos años. Nadie ha tenido el valor de decírselo."},
+			dialogue: {
+				intro: [
+					{who: "narrator", en: "West of the keep, in the ruined fort they call the Morhen Eye, a draug kept watch: a commander so stubborn that death had not relieved him of his post.", es: "Al oeste de la fortaleza, en el fuerte en ruinas que llaman el Ojo de Morhen, montaba guardia un draug: un comandante tan terco que ni la muerte lo había relevado de su puesto."},
+					{who: "narrator", en: "His dead garrison marched in a grave mist that never lifted, not for a single round. Cards again; the truth was colder, and it smelled of old iron.", es: "Su guarnición muerta marchaba en una niebla sepulcral que no se levantó nunca, ni una sola ronda. Otra vez cartas; la verdad fue más fría, y olía a hierro viejo."},
+					{who: "opp", en: "Hold... the... wall.", es: "Mantengan... la... muralla."},
+					{who: "geralt", en: "Your war's over. Has been for a while.", es: "Tu guerra terminó. Hace tiempo."}
+				],
+				win: [
+					{who: "narrator", en: "When the draug fell, the mist went with him, and the fort was only stones again. Under a shield nobody had lifted in two centuries lay a card: Draug, the old commander himself.", es: "Cuando el draug cayó, la niebla se fue con él, y el fuerte volvió a ser solo piedras. Bajo un escudo que nadie había levantado en dos siglos había una carta: Draug, el viejo comandante en persona."},
+					{who: "narrator", en: "Geralt said the old soldier had only done what Vesemir would do: hold a wall for people who would never thank him. He didn't say more, and I didn't ask.", es: "Geralt dijo que el viejo soldado solo había hecho lo que haría Vesemir: defender una muralla por gente que nunca se lo agradecería. No dijo más, y yo no pregunté."}
+				],
+				loss: [{who: "geralt", en: "Can't see a thing in this mist.", es: "No se ve nada con esta niebla."}]
 			}
 		},
 		battle: {

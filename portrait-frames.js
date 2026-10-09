@@ -3,6 +3,7 @@
 // Round portrait framing (map pins, journal rows) per portrait (lg/ card name or img/ path): [x%, y%, zoom%] = background-position x y / background-size.
 // Unlisted images use 50% 18% / 170%. Edit with tools/portrait-framer.html.
 const portraitFrames = {
+	"avatars/28.jpg": [50, 40, 100],
 	"icons/notif_me_turn.png": [87.2, 6.2, 133.5],
 	"monsters_bruxa": [100, 2.5, 133.5],
 	"monsters_eredin_bronze": [0, 0, 100],
