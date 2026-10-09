@@ -2603,7 +2603,8 @@ class UI {
 		this.toggleMusic_elem.classList.toggle("fade", !enabled);
 		for (const [name, track] of Object.entries(this.music)) {
 			const on = enabled && name === this.musicTrack;
-			this.fadeMusic(track, on ? 0.6 : 0, enabled ? 3000 : 600);
+			// Tracks are loudness-normalized to -18 LUFS; one shared level keeps them equal
+			this.fadeMusic(track, on ? 0.65 : 0, enabled ? 3000 : 600);
 		}
 	}
 
