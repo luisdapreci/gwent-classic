@@ -4,8 +4,10 @@
 const StoryMode = {
 	VERSION: 1,
 	FACTIONS: ["realms", "nilfgaard", "monsters", "scoiatael", "skellige"],
-	PRICES: {common: 10, ability: 30, hero: 100, leader: 200},
+	PRICES: {common: 20, ability: 60, hero: 250, leader: 800},
 	STAR_BONUS: 0.25,
+	// Fourth star, hidden until the three regular ones are earned
+	SECRET_OBJECTIVE: "noHeroes",
 	RANDOM_SLOTS: 3,
 	SHOP_SIZE: 8,
 	SHOP_REFRESH: 3,
@@ -64,13 +66,13 @@ const StoryMode = {
 		return Number(card_dict[index]?.count) || (card_dict[index]?.row === "leader" ? 1 : 0);
 	},
 
-	// Adds copies up to the card's max; copies beyond it are paid out in crowns
+	// Adds copies up to the card's max; copies beyond it are paid out at half their shop price
 	addCard(index, n = 1, save = this.data) {
 		const room = Math.max(0, this.maxCopies(index) - this.owned(index, save));
 		const added = Math.min(room, n);
 		if (added)
 			save.collection[index] = this.owned(index, save) + added;
-		const crowns = (n - added) * this.price(index);
+		const crowns = (n - added) * Math.round(this.price(index) / 2);
 		save.crowns += crowns;
 		return {index, added, crowns};
 	},
@@ -161,7 +163,17 @@ const StoryMode = {
 	},
 
 	progressOf(id) {
-		return this.data.progress[id] ??= {wins: 0, losses: 0, stars: [false, false, false], seen: false};
+		return this.data.progress[id] ??= {wins: 0, losses: 0, stars: [false, false, false, false], seen: false};
+	},
+
+	secretRevealed(id) {
+		return this.progressOf(id).stars.slice(0, 3).every(Boolean);
+	},
+
+	// The stars shown for an opponent: the secret one only once revealed
+	visibleStars(id) {
+		const stars = this.progressOf(id).stars;
+		return this.secretRevealed(id) ? stars : stars.slice(0, 3);
 	},
 
 	beaten(id) {
@@ -293,7 +305,7 @@ const StoryMode = {
 
 	// A modifier's rule, prefixed by its flavor name (e.g. "Partisans: Your opponent goes first.")
 	modifierText(m) {
-		const name = m.name ?? {ambush: "Ambush", terms: "Terms", frostborn: "Children of the Frost"}[m.id];
+		const name = m.name ?? {ambush: "Ambush", terms: "Terms", frostborn: "Children of the Frost", whiteFrost: "White Frost"}[m.id];
 		const rule = this.modifierRule(m);
 		return name ? t(name) + ": " + rule : rule;
 	},
@@ -309,6 +321,7 @@ const StoryMode = {
 		case "extraDraw": return m.side === "both" ? t("Both players draw an extra card when round 1 starts.") : t("You draw an extra card when round 1 starts.");
 		case "informants": return t("You discard a random card when round 1 starts.");
 		case "leaderBlocked": return t("Your leader is blocked for the whole match.");
+		case "whiteFrost": return t("Weather halves the strength of your heroes.");
 		case "terms": return t(DeckMaker.RULES[m.rule].desc);
 		}
 		return "";
@@ -433,7 +446,7 @@ const StoryMode = {
 		player_op.controller = new ControllerAI(player_op, opp.level);
 		this.boardPortrait("me", this.frameStyle("neutral_geralt", this.artURL("lg/neutral_geralt.jpg")));
 		this.boardPortrait("op", opp.portrait && this.portraitStyle(opp));
-		game.story = {...story, wager, oppDeck, weatherPlayed: false, wentFirst: null};
+		game.story = {...story, wager, oppDeck, weatherPlayed: false, heroPlayed: false, wentFirst: null};
 		document.body.classList.add("story");
 		document.getElementById("deck-customization").classList.add("hide");
 		game.startGame();
@@ -487,6 +500,9 @@ const StoryMode = {
 				player_me.leaderBlockedBy = {name: t(opp.name)};
 				player_me.disableLeader();
 				break;
+			case "whiteFrost":
+				game.weatherHeroes.push(...board.row.slice(3));
+				break;
 			}
 		}
 	},
@@ -500,11 +516,13 @@ const StoryMode = {
 		}},
 		hand3: {label: "Finish with 3 or more cards in hand", check: () => player_me.hand.cards.length >= 3},
 		noWeather: {label: "Win without playing weather", check: () => !game.story.weatherPlayed},
-		second: {label: "Win while going second", check: () => game.story.wentFirst === false}
+		second: {label: "Win while going second", check: () => game.story.wentFirst === false},
+		noHeroes: {label: "Win without playing a hero", check: () => !game.story.heroPlayed}
 	},
 
-	objectiveLabels(opp) {
-		return [t("Win"), ...opp.objectives.map(o => t(this.OBJECTIVES[o].label))];
+	objectiveLabels(opp, id) {
+		const labels = [t("Win"), ...opp.objectives.map(o => t(this.OBJECTIVES[o].label))];
+		return this.secretRevealed(id) ? [...labels, t(this.OBJECTIVES[this.SECRET_OBJECTIVE].label)] : labels;
 	},
 
 	// Records the result and grants rewards; the pick-1-of-3 waits in save.pending until the map shows it
@@ -514,7 +532,7 @@ const StoryMode = {
 		const draw = player_op.health <= 0 && player_me.health <= 0;
 		const save = this.data;
 		const stats = save.stats;
-		const result = {id, won, draw, stars: [false, false, false], starsNew: [false, false, false], newStars: 0, crowns: 0, cards: [], unlocked: null, wager: null};
+		const result = {id, won, draw, stars: [false, false, false, false], starsNew: [false, false, false, false], newStars: 0, crowns: 0, cards: [], unlocked: null, wager: null};
 		save.matches++;
 
 		if (story.tournament)
@@ -522,6 +540,8 @@ const StoryMode = {
 		else if (won) {
 			const progress = this.progressOf(id);
 			result.stars = [true, ...opp.objectives.map(o => !!this.OBJECTIVES[o].check())];
+			const revealed = result.stars.every((s, i) => s || progress.stars[i]);
+			result.stars.push(revealed && !!this.OBJECTIVES[this.SECRET_OBJECTIVE].check());
 			const base = this.winCrowns(id);
 			if (!rematch) {
 				result.crowns += base * (opp.boss ? 2 : 1);
@@ -895,9 +915,11 @@ const StoryMode = {
 			save.decks[faction] = {leader: deck.leader, cards};
 		}
 		for (const [id, p] of Object.entries(raw.progress ?? {})) {
-			if (!campaign.opponents[id] || !isCount(p?.wins) || !isCount(p?.losses) || !Array.isArray(p.stars) || p.stars.length !== 3)
+			if (!campaign.opponents[id] || !isCount(p?.wins) || !isCount(p?.losses) || !Array.isArray(p.stars) || ![3, 4].includes(p.stars.length))
 				return null;
-			save.progress[id] = {wins: p.wins, losses: p.losses, stars: p.stars.map(s => s === true), seen: p.seen === true};
+			// Saves from before the secret star have three
+			const stars = [0, 1, 2, 3].map(i => p.stars[i] === true);
+			save.progress[id] = {wins: p.wins, losses: p.losses, stars, seen: p.seen === true};
 		}
 		// Saves from before chapter openers count every chapter already played in as seen
 		save.seenChapters = Array.isArray(raw.seenChapters)
@@ -1248,12 +1270,13 @@ const StoryUI = {
 	// ---------- side panel ----------
 
 	starText(id) {
-		return StoryMode.progressOf(id).stars.map(s => s ? "\u2605" : "\u2606").join("");
+		return StoryMode.visibleStars(id).map(s => s ? "\u2605" : "\u2606").join("");
 	},
 
 	stars(id) {
-		return storyEl("span", {class: "story-stars", "aria-label": t("{n} of 3 stars", {n: StoryMode.progressOf(id).stars.filter(Boolean).length})},
-			StoryMode.progressOf(id).stars.map(s => storyEl("span", {class: s ? "" : "off", text: s ? "\u2605" : "\u2606"})));
+		const stars = StoryMode.visibleStars(id);
+		return storyEl("span", {class: "story-stars", "aria-label": t("{n} of {total} stars", {n: stars.filter(Boolean).length, total: stars.length})},
+			stars.map((s, i) => storyEl("span", {class: [!s && "off", i === 3 && "secret"].filter(Boolean).join(" "), text: s ? "\u2605" : "\u2606"})));
 	},
 
 	levelText(opp) {
@@ -1310,6 +1333,7 @@ const StoryUI = {
 			const ids = StoryMode.chapterOpponents(chapter.id).filter(id => !StoryMode.isHidden(id));
 			const beaten = ids.filter(id => StoryMode.beaten(id)).length;
 			const stars = ids.reduce((a, id) => a + StoryMode.progressOf(id).stars.filter(Boolean).length, 0);
+			const maxStars = ids.reduce((a, id) => a + StoryMode.visibleStars(id).length, 0);
 			const status = !open ? t("Locked") : beaten === ids.length ? t("Completed") : t("{n} of {total} defeated", {n: beaten, total: ids.length});
 			return storyEl("button", {class: "story-row", disabled: !open, onclick: () => {
 				this.view = {kind: "chapter", chapter: chapter.id};
@@ -1317,7 +1341,7 @@ const StoryUI = {
 				StoryMode.playOpeners(chapter.id);
 			}},
 				storyEl("div", {}, storyEl("b", {text: t(chapter.name)}), storyEl("small", {text: status})),
-				open && storyEl("span", {class: "story-stars", text: stars + "/" + ids.length * 3 + " \u2605"}));
+				open && storyEl("span", {class: "story-stars", text: stars + "/" + maxStars + " \u2605"}));
 		});
 		const tournaments = StoryMode.openTournaments();
 		return [storyEl("h2", {text: t("Journal")}), storyEl("p", {class: "story-kicker", text: t("Choose a place on the map or a chapter below.")}), ...rows,
@@ -1396,7 +1420,7 @@ const StoryUI = {
 		const beaten = StoryMode.beaten(id);
 		const {deck, warning} = StoryMode.playerDeck();
 		const terms = StoryMode.termsWarning(opp, deck.cards);
-		const labels = StoryMode.objectiveLabels(opp);
+		const labels = StoryMode.objectiveLabels(opp, id);
 		const crowns = StoryMode.nextWinCrowns(id);
 		const record = [opp.boss && t("Chapter boss"), beaten && t("Won {w} \u00b7 Lost {l}", {w: progress.wins, l: progress.losses})].filter(Boolean);
 		const out = [
@@ -1418,7 +1442,7 @@ const StoryUI = {
 		out.push(storyEl("div", {class: "story-cols"},
 			storyEl("section", {},
 				storyEl("h3", {text: t("Objectives")}),
-				storyEl("ul", {class: "story-list stars"}, labels.map((l, i) => storyEl("li", {class: progress.stars[i] ? "earned" : "", text: l})))),
+				storyEl("ul", {class: "story-list stars"}, labels.map((l, i) => storyEl("li", {class: [progress.stars[i] && "earned", i === 3 && "secret"].filter(Boolean).join(" "), text: l})))),
 			storyEl("section", {},
 				storyEl("h3", {text: beaten ? t("Rematch reward") : t("Reward")}),
 				storyEl("p", {class: "story-tight", text: t("{n} crowns and a card of your choice", {n: crowns})}),
@@ -1690,8 +1714,8 @@ const StoryUI = {
 				: t("Round {n} of {total} won.", {n: run.round, total: run.rounds})});
 		} else {
 			const progress = StoryMode.progressOf(result.id);
-			stars = storyEl("div", {class: "story-result-stars"}, StoryMode.objectiveLabels(opp).map((l, i) =>
-				storyEl("div", {class: [progress.stars[i] && "earned", result.starsNew?.[i] && "new"].filter(Boolean).join(" "), text: l})));
+			stars = storyEl("div", {class: "story-result-stars"}, StoryMode.objectiveLabels(opp, result.id).map((l, i) =>
+				storyEl("div", {class: [progress.stars[i] && "earned", result.starsNew?.[i] && "new", i === 3 && "secret"].filter(Boolean).join(" "), text: l})));
 		}
 		const done = this.openModal(
 			storyEl("div", {class: "story-result-title" + (result.won ? "" : " lose")}, storyEl("h2", {text: title}),

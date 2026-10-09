@@ -1280,6 +1280,8 @@ class Row extends CardContainer {
 	
 	// Override
 	async addCard(card, silent = false) {
+		if (game.story && card.isHero() && card.holder === player_me)
+			game.story.heroPlayed = true;
 		if (card.isSpecial()) {
 			this.special = card;
 			this.elem_special.appendChild(card.elem);
@@ -1416,7 +1418,7 @@ class Row extends CardContainer {
 			return 0;
 		let total = card.basePower;
 		if (card.hero)
-			return total;
+			return this.effects.weather && game.weatherHeroes.includes(this) && !game.weatherImmune.includes(this) ? Math.ceil(total / 2) : total;
 		if (this.effects.weather && !game.weatherImmune.includes(this))
 		{
 			const weatherMin = this.effects.halfWeather ? Math.ceil(total/2) : 1;
@@ -1731,6 +1733,8 @@ class Game {
 		this.randomRespawn = false;
 		this.doubleSpyPower = false;
 		this.weatherImmune = [];
+		// Rows where weather halves heroes (story White Frost)
+		this.weatherHeroes = [];
 
 		this.placedEffectsActive = false;
 		

@@ -343,6 +343,7 @@ body.story .profile-img.story-art { background: var(--art) var(--art-x, 50%) var
 .story-row small { display: block; color: var(--text-dim); font-size: 0.88em; }
 .story-stars { color: var(--gold-1); letter-spacing: 0.05em; white-space: nowrap; }
 .story-stars .off { color: var(--text-mute); }
+.story-stars .secret:not(.off) { color: #d8e8f4; text-shadow: 0 0 6px rgba(170, 205, 235, 0.7); }
 
 .story-portrait {
 	--ring: var(--gold-2);
@@ -394,6 +395,7 @@ body.story .profile-img.story-art { background: var(--art) var(--art-x, 50%) var
 .story-list > li::before { content: "\2022  "; color: var(--gold-2); }
 .story-list.stars > li::before { content: "\2606  "; color: var(--text-mute); }
 .story-list.stars > li.earned::before { content: "\2605  "; color: var(--gold-1); }
+.story-list.stars > li.secret.earned::before { color: #d8e8f4; }
 
 /* tournament bracket: one row per round */
 .story-bracket { display: flex; gap: calc(0.4 * var(--u)); margin: calc(0.8 * var(--u)) 0 0; padding: 0; list-style: none; }
@@ -505,6 +507,7 @@ body.story .profile-img.story-art { background: var(--art) var(--art-x, 50%) var
 	line-height: 1.1;
 }
 .story-result-stars > .earned::before { color: var(--gold-1); text-shadow: 0 0 calc(1 * var(--u)) var(--gold-glow); }
+.story-result-stars > .secret.earned::before { color: #d8e8f4; text-shadow: 0 0 calc(1 * var(--u)) rgba(170, 205, 235, 0.7); }
 .story-result-stars > .new::before { animation: star-in .7s var(--ease-back) both; }
 @keyframes star-in { from { scale: 2.4; opacity: 0; } }
 

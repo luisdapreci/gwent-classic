@@ -844,8 +844,8 @@ const campaign = {
 		lambert: {
 			chapter: "kaermorhen", name: "Lambert", portrait: "icons/notif_me_turn.png", pin: {x: 83, y: 15}, place: "kaermorhen", level: "normal",
 			deck: {faction: "realms", leader: 22, cards: [
-				[28,3], [30,3], [29,2], [52,1], [46,1], [48,1], [50,1], [44,1], [53,1], [54,1],
-				[55,1], [45,1], [35,1], [36,1], [37,1], [32,1], [5,1], [1,1]
+				[34,1], [28,3], [30,2], [29,2], [52,1], [46,1], [48,1], [31,1], [54,1], [55,1],
+				[45,1], [27,1], [32,1], [5,1], [1,1]
 			]},
 			modifiers: [], objectives: ["sweep", "hand3"], rewards: [[5,1]],
 			rumor: {en: "Sign on a Kaer Morhen door, in Lambert's hand: KNOCK AND DIE. Underneath, in Eskel's: he means it about half the time.", es: "Letrero en una puerta de Kaer Morhen, con la letra de Lambert: TOCA Y MUERE. Debajo, con la de Eskel: lo dice en serio la mitad de las veces."},
@@ -862,8 +862,8 @@ const campaign = {
 		eskel: {
 			chapter: "kaermorhen", name: "Eskel", portrait: "icons/notif_me_turn.png", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard",
 			deck: {faction: "realms", leader: 23, cards: [
-				[28,2], [30,2], [40,4], [42,1], [43,1], [52,1], [46,1], [31,1], [44,1], [53,1],
-				[54,1], [32,1], [27,1], [29,2], [1,2], [4,1]
+				[33,1], [51,1], [28,3], [30,3], [29,2], [52,1], [31,1], [48,1],
+				[54,1], [55,1], [45,1], [27,1], [32,1], [1,2], [4,1]
 			]},
 			modifiers: [], objectives: ["noLeader", "second"], rewards: [[1,1]],
 			rumor: {en: "The witcher Eskel keeps a goat at Kaer Morhen. He says it's for the milk. Everyone knows it's for the company.", es: "El brujo Eskel tiene una cabra en Kaer Morhen. Dice que es por la leche. Todos saben que es por la compañía."},
@@ -881,7 +881,7 @@ const campaign = {
 		yennefer: {
 			chapter: "kaermorhen", name: "Yennefer of Vengerberg", portrait: "neutral_yennefer", pin: {x: 83, y: 15}, place: "kaermorhen", level: "normal",
 			deck: {faction: "realms", leader: 22, cards: [
-				[15,1], [48,1], [50,1], [31,1], [30,1], [28,2], [54,1], [45,1], [32,1],
+				[15,1], [39,1], [38,1], [48,1], [31,1], [30,3], [28,2], [54,1], [55,1], [45,1], [27,1], [32,1],
 				[46,1], [52,1], [1,1]
 			]},
 			modifiers: [], objectives: ["margin20", "noWeather"], rewards: [[15,1]],
@@ -900,8 +900,8 @@ const campaign = {
 		letho: {
 			chapter: "kaermorhen", name: "Letho of Gulet", portrait: "nilfgaard_letho", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard",
 			deck: {faction: "nilfgaard", leader: 57, cards: [
-				[72,1], [65,1], [69,1], [62,1], [63,1], [71,4], [76,3], [82,1], [92,1], [80,1],
-				[67,1], [79,1], [78,1], [87,1], [10,1], [1,1]
+				[72,1], [73,1], [65,1], [69,1], [62,1], [63,1], [64,1], [71,4], [82,1], [92,1], [70,1],
+				[90,1], [91,1], [79,1], [10,1], [1,1]
 			]},
 			modifiers: [], objectives: ["sweep", "noLeader"], rewards: [[72,1]],
 			rumor: {en: "A bald witcher with a viper medallion killed two kings, they say. Others say three. He says he's retired.", es: "Dicen que un brujo calvo con medallón de víbora mató a dos reyes. Otros dicen que a tres. Él dice que está retirado."},
@@ -922,8 +922,8 @@ const campaign = {
 		troll: {
 			chapter: "kaermorhen", name: "Rock Troll", portrait: "avatars/28.jpg", pin: {x: 76.5, y: 12}, level: "normal", side: true,
 			deck: {faction: "realms", leader: 22, cards: [
-				[29,2], [54,1], [55,1], [27,1], [215,1], [45,1], [35,1], [36,1], [37,1], [32,1],
-				[40,4], [42,1], [43,1], [53,1], [44,1], [46,1], [2,1]
+				[29,2], [54,1], [55,1], [27,1], [215,1], [45,1], [32,1],
+				[28,2], [30,2], [46,1], [52,1], [48,1], [44,1], [2,1]
 			]},
 			modifiers: [], objectives: ["hand3", "noWeather"], rewards: [[29,2]],
 			rumor: {en: "A shepherd says the troll by the lake takes his toll in cards. Travelers without cards pay in sheep. Those without sheep don't come back to complain.", es: "Un pastor dice que el trol del lago cobra su peaje en cartas. Los viajeros sin cartas pagan con ovejas. Los que no tienen ovejas no vuelven para quejarse."},
@@ -944,8 +944,8 @@ const campaign = {
 		harpies: {
 			chapter: "kaermorhen", name: "Harpy Nest", portrait: "monsters_celaeno_harpy", pin: {x: 92.5, y: 11.5}, level: "hard", retold: true, side: true,
 			deck: {faction: "monsters", leader: 96, cards: [
-				[103,1], [122,1], [116,1], [137,1], [104,1], [121,1], [114,1], [109,1], [115,1],
-				[102,1], [111,1], [123,1], [130,1], [127,1], [128,1], [129,1], [117,1], [118,1], [119,1], [5,2], [10,1], [2,1], [1,1]
+				[125,1], [122,1], [121,1], [114,1], [115,1], [111,1], [130,1], [98,1], [99,1], [100,1], [101,1],
+				[131,1], [132,1], [133,1], [134,1], [135,1], [109,1], [112,1], [5,1]
 			]},
 			modifiers: [{id: "ambush", name: "From Above"}], objectives: ["margin20", "hand3"], rewards: [[33,1]],
 			rumor: {en: "Harpies steal anything that glitters, the valley folk say. A tinker lost a spoon, a ring and his best teeth to them. The gold ones.", es: "La gente del valle dice que las arpías roban todo lo que brilla. Un calderero perdió con ellas una cuchara, un anillo y sus mejores dientes. Los de oro."},
@@ -965,8 +965,8 @@ const campaign = {
 		draug: {
 			chapter: "kaermorhen", name: "Draug of the Morhen Eye", portrait: "monsters_draug", pin: {x: 74, y: 16.5}, level: "normal", retold: true, side: true,
 			deck: {faction: "monsters", leader: 96, cards: [
-				[108,1], [130,1], [115,1], [113,1], [120,1], [117,1], [118,1], [119,1], [102,1], [111,1],
-				[109,1], [112,1], [114,1], [121,1], [123,1], [127,1], [128,1], [129,1]
+				[108,1], [125,1], [130,1], [115,1], [111,1], [109,1], [112,1], [114,1], [121,1], [123,1], [136,1],
+				[98,1], [99,1], [100,1], [101,1], [5,1]
 			]},
 			modifiers: [{id: "weather", card: 9, rounds: [1, 2, 3], name: "Grave Mist"}], objectives: ["sweep", "noLeader"], rewards: [[108,1]],
 			rumor: {en: "A dead commander still holds the ruined fort on the Morhen Eye, the shepherds say. He lost that siege two hundred years ago. Nobody has had the heart to tell him.", es: "Los pastores dicen que un comandante muerto todavía defiende el fuerte en ruinas del Ojo de Morhen. Perdió ese asedio hace doscientos años. Nadie ha tenido el valor de decírselo."},
@@ -987,8 +987,8 @@ const campaign = {
 		battle: {
 			chapter: "kaermorhen", name: "Battle of Kaer Morhen", portrait: "monsters_eredin_silver", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard", boss: true, retold: true, music: "forged-in-fire",
 			deck: {faction: "monsters", leader: 93, cards: [
-				[113,1], [102,1], [111,1], [130,1], [121,1], [114,1], [115,1], [109,1], [112,1], [123,1],
-				[98,1], [99,1], [100,1], [101,1], [117,1], [118,1], [119,1], [5,1]
+				[124,1], [126,1], [108,1], [102,1], [111,1], [130,1], [121,1], [114,1], [115,1], [109,1], [112,1], [123,1], [120,1],
+				[98,1], [99,1], [100,1], [101,1], [131,1], [132,1], [133,1], [134,1], [135,1], [5,1], [10,1]
 			]},
 			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Breath of the Hunt"}, {id: "frostborn"}, {id: "extraDraw", name: "Defenders"}],
 			objectives: ["noLeader", "hand3"], rewards: [[3,1], [93,1]],
@@ -1014,8 +1014,8 @@ const campaign = {
 		imlerith: {
 			chapter: "hunt", name: "Imlerith", portrait: "monsters_imlerith", pin: {x: 65, y: 66}, level: "hard", retold: true, music: "eredin",
 			deck: {faction: "monsters", leader: 96, cards: [
-				[124,1], [108,1], [111,1], [130,1], [121,1], [114,1], [115,1], [113,1], [102,1], [131,1],
-				[132,1], [133,1], [134,1], [135,1], [117,1], [118,1], [119,1], [5,1]
+				[124,1], [108,1], [105,1], [106,1], [107,1], [111,1], [130,1], [121,1], [114,1], [115,1],
+				[131,1], [132,1], [133,1], [134,1], [135,1], [120,1], [109,1], [112,1], [5,1], [10,1]
 			]},
 			modifiers: [{id: "ambush", name: "Sabbath"}, {id: "weather", card: 2, rounds: [1]}, {id: "frostborn"}], objectives: ["margin20", "noWeather"], rewards: [[124,1]],
 			rumor: {en: "The Hunt's general sleeps in his armor, they say. The witches of Bald Mountain say he doesn't sleep at all.", es: "Dicen que el general de la Cacería duerme con la armadura puesta. Las brujas de la Montaña Calva dicen que no duerme en absoluto."},
@@ -1035,8 +1035,9 @@ const campaign = {
 		caranthir: {
 			chapter: "hunt", name: "Caranthir", portrait: "monsters_eredin_bronze", pin: {x: 22, y: 30}, place: "naglfar", level: "hard", requires: "imlerith", retold: true, music: "eredin",
 			deck: {faction: "monsters", leader: 94, cards: [
-				[123,1], [109,1], [112,1], [120,1], [137,1], [104,1], [110,1], [116,1],
-				[98,1], [99,1], [100,1], [101,1], [127,1], [128,1], [129,1], [5,1], [1,1]
+				[126,1], [108,1], [125,1], [123,1], [109,1], [112,1], [120,1], [138,1],
+				[111,1], [130,1], [121,1], [114,1], [115,1],
+				[98,1], [99,1], [100,1], [101,1], [105,1], [106,1], [107,1], [5,1], [1,1]
 			]},
 			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Navigator's Blizzard"}, {id: "frostborn"}], objectives: ["sweep", "hand3"], rewards: [[94,1]],
 			rumor: {en: "Sailors say the Hunt's navigator can open a door anywhere, even under the sea. They don't say where the doors lead.", es: "Los marineros dicen que el navegante de la Cacería puede abrir una puerta en cualquier parte, incluso bajo el mar. No dicen adónde llevan esas puertas."},
@@ -1058,9 +1059,9 @@ const campaign = {
 			deck: {faction: "monsters", leader: 95, cards: [
 				[108,1], [126,1], [125,1], [111,1], [130,1], [121,1], [114,1], [115,1], [123,1], [109,1],
 				[112,1], [131,1], [132,1], [133,1], [134,1], [135,1], [98,1], [99,1], [100,1], [101,1],
-				[10,2], [5,1], [1,1]
+				[127,1], [128,1], [129,1], [138,1], [10,2], [5,1], [1,1]
 			]},
-			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Breath of the Hunt"}, {id: "frostborn"}, {id: "ambush"}], objectives: ["noLeader", "margin20"], rewards: [[8,1], [95,1]],
+			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Breath of the Hunt"}, {id: "frostborn"}, {id: "ambush"}, {id: "whiteFrost"}], objectives: ["noLeader", "margin20"], rewards: [[8,1], [95,1]],
 			rumor: {en: "Nobody has ever seen the face of the King of the Wild Hunt, they say. Those who have aren't saying anything.", es: "Dicen que nadie ha visto jamás el rostro del Rey de la Cacería Salvaje. Los que lo han visto no dicen nada."},
 			dialogue: {
 				intro: [
@@ -1090,8 +1091,8 @@ const campaign = {
 		olgierd: {
 			chapter: "heartsofstone", name: "Olgierd von Everec", portrait: "neutral_olgierd", pin: {x: 68, y: 33.5}, level: "hard", music: "immortal",
 			deck: {faction: "realms", leader: 22, cards: [
-				[17,1], [28,3], [30,3], [29,2], [46,1], [52,1], [33,1], [34,1], [54,1], [55,1],
-				[45,1], [32,1], [10,1], [5,1], [1,1]
+				[17,1], [51,1], [28,3], [30,3], [29,2], [46,1], [33,1], [34,1], [54,1], [55,1],
+				[45,1], [31,1], [48,1], [27,1], [32,1], [10,1], [5,1], [1,1]
 			]},
 			modifiers: [], objectives: ["sweep", "noLeader"], rewards: [[17,1]],
 			rumor: {en: "A Redanian drinking song: von Everec lost his head, von Everec stayed undead, von Everec bought the round instead.", es: "Una canción de taberna redania: von Everec perdió la cabeza, von Everec no murió, von Everec pagó la ronda y la fiesta siguió."},
@@ -1109,8 +1110,8 @@ const campaign = {
 		odimm: {
 			chapter: "heartsofstone", name: "Gaunter O'Dimm", portrait: "neutral_gaunter_odimm", pin: {x: 62, y: 31}, level: "expert", requires: "olgierd", music: "hearts-of-stone",
 			deck: {faction: "realms", leader: 22, cards: [
-				[18,1], [19,3], [28,3], [30,3], [29,2], [33,1], [34,1], [46,1], [52,1], [48,1],
-				[50,1], [54,1], [55,1], [45,1], [32,1], [10,1], [5,1], [1,2], [4,1]
+				[18,1], [19,3], [28,3], [30,3], [29,2], [33,1], [34,1], [39,1], [51,1],
+				[54,1], [55,1], [45,1], [10,1], [5,1], [1,1], [4,1]
 			]},
 			modifiers: [{id: "leaderBlocked", name: "O'Dimm's Bargain"}], objectives: ["margin20", "hand3"], rewards: [[18,1], [19,3]],
 			rumor: {en: "A mirror merchant travels the roads near Oxenfurt. Everyone who has met him remembers him fondly. Nobody remembers his face.", es: "Un vendedor de espejos recorre los caminos cerca de Oxenfurt. Todos los que lo conocieron lo recuerdan con cariño. Nadie recuerda su rostro."},
@@ -1131,9 +1132,9 @@ const campaign = {
 		maelstrom: {
 			chapter: "heartsofstone", name: "The Maelstrom", portrait: "neutral_villen", pin: {x: 13, y: 93}, level: "expert", requires: "odimm", hidden: true, music: "hearts-of-stone",
 			deck: {faction: "monsters", leader: 96, cards: [
-				[111,1], [130,1], [121,1], [114,1], [115,1], [123,1], [109,1], [112,1], [108,1], [125,1],
-				[98,1], [99,1], [100,1], [101,1], [117,1], [118,1], [119,1], [127,1], [128,1], [129,1],
-				[10,1], [5,1]
+				[108,1], [125,1], [126,1], [14,1], [111,1], [130,1], [121,1], [114,1], [115,1], [102,1],
+				[98,1], [99,1], [100,1], [101,1], [131,1], [132,1], [133,1], [134,1], [135,1],
+				[109,1], [112,1], [10,1], [5,1]
 			]},
 			modifiers: [{id: "weather", card: 204, rounds: [1, 2, 3], name: "Endless Storm"}], objectives: ["sweep", "noWeather"], rewards: [[14,1]],
 			rumor: {en: "Fishermen say the Maelstrom sings to those it wants. It has been quiet for three hundred years, as if waiting for the right voice.", es: "Los pescadores dicen que el Maelstrom les canta a los que quiere. Lleva trescientos años callado, como esperando la voz adecuada."},
@@ -1151,8 +1152,8 @@ const campaign = {
 		regis: {
 			chapter: "bloodandwine", name: "Regis", portrait: "neutral_emiel", pin: {x: 88, y: 96}, place: "toussaint", level: "normal", music: "blood-and-wine",
 			deck: {faction: "monsters", leader: 93, cards: [
-				[7,1], [131,1], [132,1], [135,1], [111,1], [130,1], [102,1], [113,1],
-				[121,1], [120,1], [5,1], [1,1]
+				[7,1], [6,1], [108,1], [125,1], [131,1], [132,1], [133,1], [134,1], [135,1], [111,1], [130,1],
+				[121,1], [109,1], [112,1], [98,1], [99,1], [100,1], [101,1], [5,1]
 			]},
 			modifiers: [], objectives: ["noLeader", "hand3"], rewards: [[7,1]],
 			rumor: {en: "A barber-surgeon in Toussaint treats the poor for free and never calls during the day. His patients call him a saint. The garlic sellers have doubts.", es: "Un barbero-cirujano de Toussaint atiende gratis a los pobres y nunca visita de día. Sus pacientes lo llaman santo. Los vendedores de ajo tienen sus dudas."},
@@ -1169,8 +1170,8 @@ const campaign = {
 		dettlaff: {
 			chapter: "bloodandwine", name: "Dettlaff van der Eretein", portrait: "monsters_katakan", pin: {x: 88, y: 96}, place: "toussaint", level: "hard", requires: "regis", retold: true, music: "night-of-long-fangs",
 			deck: {faction: "monsters", leader: 96, cards: [
-				[131,1], [132,1], [133,1], [134,1], [135,1], [108,1], [111,1], [130,1], [121,1], [114,1],
-				[115,1], [123,1], [109,1], [112,1], [117,1], [118,1], [119,1], [10,2], [5,1], [1,1]
+				[131,1], [132,1], [133,1], [134,1], [135,1], [108,1], [126,1], [111,1], [130,1], [121,1], [114,1],
+				[115,1], [109,1], [112,1], [98,1], [99,1], [100,1], [101,1], [136,1], [125,1], [10,1], [5,1]
 			]},
 			modifiers: [{id: "ambush", name: "Night of Long Fangs"}, {id: "weather", card: 9, rounds: [1, 2, 3]}], objectives: ["margin20", "sweep"], rewards: [[60,1]],
 			rumor: {en: "A gentle craftsman of toys and little boxes has gone missing in Beauclair, they say. The same week, the killings began. Nobody connects the two. Yet.", es: "Dicen que en Beauclair desapareció un amable artesano de juguetes y cajitas. Esa misma semana empezaron los asesinatos. Nadie relaciona una cosa con la otra. Todavía."},
