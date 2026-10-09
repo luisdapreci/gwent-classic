@@ -189,11 +189,15 @@ const StoryMode = {
 		return i === 0 || i > 0 && this.beaten(this.chapterBoss(campaign.chapters[i - 1].id));
 	},
 
+	// Non-boss opponents whose wins count toward bossAfter (side battles don't)
+	bossCounted(chapterId) {
+		return this.chapterOpponents(chapterId).filter(id => !campaign.opponents[id].boss && !campaign.opponents[id].side);
+	},
+
 	// The boss opens after the chapter's required opponents and bossAfter optional wins
 	isBossReady(chapterId) {
 		const chapter = this.chapter(chapterId);
-		const optional = this.chapterOpponents(chapterId).filter(id => !campaign.opponents[id].boss);
-		return (chapter.required ?? []).every(id => this.beaten(id)) && optional.filter(id => this.beaten(id)).length >= chapter.bossAfter;
+		return (chapter.required ?? []).every(id => this.beaten(id)) && this.bossCounted(chapterId).filter(id => this.beaten(id)).length >= chapter.bossAfter;
 	},
 
 	isAvailable(id) {
@@ -224,8 +228,7 @@ const StoryMode = {
 			const required = (chapter.required ?? []).filter(r => !this.beaten(r));
 			if (required.length)
 				return t("Defeat {name} first.", {name: t(this.opponent(required[0]).name)});
-			const optional = this.chapterOpponents(opp.chapter).filter(o => !this.opponent(o).boss);
-			const left = chapter.bossAfter - optional.filter(o => this.beaten(o)).length;
+			const left = chapter.bossAfter - this.bossCounted(opp.chapter).filter(o => this.beaten(o)).length;
 			return left === 1
 				? t("Defeat one more opponent in {chapter} first.", {chapter: t(chapter.name)})
 				: t("Defeat {n} more opponents in {chapter} first.", {n: left, chapter: t(chapter.name)});
@@ -290,7 +293,7 @@ const StoryMode = {
 
 	// A modifier's rule, prefixed by its flavor name (e.g. "Partisans: Your opponent goes first.")
 	modifierText(m) {
-		const name = m.name ?? {ambush: "Ambush", terms: "Terms"}[m.id];
+		const name = m.name ?? {ambush: "Ambush", terms: "Terms", frostborn: "Children of the Frost"}[m.id];
 		const rule = this.modifierRule(m);
 		return name ? t(name) + ": " + rule : rule;
 	},
@@ -302,6 +305,7 @@ const StoryMode = {
 				? t("{card} at the start of every round.", {card: card_dict[m.card].name})
 				: t("{card} at the start of round {rounds}.", {card: card_dict[m.card].name, rounds: m.rounds.join(", ")});
 		case "ambush": return t("Your opponent goes first.");
+		case "frostborn": return t("Your opponent's close combat row ignores Biting Frost.");
 		case "extraDraw": return m.side === "both" ? t("Both players draw an extra card when round 1 starts.") : t("You draw an extra card when round 1 starts.");
 		case "informants": return t("You discard a random card when round 1 starts.");
 		case "leaderBlocked": return t("Your leader is blocked for the whole match.");
@@ -460,6 +464,9 @@ const StoryMode = {
 					await ui.playerNotification("first", player_op, 1200);
 					return true;
 				});
+				break;
+			case "frostborn":
+				game.weatherImmune.push(board.row[2]);
 				break;
 			case "extraDraw":
 				game.roundStart.push(async () => {

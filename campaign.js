@@ -918,9 +918,9 @@ const campaign = {
 				loss: [{who: "opp", en: "The School of the Viper doesn't lose, Wolf.", es: "La Escuela de la Víbora no pierde, Lobo."}]
 			}
 		},
-		// Optional fights in the valley around the keep
+		// Side battles in the valley around the keep (side: wins don't count toward the boss)
 		troll: {
-			chapter: "kaermorhen", name: "Rock Troll", portrait: "avatars/28.jpg", pin: {x: 76.5, y: 12}, level: "normal",
+			chapter: "kaermorhen", name: "Rock Troll", portrait: "avatars/28.jpg", pin: {x: 76.5, y: 12}, level: "normal", side: true,
 			deck: {faction: "realms", leader: 22, cards: [
 				[29,2], [54,1], [55,1], [27,1], [215,1], [45,1], [35,1], [36,1], [37,1], [32,1],
 				[40,4], [42,1], [43,1], [53,1], [44,1], [46,1], [2,1]
@@ -942,7 +942,7 @@ const campaign = {
 			}
 		},
 		harpies: {
-			chapter: "kaermorhen", name: "Harpy Nest", portrait: "monsters_celaeno_harpy", pin: {x: 92.5, y: 11.5}, level: "hard", retold: true,
+			chapter: "kaermorhen", name: "Harpy Nest", portrait: "monsters_celaeno_harpy", pin: {x: 92.5, y: 11.5}, level: "hard", retold: true, side: true,
 			deck: {faction: "monsters", leader: 96, cards: [
 				[103,1], [122,1], [116,1], [137,1], [104,1], [121,1], [114,1], [109,1], [115,1],
 				[102,1], [111,1], [123,1], [130,1], [127,1], [128,1], [129,1], [117,1], [118,1], [119,1], [5,2], [10,1], [2,1], [1,1]
@@ -963,7 +963,7 @@ const campaign = {
 			}
 		},
 		draug: {
-			chapter: "kaermorhen", name: "Draug of the Morhen Eye", portrait: "monsters_draug", pin: {x: 74, y: 16.5}, level: "normal", retold: true,
+			chapter: "kaermorhen", name: "Draug of the Morhen Eye", portrait: "monsters_draug", pin: {x: 74, y: 16.5}, level: "normal", retold: true, side: true,
 			deck: {faction: "monsters", leader: 96, cards: [
 				[108,1], [130,1], [115,1], [113,1], [120,1], [117,1], [118,1], [119,1], [102,1], [111,1],
 				[109,1], [112,1], [114,1], [121,1], [123,1], [127,1], [128,1], [129,1]
@@ -990,7 +990,7 @@ const campaign = {
 				[113,1], [102,1], [111,1], [130,1], [121,1], [114,1], [115,1], [109,1], [112,1], [123,1],
 				[98,1], [99,1], [100,1], [101,1], [117,1], [118,1], [119,1], [5,1]
 			]},
-			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Breath of the Hunt"}, {id: "extraDraw", name: "Defenders"}],
+			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Breath of the Hunt"}, {id: "frostborn"}, {id: "extraDraw", name: "Defenders"}],
 			objectives: ["noLeader", "hand3"], rewards: [[3,1], [93,1]],
 			rumor: {en: "The valley folk say every witcher left in the world has gathered at Kaer Morhen. That's five, by most counts. Six if you count the goat.", es: "La gente del valle dice que todos los brujos que quedan en el mundo se han reunido en Kaer Morhen. Son cinco, según casi todos. Seis si cuentas la cabra."},
 			dialogue: {
@@ -1017,7 +1017,7 @@ const campaign = {
 				[124,1], [108,1], [111,1], [130,1], [121,1], [114,1], [115,1], [113,1], [102,1], [131,1],
 				[132,1], [133,1], [134,1], [135,1], [117,1], [118,1], [119,1], [5,1]
 			]},
-			modifiers: [{id: "ambush", name: "Sabbath"}, {id: "weather", card: 2, rounds: [1]}], objectives: ["margin20", "noWeather"], rewards: [[124,1]],
+			modifiers: [{id: "ambush", name: "Sabbath"}, {id: "weather", card: 2, rounds: [1]}, {id: "frostborn"}], objectives: ["margin20", "noWeather"], rewards: [[124,1]],
 			rumor: {en: "The Hunt's general sleeps in his armor, they say. The witches of Bald Mountain say he doesn't sleep at all.", es: "Dicen que el general de la Cacería duerme con la armadura puesta. Las brujas de la Montaña Calva dicen que no duerme en absoluto."},
 			dialogue: {
 				intro: [
@@ -1038,7 +1038,7 @@ const campaign = {
 				[123,1], [109,1], [112,1], [120,1], [137,1], [104,1], [110,1], [116,1],
 				[98,1], [99,1], [100,1], [101,1], [127,1], [128,1], [129,1], [5,1], [1,1]
 			]},
-			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Navigator's Blizzard"}], objectives: ["sweep", "hand3"], rewards: [[94,1]],
+			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Navigator's Blizzard"}, {id: "frostborn"}], objectives: ["sweep", "hand3"], rewards: [[94,1]],
 			rumor: {en: "Sailors say the Hunt's navigator can open a door anywhere, even under the sea. They don't say where the doors lead.", es: "Los marineros dicen que el navegante de la Cacería puede abrir una puerta en cualquier parte, incluso bajo el mar. No dicen adónde llevan esas puertas."},
 			dialogue: {
 				intro: [
@@ -1060,7 +1060,7 @@ const campaign = {
 				[112,1], [131,1], [132,1], [133,1], [134,1], [135,1], [98,1], [99,1], [100,1], [101,1],
 				[10,2], [5,1], [1,1]
 			]},
-			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Breath of the Hunt"}, {id: "ambush"}], objectives: ["noLeader", "margin20"], rewards: [[8,1], [95,1]],
+			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Breath of the Hunt"}, {id: "frostborn"}, {id: "ambush"}], objectives: ["noLeader", "margin20"], rewards: [[8,1], [95,1]],
 			rumor: {en: "Nobody has ever seen the face of the King of the Wild Hunt, they say. Those who have aren't saying anything.", es: "Dicen que nadie ha visto jamás el rostro del Rey de la Cacería Salvaje. Los que lo han visto no dicen nada."},
 			dialogue: {
 				intro: [

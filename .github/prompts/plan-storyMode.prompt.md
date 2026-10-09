@@ -80,7 +80,7 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
 | 39,62 | Ermion, Hindarsfjall | Skellige · Hard | none | Ermion (195) |
 | 34,82 | Avallac'h, Isle of Mists (the southern whirlpool) | Scoia'tael · Hard | Mist: Fog every round | Mysterious Elf (0) |
 
-**Chapter V: Kaer Morhen** (castle pin 83,15, plus optional valley pins: troll 76.5,12, harpies 92.5,11.5, draug 74,16.5)
+**Chapter V: Kaer Morhen** (castle pin 83,15, plus optional valley pins: troll 76.5,12, harpies 92.5,11.5, draug 74,16.5; these are `side: true` and don't count toward the boss)
 
 | Opponent | Deck · AI | Modifier / terms | Fixed reward |
 |---|---|---|---|
@@ -227,6 +227,7 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
 4. **Modifiers:** a `STORY_MODIFIERS` catalog. Each entry is `{label, desc, side, apply(player)}` and works by pushing into the existing `game.gameStart/roundStart/roundEnd` hooks, the same way factions.js does. They are applied after `Game.initPlayers`. The campaign needs these:
    - `weather(type, rounds)`: Frost / Fog / Rain / Skellige Storm at the start of the listed rounds, via `board.toWeather` with a fresh weather `Card`.
    - `ambush`: the opponent goes first, by setting `game.firstPlayer`.
+   - `frostborn`: the opponent's close row ignores frost (Wild Hunt fights): `game.weatherImmune` rows get no overlay and no weather penalty.
    - `extraDraw(side)`: draw +1 at the start of round 1 (Baron's Hospitality uses both sides; Kaer Morhen Defenders only you).
    - `informants`: you discard a random hand card at the start of round 1.
    - `leaderBlocked`: your leader is blocked, reusing `leaderBlockedBy` and `disableLeader`.

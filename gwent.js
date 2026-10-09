@@ -1417,7 +1417,7 @@ class Row extends CardContainer {
 		let total = card.basePower;
 		if (card.hero)
 			return total;
-		if (this.effects.weather)
+		if (this.effects.weather && !game.weatherImmune.includes(this))
 		{
 			const weatherMin = this.effects.halfWeather ? Math.ceil(total/2) : 1;
 			total = Math.min(weatherMin, total);
@@ -1551,7 +1551,8 @@ class Weather extends CardContainer {
 		for (let x of card.abilities) {
 			if (x in this.types && predicate(x)){
 				for (let r of this.types[x].rows)
-					action(r, this.types[x]);
+					if (!game.weatherImmune.includes(r))
+						action(r, this.types[x]);
 			}
 		}
 	}
@@ -1729,6 +1730,7 @@ class Game {
 		
 		this.randomRespawn = false;
 		this.doubleSpyPower = false;
+		this.weatherImmune = [];
 
 		this.placedEffectsActive = false;
 		
