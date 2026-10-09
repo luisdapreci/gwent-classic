@@ -305,9 +305,13 @@ const StoryMode = {
 
 	// A modifier's rule, prefixed by its flavor name (e.g. "Partisans: Your opponent goes first.")
 	modifierText(m) {
-		const name = m.name ?? {ambush: "Ambush", terms: "Terms", frostborn: "Children of the Frost", whiteFrost: "White Frost"}[m.id];
+		const name = this.modifierName(m);
 		const rule = this.modifierRule(m);
 		return name ? t(name) + ": " + rule : rule;
+	},
+
+	modifierName(m) {
+		return m.name ?? {ambush: "Ambush", terms: "Terms", frostborn: "Children of the Frost", whiteFrost: "White Frost"}[m.id];
 	},
 
 	modifierRule(m) {
@@ -322,6 +326,13 @@ const StoryMode = {
 		case "informants": return t("You discard a random card when round 1 starts.");
 		case "leaderBlocked": return t("Your leader is blocked for the whole match.");
 		case "whiteFrost": return t("Weather halves the strength of your heroes.");
+		case "heroTaken": return t("One random hero is taken from your deck for this match.");
+		case "heroLimit": return t("You can play only one hero per round.");
+		case "scorchHeroes": return t("Scorch can destroy your heroes.");
+		case "heroDebt": return t("Each hero you play makes you discard a random card.");
+		case "heroFeeds": return m.row === "close"
+			? t("Each hero you play gives your opponent's close combat units +1 for the round.")
+			: t("Each hero you play gives all your opponent's units +1 for the round.");
 		case "terms": return t(DeckMaker.RULES[m.rule].desc);
 		}
 		return "";
@@ -503,8 +514,64 @@ const StoryMode = {
 			case "whiteFrost":
 				game.weatherHeroes.push(...board.row.slice(3));
 				break;
+			case "heroTaken":
+				game.gameStart.push(async () => {
+					const heroes = player_me.deck.cards.filter(c => c.isHero());
+					if (heroes.length) {
+						const card = heroes[randomInt(heroes.length)];
+						player_me.deck.removeCard(card);
+						await this.ruleNotice(m, t("{card} is taken for this match.", {card: card.name}), card);
+					}
+					return true;
+				});
+				break;
+			case "heroLimit":
+				game.heroLimit = {player: player_me, max: 1, played: 0, message: this.modifierText(m)};
+				game.roundStart.push(async () => {
+					game.heroLimit.played = 0;
+					return false;
+				});
+				game.heroPlaced.push(async (card, owner) => {
+					if (owner === player_me)
+						game.heroLimit.played++;
+				});
+				break;
+			case "scorchHeroes":
+				game.scorchHeroes.push(...board.row.slice(3));
+				break;
+			case "heroDebt":
+				game.heroPlaced.push(async (card, owner) => {
+					const hand = player_me.hand.cards;
+					if (owner !== player_me || !hand.length)
+						return;
+					const paid = hand[randomInt(hand.length)];
+					await board.toGrave(paid, player_me.hand);
+					await this.ruleNotice(m, t("{card} is discarded.", {card: paid.name}), paid);
+				});
+				break;
+			case "heroFeeds": {
+				const rows = m.row === "close" ? [board.row[2]] : board.row.slice(0, 3);
+				game.roundStart.push(async () => {
+					game.rowBonus.clear();
+					return false;
+				});
+				game.heroPlaced.push(async (card, owner) => {
+					if (owner !== player_me)
+						return;
+					rows.forEach(r => game.rowBonus.set(r, (game.rowBonus.get(r) ?? 0) + 1));
+					await Promise.all(rows.flatMap(r => r.cards.filter(c => !c.isHero()).map(c => c.animate("morale"))));
+					rows.forEach(r => r.updateScore());
+				});
+				break;
+			}
 			}
 		}
+	},
+
+	// Banner for a story rule taking effect, with the affected card's art
+	async ruleNotice(m, text, card) {
+		const name = this.modifierName(m);
+		await ui.notification("leader", 2200, name ? t(name) + ": " + text : text, card && smallURL(card.faction + "_" + card.filename));
 	},
 
 	OBJECTIVES: {

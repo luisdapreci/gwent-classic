@@ -1017,7 +1017,7 @@ const campaign = {
 				[124,1], [108,1], [105,1], [106,1], [107,1], [111,1], [130,1], [121,1], [114,1], [115,1],
 				[131,1], [132,1], [133,1], [134,1], [135,1], [120,1], [109,1], [112,1], [5,1], [10,1]
 			]},
-			modifiers: [{id: "ambush", name: "Sabbath"}, {id: "weather", card: 2, rounds: [1]}, {id: "frostborn"}], objectives: ["margin20", "noWeather"], rewards: [[124,1]],
+			modifiers: [{id: "ambush", name: "Sabbath"}, {id: "weather", card: 2, rounds: [1]}, {id: "frostborn"}, {id: "heroTaken", name: "Crones' Tithe"}], objectives: ["margin20", "noWeather"], rewards: [[124,1]],
 			rumor: {en: "The Hunt's general sleeps in his armor, they say. The witches of Bald Mountain say he doesn't sleep at all.", es: "Dicen que el general de la Cacería duerme con la armadura puesta. Las brujas de la Montaña Calva dicen que no duerme en absoluto."},
 			dialogue: {
 				intro: [
@@ -1039,7 +1039,7 @@ const campaign = {
 				[111,1], [130,1], [121,1], [114,1], [115,1],
 				[98,1], [99,1], [100,1], [101,1], [105,1], [106,1], [107,1], [5,1], [1,1]
 			]},
-			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Navigator's Blizzard"}, {id: "frostborn"}], objectives: ["sweep", "hand3"], rewards: [[94,1]],
+			modifiers: [{id: "weather", card: 2, rounds: [1, 2, 3], name: "Navigator's Blizzard"}, {id: "frostborn"}, {id: "heroLimit", name: "Portal"}], objectives: ["sweep", "hand3"], rewards: [[94,1]],
 			rumor: {en: "Sailors say the Hunt's navigator can open a door anywhere, even under the sea. They don't say where the doors lead.", es: "Los marineros dicen que el navegante de la Cacería puede abrir una puerta en cualquier parte, incluso bajo el mar. No dicen adónde llevan esas puertas."},
 			dialogue: {
 				intro: [
@@ -1092,9 +1092,9 @@ const campaign = {
 			chapter: "heartsofstone", name: "Olgierd von Everec", portrait: "neutral_olgierd", pin: {x: 68, y: 33.5}, level: "hard", music: "immortal",
 			deck: {faction: "realms", leader: 22, cards: [
 				[17,1], [51,1], [28,3], [30,3], [29,2], [46,1], [33,1], [34,1], [54,1], [55,1],
-				[45,1], [31,1], [48,1], [27,1], [32,1], [10,1], [5,1], [1,1]
+				[45,1], [31,1], [48,1], [27,1], [32,1], [10,2], [5,1], [1,1]
 			]},
-			modifiers: [], objectives: ["sweep", "noLeader"], rewards: [[17,1]],
+			modifiers: [{id: "scorchHeroes", name: "Razor's Edge"}], objectives: ["sweep", "noLeader"], rewards: [[17,1]],
 			rumor: {en: "A Redanian drinking song: von Everec lost his head, von Everec stayed undead, von Everec bought the round instead.", es: "Una canción de taberna redania: von Everec perdió la cabeza, von Everec no murió, von Everec pagó la ronda y la fiesta siguió."},
 			dialogue: {
 				intro: [
@@ -1113,7 +1113,7 @@ const campaign = {
 				[18,1], [19,3], [28,3], [30,3], [29,2], [33,1], [34,1], [39,1], [51,1],
 				[54,1], [55,1], [45,1], [10,1], [5,1], [1,1], [4,1]
 			]},
-			modifiers: [{id: "leaderBlocked", name: "O'Dimm's Bargain"}], objectives: ["margin20", "hand3"], rewards: [[18,1], [19,3]],
+			modifiers: [{id: "leaderBlocked", name: "O'Dimm's Bargain"}, {id: "heroDebt", name: "Debt"}], objectives: ["margin20", "hand3"], rewards: [[18,1], [19,3]],
 			rumor: {en: "A mirror merchant travels the roads near Oxenfurt. Everyone who has met him remembers him fondly. Nobody remembers his face.", es: "Un vendedor de espejos recorre los caminos cerca de Oxenfurt. Todos los que lo conocieron lo recuerdan con cariño. Nadie recuerda su rostro."},
 			dialogue: {
 				intro: [
@@ -1136,7 +1136,7 @@ const campaign = {
 				[98,1], [99,1], [100,1], [101,1], [131,1], [132,1], [133,1], [134,1], [135,1],
 				[109,1], [112,1], [10,1], [5,1]
 			]},
-			modifiers: [{id: "weather", card: 204, rounds: [1, 2, 3], name: "Endless Storm"}], objectives: ["sweep", "noWeather"], rewards: [[14,1]],
+			modifiers: [{id: "weather", card: 204, rounds: [1, 2, 3], name: "Endless Storm"}, {id: "heroFeeds", name: "Undertow"}], objectives: ["sweep", "noWeather"], rewards: [[14,1]],
 			rumor: {en: "Fishermen say the Maelstrom sings to those it wants. It has been quiet for three hundred years, as if waiting for the right voice.", es: "Los pescadores dicen que el Maelstrom les canta a los que quiere. Lleva trescientos años callado, como esperando la voz adecuada."},
 			dialogue: {
 				intro: [
@@ -1173,7 +1173,7 @@ const campaign = {
 				[131,1], [132,1], [133,1], [134,1], [135,1], [108,1], [126,1], [111,1], [130,1], [121,1], [114,1],
 				[115,1], [109,1], [112,1], [98,1], [99,1], [100,1], [101,1], [136,1], [125,1], [10,1], [5,1]
 			]},
-			modifiers: [{id: "ambush", name: "Night of Long Fangs"}, {id: "weather", card: 9, rounds: [1, 2, 3]}], objectives: ["margin20", "sweep"], rewards: [[60,1]],
+			modifiers: [{id: "ambush", name: "Night of Long Fangs"}, {id: "weather", card: 9, rounds: [1, 2, 3]}, {id: "heroFeeds", row: "close", name: "Bloodlust"}], objectives: ["margin20", "sweep"], rewards: [[60,1]],
 			rumor: {en: "A gentle craftsman of toys and little boxes has gone missing in Beauclair, they say. The same week, the killings began. Nobody connects the two. Yet.", es: "Dicen que en Beauclair desapareció un amable artesano de juguetes y cajitas. Esa misma semana empezaron los asesinatos. Nadie relaciona una cosa con la otra. Todavía."},
 			dialogue: {
 				intro: [

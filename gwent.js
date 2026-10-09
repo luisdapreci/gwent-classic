@@ -814,7 +814,13 @@ class Player {
 	
 	// Returns true if the Player can make any action other than passing
 	canPlay() {
-		return this.hand.cards.length > 0 || this.canActivateLeader();
+		return this.hand.cards.some(c => !this.cardBlocked(c)) || this.canActivateLeader();
+	}
+
+	// A hero over this player's per-round hero limit
+	cardBlocked(card) {
+		const limit = game.heroLimit;
+		return !!limit && limit.player === this && card.isHero() && limit.played >= limit.max;
 	}
 
 	// Leader is unused and its ability's own requirements (if any) are met
@@ -1280,7 +1286,9 @@ class Row extends CardContainer {
 	
 	// Override
 	async addCard(card, silent = false) {
-		if (game.story && card.isHero() && card.holder === player_me)
+		// Spies change holder once placed
+		const heroOwner = card.isHero() ? card.holder : null;
+		if (game.story && heroOwner === player_me)
 			game.story.heroPlayed = true;
 		if (card.isSpecial()) {
 			this.special = card;
@@ -1305,6 +1313,9 @@ class Row extends CardContainer {
 		card.elem.classList.add("noclick");
 		await sleep(600);
 		this.updateScore();
+		if (heroOwner)
+			for (const hook of game.heroPlaced)
+				await hook(card, heroOwner);
 	}
 
 	// The placement sound for a card, or null when its own ability animation replaces the placement pause
@@ -1430,6 +1441,7 @@ class Row extends CardContainer {
 		if (isNumber(bond) && bond > 1)
 			total *= Number(bond);
 		total += Math.max(0, this.effects.morale + (card.abilities.includes("morale") ? -1 : 0 ));
+		total += game.rowBonus.get(this) ?? 0;
 		if (this.effects.horn - (card.abilities.includes("horn") ? 1 : 0) >  0 )
 			total *= 2;
 		return total;
@@ -1476,7 +1488,7 @@ class Row extends CardContainer {
 		let max = [];
 		for (let i=0; i<this.cards.length; ++i){
 			let card = this.cards[i];
-			if (!card.isUnit() || card === exclude)
+			if (!(card.isUnit() || card.hero && game.scorchHeroes.includes(this)) || card === exclude)
 				continue;
 			if (!max[0] || max[0].power < card.power)
 				max = [card];
@@ -1735,6 +1747,13 @@ class Game {
 		this.weatherImmune = [];
 		// Rows where weather halves heroes (story White Frost)
 		this.weatherHeroes = [];
+		// Rows whose heroes Scorch can destroy, and flat bonuses for a row's units (story rules)
+		this.scorchHeroes = [];
+		this.rowBonus = new Map();
+		// {player, max, played, message}: heroes that player may play per round
+		this.heroLimit = null;
+		// Called with (card, owner) after a hero is placed
+		this.heroPlaced = [];
 
 		this.placedEffectsActive = false;
 		
@@ -2690,6 +2709,10 @@ class UI {
 		let pCard = this.previewCard;
 		if (card === pCard)
 			return;
+		if (card.holder.hand.cards.includes(card) && card.holder.cardBlocked(card)) {
+			await this.notification("leader", 1800, game.heroLimit.message, smallURL(card.faction + "_" + card.filename));
+			return;
+		}
 		if (pCard === null || card.holder.hand.cards.includes(card)) {
 			this.setSelectable(null, false);
 			this.showPreview(card);
