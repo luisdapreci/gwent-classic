@@ -579,6 +579,30 @@ body.story .profile-img.story-art { background: var(--art) var(--art-x, 50%) var
 .story-stats > dt { color: var(--text-dim); }
 #story-modal-box.result .story-credits-stats { max-width: calc(24 * var(--u)); margin: calc(1.4 * var(--u)) auto; text-align: left; }
 
+#story-modal-box.story-stats-box { width: calc(46 * var(--u)); }
+.story-stats-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(0.6 * var(--u)); margin: calc(0.8 * var(--u)) 0 calc(1.2 * var(--u)); }
+.story-stats-tiles > div {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: calc(0.2 * var(--u));
+	padding: calc(0.7 * var(--u)) calc(0.4 * var(--u));
+	text-align: center;
+	background: rgba(0, 0, 0, 0.3);
+	border: 1px solid var(--gold-faint);
+	border-radius: calc(0.3 * var(--u));
+}
+.story-stats-tiles b { color: var(--gold-1); font: 700 max(calc(1.8 * var(--u)), 18px)/1.1 var(--font-display); }
+.story-stats-tiles span { color: var(--text-dim); font-size: 0.85em; line-height: 1.2; }
+.story-stats-collection { display: grid; grid-template-columns: auto auto 1fr auto auto; align-items: center; gap: calc(0.5 * var(--u)) calc(0.8 * var(--u)); margin: calc(0.6 * var(--u)) 0 0; padding: 0; list-style: none; }
+.story-stats-collection > li { display: contents; }
+.story-stats-shield { width: max(calc(1.6 * var(--u)), 18px); aspect-ratio: 1; background: center / contain no-repeat; }
+.story-stats-bar { height: max(calc(0.5 * var(--u)), 5px); border-radius: 99px; background: linear-gradient(90deg, var(--gold-2), var(--gold-1)) left / var(--p) 100% no-repeat, rgba(255, 255, 255, 0.08); }
+.story-stats-count { color: var(--text-mute); font-size: 0.85em; text-align: right; }
+.story-stats-collection b { min-width: 3.2em; color: var(--gold-1); font-family: var(--font-display); text-align: right; }
+.story-stats-collection > .complete b { text-shadow: 0 0 calc(0.6 * var(--u)) var(--gold-glow); }
+
 /* ---------------- dialogue ---------------- */
 
 #story-dialogue {
@@ -670,6 +694,9 @@ body.story-map .settings-button.deck-menu { display: none; }
 	#story-panel { padding: 6px 8px 10px; }
 	#story-modal-box { width: calc(86 * var(--u)); padding: 10px 14px; }
 	#story-modal-box.result { width: calc(70 * var(--u)); padding: 10px 14px; }
+	#story-modal-box.story-stats-box { width: calc(70 * var(--u)); }
+	.story-stats-tiles { gap: 6px; margin: 6px 0 10px; }
+	.story-stats-tiles > div { padding: 6px 4px; }
 	#story-modal-box.result .story-result-stars { margin: 6px 0; }
 	#story-modal-box .story-result-rewards > h3 { margin: 4px 0 6px; }
 	.story-result-rewards { padding: 0 0 8px; }

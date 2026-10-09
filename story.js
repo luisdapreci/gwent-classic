@@ -1786,20 +1786,34 @@ const StoryUI = {
 
 	openStats() {
 		const s = StoryMode.data.stats;
-		const pct = f => {
+		const played = s.wins + s.losses;
+		const tile = (label, value) => storyEl("div", {}, storyEl("b", {text: String(value)}), storyEl("span", {text: label}));
+		const faction = f => {
 			const ids = card_dict.map((c, i) => i).filter(i => card_dict[i].deck === f && StoryMode.maxCopies(i));
 			const max = ids.reduce((a, i) => a + StoryMode.maxCopies(i), 0);
-			return Math.floor(100 * ids.reduce((a, i) => a + StoryMode.owned(i), 0) / max) + "%";
+			const owned = ids.reduce((a, i) => a + StoryMode.owned(i), 0);
+			const p = Math.floor(100 * owned / max);
+			return storyEl("li", {class: p === 100 ? "complete" : ""},
+				storyEl("span", {class: "story-stats-shield", style: {"background-image": `url("img/icons/deck_shield_${f}.png")`}}),
+				storyEl("span", {text: t(factions[f].name)}),
+				storyEl("span", {class: "story-stats-bar", role: "progressbar", "aria-valuenow": p, "aria-valuemin": 0, "aria-valuemax": 100,
+					style: {"--p": p + "%"}}),
+				storyEl("span", {class: "story-stats-count", text: owned + "/" + max}),
+				storyEl("b", {text: p + "%"}));
 		};
-		const row = (label, value) => [storyEl("dt", {text: label}), storyEl("dd", {text: String(value)})];
-		return this.openModal(
+		const done = this.openModal(
 			storyEl("h2", {text: t("Stats")}),
-			storyEl("dl", {class: "story-stats"},
-				row(t("Wins"), s.wins), row(t("Losses"), s.losses), row(t("Current streak"), s.streak), row(t("Best streak"), s.bestStreak),
-				row(t("Crowns earned"), s.crownsEarned), row(t("Tournaments won"), s.tournamentsWon),
-				row(t("Stars"), Object.values(StoryMode.data.progress).reduce((a, p) => a + p.stars.filter(Boolean).length, 0)),
-				StoryMode.FACTIONS.map(f => row(t("{faction} cards collected", {faction: t(factions[f].name)}), pct(f)))),
+			storyEl("div", {class: "story-stats-tiles"},
+				tile(t("Wins"), s.wins), tile(t("Losses"), s.losses),
+				tile(t("Win rate"), played ? Math.round(100 * s.wins / played) + "%" : "\u2013"),
+				tile(t("Stars"), Object.values(StoryMode.data.progress).reduce((a, p) => a + p.stars.filter(Boolean).length, 0)),
+				tile(t("Current streak"), s.streak), tile(t("Best streak"), s.bestStreak),
+				tile(t("Tournaments won"), s.tournamentsWon), tile(t("Crowns earned"), s.crownsEarned)),
+			storyEl("h3", {text: t("Collection")}),
+			storyEl("ul", {class: "story-stats-collection"}, StoryMode.FACTIONS.map(faction)),
 			this.closeButton());
+		this.modalBox.classList.add("story-stats-box");
+		return done;
 	},
 
 	openOptions() {

@@ -678,7 +678,7 @@ const I18N = {
 		"Crowns earned": "Coronas ganadas",
 		"Tournaments won": "Torneos ganados",
 		"Stars": "Estrellas",
-		"{faction} cards collected": "Cartas de {faction} reunidas",
+		"Win rate": "% de victorias",
 		"Story Options": "Opciones de la historia",
 		"Your story progress is saved in this browser. Export a backup to keep it safe or move it to another device.": "Tu progreso de la historia se guarda en este navegador. Exporta una copia de seguridad para protegerlo o llevarlo a otro dispositivo.",
 		"Export Save": "Exportar partida",
