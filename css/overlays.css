@@ -984,6 +984,8 @@
 	box-shadow: 0 0 calc(0.8 * var(--u)) var(--gold-glow);
 	scale: 1.08;
 	outline: none;
+	/* lift the tooltip above the next row of avatars */
+	z-index: 1;
 }
 #avatar-grid > button[aria-checked="true"] {
 	border-color: var(--gold-1);
