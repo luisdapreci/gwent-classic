@@ -26,10 +26,10 @@ function makeAccessible(elem, label) {
 // Official CD PROJEKT RED avatars: img/avatars/<id>.jpg (256x256)
 const AVATARS = [
 	["01", "Wolf medallion"], ["02", "Wolf medallion"], ["03", "Geralt"], ["04", "Geralt"], ["05", "Geralt"], ["06", "Geralt"],
-	["07", "Ciri"], ["08", "Yennefer"], ["09", "Sorceress"], ["10", "Triss"], ["11", "Eredin"], ["12", "Imlerith"],
-	["13", "Wild Hunt warrior"], ["14", "Vesemir"], ["15", "Dandelion"], ["16", "Emhyr var Emreis"], ["17", "Wolf medallion"],
+	["07", "Ciri"], ["08", "Yennefer"], ["09", "Yennefer"], ["10", "Triss"], ["11", "Eredin"], ["12", "Caranthir"],
+	["13", "Imlerith"], ["14", "Vesemir"], ["15", "Dandelion"], ["16", "Emhyr var Emreis"], ["17", "Wolf medallion"],
 	["18", "School of the Wolf"], ["19", "Geralt"], ["20", "Geralt"], ["21", "Geralt"], ["22", "Fiend"], ["23", "Leshen"],
-	["24", "Geralt"], ["25", "Geralt"], ["26", "Leshen"], ["27", "Skellige warrior"], ["28", "Troll"]
+	["24", "Geralt"], ["25", "Geralt"], ["26", "Leshen"], ["27", "Hjalmar an Craite"], ["28", "Troll"]
 ].map(([id, name]) => ({id, name}));
 
 // The AI opponent's avatar per faction
