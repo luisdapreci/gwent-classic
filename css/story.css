@@ -406,6 +406,8 @@ body.story .profile-img.story-art { background: var(--art) var(--art-x, 50%) var
 	border-radius: calc(0.3 * var(--u));
 	color: var(--text-mute);
 }
+.story-bracket > li > .story-portrait { margin: calc(0.2 * var(--u)) auto calc(0.4 * var(--u)); }
+.story-bracket > li > .story-portrait.unknown { --ring: var(--gold-faint); }
 .story-bracket > li > span { display: block; font-size: 0.8em; font-family: var(--font-caps); letter-spacing: 0.08em; }
 .story-bracket > li > b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .story-bracket > li.won { color: var(--text-dim); border-color: var(--gold-line); }
@@ -424,9 +426,6 @@ body.story .profile-img.story-art { background: var(--art) var(--art-x, 50%) var
 	background: none;
 	line-height: 0;
 }
-.story-card-btn[data-title]::after { left: 50%; translate: -50% 0; line-height: 1.2; }
-/* the result screen already captions each card with its name */
-.story-result-rewards .story-card-btn[data-title]::after { display: none; }
 .story-card {
 	display: block;
 	width: calc(4.5 * var(--u));

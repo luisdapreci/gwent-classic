@@ -630,7 +630,8 @@ const StoryMode = {
 		const r = tour.rounds[round];
 		const modifier = tour.modifiers[run.mods[round]];
 		const deck = ai_decks[r.decks][run.decks[round]];
-		return {name: tour.entrants[run.entrants[round]], portrait: null, level: r.level,
+		const entrant = tour.entrants[run.entrants[round]];
+		return {name: entrant.name, portrait: entrant.portrait, level: r.level,
 			deck: r.noHeroes ? {...deck, cards: deck.cards.filter(([i]) => this.rarity(card_dict[i]) !== "hero")} : deck,
 			modifiers: modifier ? [modifier] : [], objectives: [], rewards: [], dialogue: {}, tournament: run.id};
 	},
@@ -1225,7 +1226,7 @@ const StoryUI = {
 
 	cardThumb(index, unowned = false) {
 		const card = card_dict[index];
-		return storyEl("button", {class: "story-card-btn", "aria-label": card.name, "data-title": card.name, onclick: () => ui.viewCard(new Card(card, player_me))},
+		return storyEl("button", {class: "story-card-btn", "aria-label": card.name, onclick: () => ui.viewCard(new Card(card, player_me))},
 			storyEl("img", {class: "story-card" + (unowned ? " unowned" : ""), src: StoryMode.cardImage(index), alt: "", loading: "lazy", draggable: "false"}));
 	},
 
@@ -1444,9 +1445,13 @@ const StoryUI = {
 		];
 
 		if (active) {
-			out.push(storyEl("ol", {class: "story-bracket"}, tour.rounds.map((r, i) => storyEl("li", {class: i < run.round ? "won" : i === run.round ? "current" : ""},
-				storyEl("span", {text: t("Round {n}", {n: i + 1})}),
-				storyEl("b", {text: i <= run.round ? t(StoryMode.tournamentOpponent(run, i).name) : "?"})))));
+			out.push(storyEl("ol", {class: "story-bracket"}, tour.rounds.map((r, i) => {
+				const rival = i <= run.round && StoryMode.tournamentOpponent(run, i);
+				return storyEl("li", {class: i < run.round ? "won" : i === run.round ? "current" : ""},
+					rival ? this.portrait(rival) : storyEl("div", {class: "story-portrait unknown"}),
+					storyEl("span", {text: t("Round {n}", {n: i + 1})}),
+					storyEl("b", {text: rival ? t(rival.name) : "?"}));
+			})));
 			out.push(storyEl("h3", {text: t("Round {n} of {total}", {n: run.round + 1, total: tour.rounds.length})}),
 				storyEl("div", {class: "story-row story-row-static"}, this.portrait(opp),
 					storyEl("div", {}, storyEl("b", {text: t(opp.name)}), storyEl("small", {text: t(factions[opp.deck.faction].name)}))));

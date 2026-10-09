@@ -814,7 +814,7 @@ class Player {
 			delete this.elem_leader.dataset.badge;
 			delete this.elem_leader.dataset.status;
 		}
-		this.elem_leader.children[0].setAttribute('data-title', status?.badge ? status.text : t("View leader"));
+		this.elem_leader.children[0].setAttribute('aria-label', status?.badge ? status.text : t("View leader"));
 	}
 	
 	// Use a leader's Activate ability, then disable the leader
@@ -2294,7 +2294,6 @@ class Card {
 		let elem = document.createElement("div");
 		elem.style.backgroundImage = smallURL(card.faction + "_" + card.filename);
 		elem.classList.add("card");
-		elem.setAttribute('data-title', card.name);
 		elem.addEventListener("click", () => ui.selectCard(card), false);
 		
 		if (card.row === "leader")

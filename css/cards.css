@@ -118,11 +118,6 @@
 		0 0 calc(1 * var(--u)) var(--gold-glow),
 		0 calc(0.5 * var(--u)) calc(0.8 * var(--u)) rgba(0, 0, 0, 0.7);
 }
-.card-selectable > .card:hover::after {
-	pointer-events: all;
-	bottom: calc(-1.9 * var(--u));
-}
-
 /* ---------- card flip (deck -> hand, opponent reveal) ---------- */
 
 .card.flip-in {

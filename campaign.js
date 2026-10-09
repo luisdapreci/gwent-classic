@@ -224,7 +224,12 @@ const campaign = {
 				champion: [{who: "narrator", en: "Geralt won the Passiflora tournament. The madam paid him in full and then, as is the custom of the house, charged him for the privilege.", es: "Geralt ganó el torneo del Passiflora. La madama le pagó completo y luego, como es costumbre de la casa, le cobró por el privilegio."}]
 			},
 			rounds: [{decks: "easy", level: "easy"}, {decks: "easy", level: "hard"}, {decks: "normal", level: "easy", noHeroes: true}],
-			entrants: ["Count Tybalt", "Sasha", "Finneas", "Vimme Vivaldi", "Marquise Serenity", "Elihal", "Eveline Gallo", "Stjepan"],
+			entrants: [
+				{name: "Count Tybalt", portrait: "realms_natalis"}, {name: "Sasha", portrait: "nilfgaard_assire"},
+				{name: "Finneas", portrait: "nilfgaard_stefan"}, {name: "Vimme Vivaldi", portrait: "scoiatael_barclay"},
+				{name: "Marquise Serenity", portrait: "realms_sheala"}, {name: "Elihal", portrait: "scoiatael_riordain"},
+				{name: "Eveline Gallo", portrait: "realms_sabrina"}, {name: "Stjepan", portrait: "nilfgaard_young_emissary"}
+			],
 			modifiers: [
 				null, null,
 				{id: "weather", card: 9, rounds: [1]},
@@ -243,7 +248,12 @@ const campaign = {
 				champion: [{who: "narrator", en: "The champion of Kaer Trolde is carried around the hall on a shield. Geralt asked them not to. They dropped him twice.", es: "Al campeón de Kaer Trolde lo pasean por el salón sobre un escudo. Geralt les pidió que no. Lo dejaron caer dos veces."}]
 			},
 			rounds: [{decks: "easy", level: "hard"}, {decks: "normal", level: "easy", noHeroes: true}, {decks: "normal", level: "normal", noHeroes: true}],
-			entrants: ["Jutta an Dimun", "Sigrdrifa", "Folan", "Gremist", "Ulf of Svorlag", "Haern Caduch", "Sjusta", "Brokva Skald"],
+			entrants: [
+				{name: "Jutta an Dimun", portrait: "skellige_shield_maiden"}, {name: "Sigrdrifa", portrait: "skellige_birna"},
+				{name: "Folan", portrait: "skellige_craite_warrior"}, {name: "Gremist", portrait: "skellige_udalryk"},
+				{name: "Ulf of Svorlag", portrait: "skellige_holger"}, {name: "Haern Caduch", portrait: "skellige_donar"},
+				{name: "Sjusta", portrait: "skellige_heymaey"}, {name: "Brokva Skald", portrait: "skellige_draig"}
+			],
 			modifiers: [
 				null, null,
 				{id: "weather", card: 204, rounds: [1], name: "Sea Squall"},
@@ -262,7 +272,12 @@ const campaign = {
 				champion: [{who: "narrator", en: "Geralt was named Champion of Beauclair, kissed by three baronesses and challenged to two duels before he'd left the table. Toussaint celebrates thoroughly.", es: "Nombraron a Geralt Campeón de Beauclair; tres baronesas lo besaron y lo retaron a dos duelos antes de que se levantara de la mesa. Toussaint celebra a fondo."}]
 			},
 			rounds: [{decks: "normal", level: "easy", noHeroes: true}, {decks: "normal", level: "normal", noHeroes: true}, {decks: "hard", level: "hard", noHeroes: true}],
-			entrants: ["Palmerin de Launfal", "Guillaume de Launfal", "Count Crespi", "Baroness Mariette", "Milton de Peyrac-Peyran", "Damien de la Tour", "Vivienne de Tabris", "Orianna"],
+			entrants: [
+				{name: "Palmerin de Launfal", portrait: "realms_siegfried"}, {name: "Guillaume de Launfal", portrait: "nilfgaard_cahir"},
+				{name: "Count Crespi", portrait: "nilfgaard_tibor"}, {name: "Baroness Mariette", portrait: "scoiatael_ida"},
+				{name: "Milton de Peyrac-Peyran", portrait: "nilfgaard_albrich"}, {name: "Damien de la Tour", portrait: "nilfgaard_menno"},
+				{name: "Vivienne de Tabris", portrait: "scoiatael_havekar_nurse"}, {name: "Orianna", portrait: "monsters_bruxa"}
+			],
 			modifiers: [
 				null, null,
 				{id: "weather", card: 9, rounds: [1]},
