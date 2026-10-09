@@ -1,5 +1,5 @@
 // Bump to drop old caches after changing asset files in place.
-const VERSION = "gwent-v35";
+const VERSION = "gwent-v36";
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 
@@ -18,6 +18,7 @@ const SHELL_FILES = [
 	"campaign.js",
 	"portrait-frames.js",
 	"story.js",
+	"tutorial.js",
 	"lib/peerjs.min.js",
 	"fx.js",
 	"css/tokens.css",

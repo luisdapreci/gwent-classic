@@ -180,7 +180,7 @@ The campaign follows The Witcher 3's story order on `img/map/The_Witcher_3_Wild_
 - **Dandelion is the narrator.** As in The Witcher 3's journal, he tells the tale after the fact:
   - past tense, Geralt in the third person, with the occasional aside in the first person ("I'd have written a ballad; he simply pocketed it.").
   - It also fits his Chapter III match. He narrates from later on, so he can appear in the story while still being the one telling it.
-- There's no in-match tutorial. The Innkeeper's intro has a "How to Play" button that opens the existing guide.
+- The first Innkeeper match is an in-match tutorial (tutorial.js, texts in campaign.tutorial): seeded opening hand, player goes first, two scripted plays (bond pair), then situational tips. Runs once per save (save.tutorialDone); Skip in-match, "Replay Tutorial" in Story Options. The Innkeeper's intro also has a "How to Play" button that opens the existing guide.
 
 **Voice & style** (hybrid: The Witcher 3's Geralt, Sapkowski's framing)
 - **Geralt** speaks like in The Witcher 3: terse, deadpan, gravelly. About 12 words or fewer, no speeches, almost no exclamation marks (battle calls only). Dry humor by understatement ("Hm.", "Low bar."). He prefers not to pick sides ("Not my fight.").

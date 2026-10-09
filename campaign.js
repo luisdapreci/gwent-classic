@@ -42,6 +42,32 @@ const campaign = {
 	// Fixed rewards of chapters not written yet: never offered as random rewards or in shops
 	reserved: [],
 
+	// The Innkeeper's tips in the first story match (tutorial.js); {card} is a card name
+	tutorial: {
+		welcome: {en: "Sit. I'll talk you through the first hand. After that you're on your own, like everyone else in this village.", es: "Siéntate. En la primera mano te iré explicando. Después te las arreglas solo, como todos en esta aldea."},
+		goal: {en: "Three rounds at most. When we've both passed, the bigger total takes the round. Lose two rounds and you lose the game: those two gems are your lives.", es: "Tres rondas como mucho. Cuando los dos hemos pasado, el total más alto se lleva la ronda. Pierde dos rondas y pierdes la partida: esas dos gemas son tus vidas."},
+		hand: {en: "Ten cards. That's your hand for the whole game, not for each round. Every card you play now is one you won't have later.", es: "Diez cartas. Esa es tu mano para toda la partida, no para cada ronda. Cada carta que juegues ahora es una que no tendrás después."},
+		redraw: {en: "Don't like a card? Swap up to two for random ones from your deck. The ones I picked out for you stay. You'll need them.", es: "¿No te gusta alguna carta? Cambia hasta dos por otras al azar de tu mazo. Las que te aparté se quedan. Las vas a necesitar."},
+		rows: {en: "Your side of the table: close combat, ranged, siege. Each unit fights in its own row. The number on a card is its strength.", es: "Tu lado de la mesa: cuerpo a cuerpo, a distancia y asedio. Cada unidad pelea en su fila. El número de la carta es su fuerza."},
+		play1: {en: "Tap {card}, then the glowing row.", es: "Toca {card} y luego la fila que brilla."},
+		playRow: {en: "Now tap the glowing row.", es: "Ahora toca la fila que brilla."},
+		score: {en: "A row's strength shows on its left, your total by your name. Mine's up top. When the round ends, only the totals count.", es: "La fuerza de cada fila aparece a su izquierda; tu total, junto a tu nombre. El mío, arriba. Al terminar la ronda solo cuentan los totales."},
+		play2: {en: "Another {card}. Same row. Watch the numbers.", es: "Otro {card}. Misma fila. Fíjate en los números."},
+		bond: {en: "Tight Bond. Cards with the same name in one row multiply each other: two double, three triple. Cheap soldiers, expensive together.", es: "Vínculo estrecho. Las cartas del mismo nombre en una fila se multiplican entre sí: dos, el doble; tres, el triple. Soldados baratos, caros juntos."},
+		free: {en: "That's the game. Tap any card to read what it does before you play it. The table's yours.", es: "Así se juega. Toca cualquier carta para leer qué hace antes de jugarla. La mesa es tuya."},
+		morale: {en: "Morale Boost: +1 to every other unit in its row. Better with company.", es: "Aumento de moral: +1 a cada otra unidad de su fila. Mejor acompañado."},
+		weather: {en: "Weather: every unit in that row drops to 1, mine and yours. Heroes shrug it off. Use it where I'm stronger.", es: "Clima: cada unidad de esa fila baja a 1, las mías y las tuyas. A los héroes no les afecta. Úsalo donde yo sea más fuerte."},
+		weatherOp: {en: "Weather. Every unit in that row drops to 1, on both sides of the table. Heroes shrug it off. Fight where it isn't.", es: "Clima. Cada unidad de esa fila baja a 1, en los dos lados de la mesa. A los héroes no les afecta. Pelea donde no esté."},
+		leader: {en: "That's your leader. Once per game, tap it and use its ability. It doesn't cost you a card.", es: "Ese es tu líder. Una vez por partida puedes tocarlo y usar su habilidad. No te cuesta ninguna carta."},
+		passHint: {en: "You're ahead. Hold Pass and the round's over for you. I can keep playing to catch up, but every card I spend now, I won't have later.", es: "Vas ganando. Mantén presionado Pasar y la ronda termina para ti. Yo puedo seguir jugando para alcanzarte, pero cada carta que gaste ahora no la tendré después."},
+		opPassed: {en: "I've passed: no more cards from me this round. Beat my total by one and pass yourself. Anything more is a card thrown away.", es: "Pasé: no juego más cartas en esta ronda. Supera mi total por uno y pasa tú también. Lo demás es tirar cartas."},
+		round2Won: {en: "Your round. I lose a gem: one more and the game's yours. The board's cleared, but whatever's left in your hand carries over.", es: "Tu ronda. Pierdo una gema: una más y la partida es tuya. La mesa se vacía, pero lo que te quede en la mano sigue contigo."},
+		realms: {en: "And the Northern Realms draw an extra card for every round they win. Every faction has a trick like that.", es: "Y los Reinos del Norte roban una carta extra por cada ronda que ganan. Cada facción tiene un truco así."},
+		round2Lost: {en: "My round. You lose a gem: one more and the game's mine. The board's cleared, but hands carry over. Count your cards.", es: "Mi ronda. Pierdes una gema: una más y la partida es mía. La mesa se vacía, pero las manos siguen. Cuenta tus cartas."},
+		round2Draw: {en: "A draw. We both lose a gem, so the next round decides it.", es: "Empate. Los dos perdemos una gema, así que la próxima ronda decide."},
+		round3: {en: "Last round. Nothing left to save cards for: spend everything.", es: "Última ronda. Ya no hay para qué guardar cartas: gástalo todo."}
+	},
+
 	// Locations shared by several opponents (one map pin opening a list)
 	places: {
 		crowsperch: {name: "Crow's Perch", x: 52, y: 56},

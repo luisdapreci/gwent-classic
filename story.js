@@ -42,7 +42,7 @@ const StoryMode = {
 	newSave() {
 		const save = {
 			version: this.VERSION, crowns: 0, collection: {}, decks: {}, activeFaction: "realms", unlockedFactions: [],
-			progress: {}, pending: [], matches: 0, last: null, shop: null, tournament: null, seenChapters: [], master: false,
+			progress: {}, pending: [], matches: 0, last: null, shop: null, tournament: null, seenChapters: [], master: false, tutorialDone: false,
 			stats: {wins: 0, losses: 0, streak: 0, bestStreak: 0, crownsEarned: 0, tournamentsWon: 0}
 		};
 		this.unlockFaction("realms", save);
@@ -479,7 +479,12 @@ const StoryMode = {
 		player_op.controller = new ControllerAI(player_op, opp.level);
 		this.boardPortrait("me", this.frameStyle("neutral_geralt", this.artURL("lg/neutral_geralt.jpg")));
 		this.boardPortrait("op", opp.portrait && this.portraitStyle(opp));
-		game.story = {...story, wager, oppDeck, weatherPlayed: false, heroPlayed: false, wentFirst: null};
+		const tutorial = StoryTutorial.wanted(story);
+		if (tutorial) {
+			this.data.tutorialDone = true;
+			this.commit();
+		}
+		game.story = {...story, wager, oppDeck, weatherPlayed: false, heroPlayed: false, wentFirst: null, tutorial: tutorial ? StoryTutorial.newState() : null};
 		document.body.classList.add("story");
 		document.getElementById("deck-customization").classList.add("hide");
 		game.startGame();
@@ -495,6 +500,8 @@ const StoryMode = {
 	// Called by Game.startGame before the players are set up, so a blocked leader never registers its effects
 	applyModifiers(story) {
 		const opp = story.opp;
+		if (story.tutorial)
+			StoryTutorial.install();
 		for (const m of opp.modifiers) {
 			switch (m.id) {
 			case "weather":
@@ -1019,6 +1026,8 @@ const StoryMode = {
 			: campaign.chapters.filter(c => this.chapterOpponents(c.id).some(id => save.progress[id]?.wins > 0)).map(c => c.id);
 		save.last = campaign.opponents[raw.last] ? raw.last : null;
 		save.master = raw.master === true;
+		// Saves from before the tutorial skip it once a match was played
+		save.tutorialDone = typeof raw.tutorialDone === "boolean" ? raw.tutorialDone : save.matches > 0;
 		const stock = raw.shop?.stock;
 		save.shop = Array.isArray(stock) && isCount(raw.shop.refreshAt) && stock.length <= this.SHOP_SIZE && stock.every(i => Number.isInteger(i) && card_dict[i] && card_dict[i].row !== "leader")
 			? {stock: [...stock], refreshAt: raw.shop.refreshAt} : null;
@@ -1970,6 +1979,11 @@ const StoryUI = {
 			storyEl("div", {class: "story-buttons"},
 				storyEl("button", {class: "btn-ghost", text: t("Export Save"), onclick: () => StoryMode.exportSave()}),
 				storyEl("button", {class: "btn-ghost", text: t("Import Save"), onclick: () => document.getElementById("story-import-file").click()}),
+				storyEl("button", {class: "btn-ghost", text: t("Replay Tutorial"), onclick: async () => {
+					StoryMode.data.tutorialDone = false;
+					StoryMode.commit();
+					await ui.alert(t("Replay Tutorial"), t("The Innkeeper will walk you through your next match against her."));
+				}}),
 				storyEl("button", {class: "btn-ghost", text: t("Reset Progress"), onclick: async () => {
 					if (await StoryMode.reset()) {
 						this.view = {kind: "journal"};

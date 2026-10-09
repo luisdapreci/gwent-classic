@@ -905,7 +905,7 @@ class Player {
 		if (this.isHuman() && this.leader.activated.length > 0){
 			// Both leaders are clickable in pass and play; only the player whose turn it is may activate theirs
 			this.elem_leader.addEventListener("click", 
-				async () => await ui.viewCard(this.leader, game.currPlayer !== this || !this.canActivateLeader() || !ui.isInteractive() ? undefined : async () => {
+				async () => await ui.viewCard(this.leader, game.currPlayer !== this || !this.canActivateLeader() || !ui.isInteractive() || StoryTutorial.locked() ? undefined : async () => {
 					AudioManager.playSFX('open');
 					Online.commit(this, {a: "leader"});
 					await this.activateLeader();
@@ -1888,13 +1888,18 @@ class Game {
 		for (const player of [player_op, player_me].filter(p => p.controller instanceof ControllerAI))
 			for (let i=0; i < player.controller.difficulty.redraws; i++)
 				player.controller.redraw();
+		if (this.story?.tutorial) {
+			await StoryTutorial.beforeRedraw();
+			if (session !== this.session)
+				return;
+		}
 		const redraw = async player => {
 			if (hotseat)
 				await ui.handoff(player, t("Choose up to 2 cards from your starting hand to redraw."));
 			await Online.carousel(player, "redraw", player.hand, 2, async (c, i) => { 
 				AudioManager.playSFX('redraw');
 				await player.deck.swap(c, c.cards[i]);
-			}, c => true, false, true, hotseat ? t("{name}: choose up to 2 cards to redraw.", {name: player.name}) : t("Choose up to 2 cards to redraw."), "skip redrawing");
+			}, c => StoryTutorial.canRedraw(c), false, true, hotseat ? t("{name}: choose up to 2 cards to redraw.", {name: player.name}) : t("Choose up to 2 cards to redraw."), "skip redrawing");
 			player.hand.sort?.();
 			if (hotseat)
 				ui.showHand(null);
@@ -2459,7 +2464,7 @@ class UI {
 		this.toggleSettings = [];
 		const passButton = document.getElementById("pass-button");
 		const pass = () => {
-			if (!game.currPlayer?.isHuman() || passButton.classList.contains("noclick"))
+			if (!game.currPlayer?.isHuman() || passButton.classList.contains("noclick") || StoryTutorial.blocks())
 				return;
 			Online.commit(game.currPlayer, {a: "pass"});
 			game.currPlayer.passRound();
@@ -2472,7 +2477,7 @@ class UI {
 			passButton.classList.remove("holding");
 		};
 		passButton.addEventListener("pointerdown", e => {
-			if (e.button !== 0 || passButton.classList.contains("noclick"))
+			if (e.button !== 0 || passButton.classList.contains("noclick") || StoryTutorial.blocks())
 				return;
 			passButton.classList.add("holding");
 			hold = setTimeout(() => {
@@ -2711,6 +2716,8 @@ class UI {
 	async selectCard(card) {
 		if (!this.isInteractive())
 			return;
+		if (!StoryTutorial.allows(card))
+			return;
 		let row = this.lastRow;
 		let pCard = this.previewCard;
 		if (card === pCard)
@@ -2792,6 +2799,7 @@ class UI {
 		{
 			this.setTurnControlsEnabled(false);
 		}
+		StoryTutorial.onPreview(card);
 	}
 	
 	// Toggles the leaders, pass button and hand cards that could otherwise interrupt a forced choice
@@ -2824,6 +2832,7 @@ class UI {
 		this.setSelectable(null, false);
 		this.previewCard = null;
 		this.lastRow = null;
+		StoryTutorial.onPreviewEnd();
 	}
 	
 	// Sets up description window for a card

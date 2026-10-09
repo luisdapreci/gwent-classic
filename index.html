@@ -425,6 +425,20 @@
 
 <p id="live-region" class="sr-only" aria-live="polite" role="status"></p>
 
+<section id="tutorial" class="hide">
+	<div id="tutorial-box" aria-labelledby="tutorial-name" aria-describedby="tutorial-text">
+		<div id="tutorial-portrait" class="story-portrait"></div>
+		<div id="tutorial-body">
+			<p id="tutorial-name"></p>
+			<p id="tutorial-text"></p>
+			<div id="tutorial-buttons">
+				<button id="tutorial-skip" class="btn-ghost">Skip tutorial</button>
+				<button id="tutorial-next" class="btn-gold">Continue</button>
+			</div>
+		</div>
+	</div>
+</section>
+
 <section id="handoff" class="hide" role="dialog" aria-modal="true" aria-labelledby="handoff-name" aria-describedby="handoff-desc">
 	<div class="handoff-panel">
 		<div class="handoff-shield"></div>
@@ -977,6 +991,7 @@
 <script type="text/javascript" src="campaign.js"></script>
 <script type="text/javascript" src="portrait-frames.js"></script>
 <script type="text/javascript" src="story.js"></script>
+<script type="text/javascript" src="tutorial.js"></script>
 <script type="text/javascript" src="fx.js"></script>
 <script>
 	if ("serviceWorker" in navigator && location.protocol.startsWith("http"))
