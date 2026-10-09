@@ -2375,7 +2375,7 @@ class UI {
 		"north": "Northern Realms faction ability triggered: draw an additional card",
 		"monsters": "Monsters faction ability triggered: one random unit stays on the board",
 		"scoiatael": "Opponent used the Scoia'tael faction perk to go first",
-		"skellige-me": "Skellige ability triggered", "skellige-op": "Opponent Skellige ability triggered"
+		"me-skellige": "Skellige ability triggered", "op-skellige": "Opponent Skellige ability triggered"
 	};
 	
 	constructor() {
@@ -3200,7 +3200,7 @@ class Carousel {
 		strip.addEventListener("pointercancel", end);
 	}
 
-	// Mouse wheel / trackpad: one card per notch (trackpad deltas accumulate), down or right = next
+	// Mouse wheel / trackpad: one card per notch (small trackpad deltas accumulate), down or right = next
 	static initWheel() {
 		let acc = 0, resetTimer;
 		Carousel.elem.addEventListener("wheel", e => {
@@ -3216,14 +3216,11 @@ class Carousel {
 			acc += delta;
 			clearTimeout(resetTimer);
 			resetTimer = setTimeout(() => acc = 0, 200);
-			const step = 90;
-			while (Math.abs(acc) >= step) {
+			// At most one card per event: some mice/OS scaling report 200+ px per notch
+			if (Math.abs(acc) >= 90) {
 				c.nudge(0);
-				if (!c.scroll(Math.sign(acc))) {
-					acc = 0;
-					break;
-				}
-				acc -= Math.sign(acc) * step;
+				c.scroll(Math.sign(acc));
+				acc = 0;
 			}
 		}, {passive: false});
 	}

@@ -121,11 +121,11 @@
 #notif-scoiatael { background-image: url('../img/icons/notif_scoiatael.png'); }
 #notif-scoiatael::after { content: "Opponent used the Scoia'tael faction perk to go first."; }
 
-#notif-skellige-op { background-image: url('../img/icons/notif_skellige.png'); }
-#notif-skellige-op::after { content: "Opponent Skellige Ability Triggered!"; }
+#notif-op-skellige { background-image: url('../img/icons/notif_skellige.png'); }
+#notif-op-skellige::after { content: "Opponent Skellige Ability Triggered!"; }
 
-#notif-skellige-me { background-image: url('../img/icons/notif_skellige.png'); }
-#notif-skellige-me::after { content: "Skellige Ability Triggered!"; }
+#notif-me-skellige { background-image: url('../img/icons/notif_skellige.png'); }
+#notif-me-skellige::after { content: "Skellige Ability Triggered!"; }
 
 #notif-north::after,
 #notif-monsters::after,
@@ -148,8 +148,8 @@
 :lang(es) #notif-north::after { content: "Habilidad de facción de los Reinos del Norte: el Norte roba una carta adicional."; }
 :lang(es) #notif-monsters::after { content: "Habilidad de facción de los Monstruos: una unidad elegida al azar permanece en el tablero."; }
 :lang(es) #notif-scoiatael::after { content: "El oponente usó la ventaja de facción Scoia'tael para empezar."; }
-:lang(es) #notif-skellige-op::after { content: "¡Se activó la habilidad Skellige del oponente!"; }
-:lang(es) #notif-skellige-me::after { content: "¡Se activó la habilidad Skellige!"; }
+:lang(es) #notif-op-skellige::after { content: "¡Se activó la habilidad Skellige del oponente!"; }
+:lang(es) #notif-me-skellige::after { content: "¡Se activó la habilidad Skellige!"; }
 
 /* pass and play names the player instead of "you"/"opponent" */
 #notification-bar > div[data-caption]::after { content: attr(data-caption); }
