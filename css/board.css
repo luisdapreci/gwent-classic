@@ -129,11 +129,6 @@
 
 #leader-op { top: 7.55%; }
 #leader-me { top: 77.5%; }
-#leader-op .leader-container::after,
-#leader-me .leader-container::after {
-	left: unset;
-	bottom: calc(-2.2 * var(--u));
-}
 
 /* player plates */
 .stats {
@@ -406,10 +401,6 @@
 	width: 100%;
 	transition: width .7s linear;
 }
-#pass-button[data-title]:hover::after {
-	bottom: calc(-2.2 * var(--u));
-	left: calc(-0.45 * var(--u));
-}
 
 /* ------------------------ middle panel ------------------------ */
 
@@ -548,7 +539,6 @@ main.noclick > #carousel:not(.hide) { pointer-events: auto; }
 .grave:not(:empty):hover {
 	box-shadow: 0 0 calc(1 * var(--u)) var(--gold-glow);
 }
-.grave:not(:empty)::after { left: calc(-0.4 * var(--u)); }
 .grave:empty::after { visibility: hidden; }
 
 .deck-card {

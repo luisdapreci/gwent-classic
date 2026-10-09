@@ -1278,7 +1278,7 @@ const Lobby = {
 			const b = document.createElement("button");
 			b.dataset.rule = id;
 			b.textContent = t(rule.label);
-			b.title = t(rule.desc);
+			b.dataset.title = t(rule.desc);
 			b.addEventListener("click", () => this.toggleRule(id));
 			box.appendChild(b);
 			return b;

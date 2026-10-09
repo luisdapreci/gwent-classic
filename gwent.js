@@ -736,6 +736,7 @@ class Player {
 		const stats = document.getElementById("stats-" + this.tag);
 		stats.dataset.turn = ui.playerCaption("turn", this) ?? t(this.tag === "me" ? "Your turn" : "Opponent's turn");
 		stats.classList.add("current-turn");
+		avatarPicker.updateBoard();
 		this.elem_leader.children[1].classList.toggle("hide", !this.canActivateLeader());
 		
 		if (this.isHuman()) {
@@ -791,6 +792,7 @@ class Player {
 			document.getElementById("pass-button").classList.add("noclick");
 		}
 		document.getElementById("stats-" + this.tag).classList.remove("current-turn");
+		avatarPicker.updateBoard();
 		this.elem_leader.children[1].classList.add("hide");
 		game.endTurn()
 	}
@@ -4914,11 +4916,21 @@ const avatarPicker = {
 		resolve(id);
 	},
 	
-	// Board portraits of local humans open the picker (not in story mode, where you are Geralt)
+	// Local humans can change their board portrait (not in story mode, where you are Geralt);
+	// in pass and play only the player whose turn it is
+	canEdit(player) {
+		if (!player?.isHuman() || game.story)
+			return false;
+		return !game.isHotseat() || (player === game.currPlayer && game.state === GameState.PLAYING
+			&& document.getElementById("stats-" + player.tag).classList.contains("current-turn"));
+	},
+	
 	updateBoard() {
+		if (!player_me || !player_op)
+			return;
 		for (const player of [player_me, player_op]) {
 			const elem = document.querySelector("#stats-" + player.tag + " .profile-img");
-			const editable = player.isHuman() && !game.story;
+			const editable = this.canEdit(player);
 			elem.classList.toggle("editable", editable);
 			if (editable) {
 				makeAccessible(elem, t("Change avatar"));
@@ -4930,7 +4942,7 @@ const avatarPicker = {
 	},
 	
 	async pickFor(player) {
-		if (!player?.isHuman() || game.story)
+		if (!this.canEdit(player))
 			return;
 		const id = await this.open(player.avatar, game.isHotseat() ? player.name : "");
 		if (id === null)
@@ -4948,7 +4960,7 @@ const avatarPicker = {
 		b.dataset.avatar = a.id;
 		b.setAttribute("role", "radio");
 		b.setAttribute("aria-label", t(a.name));
-		b.title = t(a.name);
+		b.dataset.title = t(a.name);
 		const img = document.createElement("img");
 		img.src = a.id ? "img/avatars/" + a.id + ".jpg" : "img/icons/profile.png";
 		img.alt = "";
@@ -5059,8 +5071,6 @@ document.addEventListener("visibilitychange", () => wakeLock.update());
 
 // Keyboard controls: Enter/Space activate focused controls; arrows/Enter/Escape drive the carousel; Escape closes previews
 document.addEventListener("keydown", e => {
-	if (Popup.curr)
-		return;
 	if (avatarPicker.isOpen()) {
 		if (e.key === "Escape")
 			avatarPicker.close(null);
@@ -5073,6 +5083,8 @@ document.addEventListener("keydown", e => {
 		e.preventDefault();
 		return;
 	}
+	if (Popup.curr)
+		return;
 	if (guide.isOpen()) {
 		if (e.key === "Escape")
 			guide.close();
