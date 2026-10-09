@@ -2115,7 +2115,10 @@ class Game {
 			document.getElementById("deck-customization").classList.remove("hide");
 		AudioManager.playSFX('menu_opening');
 		// Story matches go back to the map, so its music starts here instead of a brief menu fade-in
-		ui.setMusicTrack(this.story ? "map" : "menu");
+		if (this.story)
+			StoryUI.mapMusic();
+		else
+			ui.setMusicTrack("menu");
 		this.setState(GameState.CUSTOMIZE);
 	}
 
@@ -2555,6 +2558,11 @@ class UI {
 			monsters: "silver-for-monsters",
 			humans: "steel-for-humans"
 		};
+		// Story themes (campaign.js chapter/opponent/tournament `music`), keyed by file name
+		for (const file of ["geralt-of-rivia", "the-vagabond", "merchants-of-novigrad", "fields-of-ard-skellig", "the-hunt-is-coming",
+			"hearts-of-stone", "blood-and-wine", "eyes-of-the-wolf", "emhyr-var-emreis", "ladies-of-the-woods", "commanding-the-fury",
+			"forged-in-fire", "eredin", "immortal", "night-of-long-fangs", "for-honor", "the-nightingale", "farewell-old-friend"])
+			tracks[file] = file;
 		// No <audio> elements: media elements make the OS show a media notification
 		const ctx = this.musicContext = new (window.AudioContext || window.webkitAudioContext)();
 		for (const [name, file] of Object.entries(tracks))
@@ -2573,11 +2581,14 @@ class UI {
 		return !!this.music[this.musicTrack]?.playing && this.musicContext.state === "running";
 	}
 
-	// Story bosses get a battle theme for their faction; other matches alternate the Gwent mix and Drink Up
+	// Story opponents and tournaments can have their own theme; other bosses get a battle theme for their faction;
+	// other matches rotate the tavern tracks
 	matchMusic(story, faction){
+		if (this.music[story?.opp.music])
+			return story.opp.music;
 		if (story?.opp.boss)
 			return faction === "monsters" ? "monsters" : "humans";
-		return this.matchCount++ % 2 ? "tavern" : "gwent";
+		return ["gwent", "tavern", "the-nightingale"][this.matchCount++ % 3];
 	}
 
 	// Switches to a track from initMusic with a crossfade

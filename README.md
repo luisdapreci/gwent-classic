@@ -179,7 +179,7 @@ The four toggle buttons are in the center column of the deck builder and in the 
 
 | Setting | Notes |
 | --- | --- |
-| Music | Local MP3s in `sfx/music/` (128 kbps; full-quality originals go in the ignored `sfx/music-src/`). Kaer Morhen plays in the menus and The Trail on the story map. Matches alternate between the Gwent soundtrack and Drink Up, There's More!, and story bosses get Silver for Monsters (Monsters) or Steel for Humans (everyone else). Tracks crossfade and only download the first time they play. If the browser blocks autoplay, music starts on your first click or key press. |
+| Music | Local MP3s in `sfx/music/` (128 kbps, from the official soundtracks; full-quality originals go in the ignored `sfx/music-src/`). Kaer Morhen plays in the menus. On the story map each chapter has its own theme (`music` in `campaign.js`), following the chapter you're looking at. Matches rotate the Gwent soundtrack, Drink Up, There's More! and The Nightingale; story bosses and some key opponents have their own themes (otherwise Silver for Monsters or Steel for Humans), the Beauclair tournament has For Honor! For Toussaint!, and Farewell, Old Friend plays over the credits. Tracks crossfade and only download the first time they play. If the browser blocks autoplay, music starts on your first click or key press. |
 | Sound effects | Card placement, abilities, weather, round and match results, menu sounds. |
 | Game messages | In-game notifications such as round start, pass and faction perks. |
 | Visual effects | Particle bursts, screen shake, sunlight, score pulses and card flips. Also disabled automatically when the OS asks for reduced motion. |
@@ -228,13 +228,14 @@ The **EN**/**ES** button on the title screen switches between English and Spanis
 - **Story matches:** `game.story` holds the running story match. `Game.startGame` calls `StoryMode.applyModifiers` before setting up the players, and the end screen, exit and rematch hand off to `StoryMode` (`onGameEnd`, `finish`, `leaveMatch`). The deck builder reads and writes story decks through `StoryMode.deckStore` while `dm.story` is set.
 - **Campaign data:** cards in `campaign.js` are `[card_dict index, count]`, and pins and fog reveals are percentages of the map image. Dialogue lines are `{who, en, es}`; `who` is `"opp"`, `"geralt"`, `"ciri"`, `"narrator"` (Dandelion) or `"chronicle"` (an in-world book quote with a `source`). Short labels such as names go through `t()`, so they need an `I18N.es` entry. Fixed rewards are never offered in random picks or the shop.
 - **Story saves:** `StoryMode.sanitize()` rebuilds every loaded or imported save from known fields only. Add any new save field there, or it's dropped.
-- **Story map art:** the game uses `img/map/continent-1280.jpg` and `continent-2560.jpg`. The full-size source map is ignored by git and Vercel.
+- **Story map art:** the game uses `img/map/continent-1280.jpg` and `continent-2560.jpg`, plus `continent-4096.jpg` when zoomed in on large desktop screens. The full-size source map is ignored by git and Vercel.
 - **Story portraits:** round portraits (map pins, panel rows, tournament trophies) frame card art with `portraitFrames[name] = [x%, y%, zoom%]`. Open `tools/portrait-framer.html` over http to drag and zoom them and save the file.
 
 ## Credits
 - Original project by [asundr](https://github.com/asundr/gwent-classic).
 - Many sound effects come from [RandomPianist's gwent-classic-v3.1](https://github.com/RandomPianist/gwent-classic-v3.1).
 - Gwent, The Witcher and all related art and music are property of CD PROJEKT RED. This is a non-commercial fan project.
+- Music, avatars and the story map come from the official soundtracks and goodie pack of The Witcher 3: Wild Hunt (composers include Marcin Przybyłowicz and Mikolai Stroinski).
 
 ## License
 Released under the license in [LICENSE](LICENSE), which includes the Commons Clause: the software may not be sold.

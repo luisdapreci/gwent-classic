@@ -631,7 +631,7 @@ const StoryMode = {
 		const modifier = tour.modifiers[run.mods[round]];
 		const deck = ai_decks[r.decks][run.decks[round]];
 		const entrant = tour.entrants[run.entrants[round]];
-		return {name: entrant.name, portrait: entrant.portrait, level: r.level,
+		return {name: entrant.name, portrait: entrant.portrait, level: r.level, music: tour.music,
 			deck: r.noHeroes ? {...deck, cards: deck.cards.filter(([i]) => this.rarity(card_dict[i]) !== "hero")} : deck,
 			modifiers: modifier ? [modifier] : [], objectives: [], rewards: [], dialogue: {}, tournament: run.id};
 	},
@@ -998,12 +998,27 @@ const StoryUI = {
 		return !this.el.classList.contains("hide");
 	},
 
+	// Theme of the chapter on screen (viewed chapter, place, opponent or tournament), else of the newest open chapter
+	mapMusic() {
+		if (this.creditsPlaying)
+			return;
+		const v = this.view ?? {};
+		const chapterOfPlace = key => Object.entries(campaign.opponents).find(([id, o]) => (o.place ?? id) === key)?.[1].chapter;
+		const id = v.kind === "chapter" ? v.chapter
+			: v.kind === "opponent" ? campaign.opponents[v.id]?.chapter
+			: v.kind === "place" ? chapterOfPlace(v.place)
+			: v.kind === "tournament" ? chapterOfPlace(StoryMode.tournament(v.id)?.place)
+			: null;
+		const chapter = campaign.chapters.find(c => c.id === id) ?? campaign.chapters.filter(c => StoryMode.isChapterOpen(c.id)).pop();
+		ui.setMusicTrack(ui.music[chapter?.music] ? chapter.music : "map");
+	},
+
 	show() {
 		clearTimeout(this.hideTimer);
 		const opening = !this.isOpen();
 		this.el.classList.remove("hide");
 		document.body.classList.add("story-map");
-		ui.setMusicTrack("map");
+		this.mapMusic();
 		if (opening)
 			this.focusChapter();
 		this.render();
@@ -1041,6 +1056,7 @@ const StoryUI = {
 	render() {
 		if (!this.isOpen())
 			return;
+		this.mapMusic();
 		document.getElementById("story-crowns").textContent = t("{n} crowns", {n: StoryMode.data.crowns});
 		this.renderPins();
 		this.renderFog();
@@ -1203,6 +1219,23 @@ const StoryUI = {
 		this.pan.y = clamp(h - h * this.zoom, 0, this.pan.y);
 		this.inner.style.transform = `translate(${this.pan.x}px, ${this.pan.y}px) scale(${this.zoom})`;
 		this.inner.style.setProperty("--zoom", this.zoom);
+		this.maybeHiRes();
+	},
+
+	// Large desktop screens zoomed past what the 2560px map shows sharply get the 4096px one (too heavy for phones)
+	maybeHiRes() {
+		if (this.hiRes || !matchMedia("(pointer: fine)").matches || innerWidth < 1200)
+			return;
+		const img = document.getElementById("story-map-img");
+		if (img.clientWidth * this.zoom * devicePixelRatio <= 2600)
+			return;
+		this.hiRes = true;
+		const hi = new Image();
+		hi.src = "img/map/continent-4096.jpg";
+		hi.decode().then(() => {
+			img.removeAttribute("srcset");
+			img.src = hi.src;
+		}).catch(() => this.hiRes = false);
 	},
 
 	// ---------- side panel ----------
@@ -1669,6 +1702,8 @@ const StoryUI = {
 
 	// Dandelion's epilogue, then a closing card with the player's totals
 	async showCredits(opp) {
+		this.creditsPlaying = true;
+		ui.setMusicTrack("farewell-old-friend");
 		await this.dialogue(opp, "credits");
 		const data = StoryMode.data;
 		const total = card_dict.reduce((a, c, i) => a + StoryMode.maxCopies(i), 0);
@@ -1685,7 +1720,9 @@ const StoryUI = {
 			this.closeButton(t("Continue")));
 		this.modalBox.classList.add("result");
 		AudioManager.playSFX("game_win");
-		return done;
+		await done;
+		this.creditsPlaying = false;
+		this.mapMusic();
 	},
 
 	openShop() {

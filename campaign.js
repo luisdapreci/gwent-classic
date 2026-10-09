@@ -52,9 +52,9 @@ const campaign = {
 		toussaint: {name: "Road to Toussaint", x: 88, y: 96}
 	},
 
-	// Crowns for a first win by chapter (bosses x2 the first time, rematches x0.5)
+	// Crowns for a first win by chapter (bosses x2 the first time, rematches x0.5); music = map theme (UI.initMusic key)
 	chapters: [
-		{id: "prologue", name: "White Orchard", bossAfter: 2, required: ["innkeeper"], winCrowns: 10,
+		{id: "prologue", name: "White Orchard", bossAfter: 2, required: ["innkeeper"], winCrowns: 10, music: "map",
 			reveal: [{x: 89, y: 85, rx: 11, ry: 14}],
 			epigraph: {source: {en: "Effenberg & Talbot, Encyclopaedia Maxima Mundi", es: "Effenberg y Talbot, Encyclopaedia Maxima Mundi"},
 				en: "White Orchard: a village in Temeria, famous for its orchards, which burned, and its inn, which did not. Population: variable, depending on the war.",
@@ -70,7 +70,7 @@ const campaign = {
 				{en: "The well-digger swears the griffin only took soldiers. \"Picky eater,\" he says. \"Like my wife.\"", es: "El pocero jura que el grifo solo se llevaba soldados. «Quisquillosa para comer», dice. «Como mi mujer»."},
 				{en: "A white-haired stranger asked at the inn about a woman in black who smells of lilac and gooseberries. The innkeeper charged him for the question.", es: "Un forastero de cabello blanco preguntó en la posada por una mujer de negro que huele a lilas y grosellas. La posadera le cobró la pregunta."}
 			]},
-		{id: "vizima", name: "Vizima", bossAfter: 1, winCrowns: 20,
+		{id: "vizima", name: "Vizima", bossAfter: 1, winCrowns: 20, music: "geralt-of-rivia",
 			reveal: [{x: 90, y: 66, rx: 9, ry: 9}],
 			epigraph: {source: {en: "Roderick de Novembre, The History of the World", es: "Roderick de Novembre, Historia del mundo"},
 				en: "Upon taking Vizima, the Emperor held court in the royal palace, which he declared temporary. Temerian historians note that the furniture was not.",
@@ -86,7 +86,7 @@ const campaign = {
 				{en: "\"The king's ghost plays gwent in the throne room.\" \"And?\" \"And he still loses.\" (two guards, palace kitchens)", es: "«El fantasma del rey juega gwent en el salón del trono». «¿Y?». «Y sigue perdiendo». (dos guardias, cocinas del palacio)"},
 				{en: "They say the Emperor's daughter died years ago. They also say she didn't. In Vizima, both rumors cost a copper.", es: "Dicen que la hija del Emperador murió hace años. También dicen que no. En Vizima, ambos rumores cuestan un cobre."}
 			]},
-		{id: "velen", name: "Velen", bossAfter: 2, required: ["baron"], winCrowns: 30,
+		{id: "velen", name: "Velen", bossAfter: 2, required: ["baron"], winCrowns: 30, music: "the-vagabond",
 			reveal: [{x: 62, y: 58, rx: 22, ry: 20}],
 			epigraph: {source: {en: "Effenberg & Talbot, Encyclopaedia Maxima Mundi, vol. XV", es: "Effenberg y Talbot, Encyclopaedia Maxima Mundi, vol. XV"},
 				en: "Velen, or No Man's Land: a marshy region notable for its bogs, its gallows, and a remarkably brisk traffic between the living and the dead.",
@@ -101,7 +101,7 @@ const campaign = {
 				{en: "In Midcopse they leave bread on the windowsill for the Ladies of the Wood. The children who forget don't grow up.", es: "En Midcopse dejan pan en la ventana para las Damas del Bosque. Los niños que lo olvidan no llegan a crecer."},
 				{en: "A Velen counting rhyme: one for the Baron, two for the crows, three for the Ladies, and where the rest go, nobody knows.", es: "Una rima de Velen para contar: uno es del Barón, dos son del cuervo, tres de las Damas, y el resto, del suelo."}
 			]},
-		{id: "novigrad", name: "Novigrad & Oxenfurt", bossAfter: 3, winCrowns: 50,
+		{id: "novigrad", name: "Novigrad & Oxenfurt", bossAfter: 3, winCrowns: 50, music: "merchants-of-novigrad",
 			reveal: [{x: 57, y: 31, rx: 15, ry: 13}],
 			epigraph: {source: {en: "Ordinances of the Novigrad Temple Guard, art. 4", es: "Ordenanzas de la Guardia del Templo de Novigrad, art. 4"},
 				en: "Card games are permitted within the city walls, provided no card depicts a sorceress, a nonhuman, or anything else a reasonable priest might find suspicious.",
@@ -117,7 +117,7 @@ const campaign = {
 				{en: "A beggar on Hierarch Square claims to be the rightful king of Novigrad. He has a crown, a court and three fleas, which is more than the last one had.", es: "Un mendigo de la Plaza del Jerarca dice ser el legítimo rey de Novigrad. Tiene corona, corte y tres pulgas, que es más de lo que tenía el anterior."},
 				{en: "Novigrad customs ledger: confiscated at the gate, one deck of cards depicting sorceresses. Burned. A second deck, the same: under review by the Hierarch, personally.", es: "Registro de aduanas de Novigrad: confiscado en la puerta, un mazo de cartas con hechiceras. Quemado. Un segundo mazo, igual: en revisión por el Jerarca, personalmente."}
 			]},
-		{id: "skellige", name: "Skellige", bossAfter: 3, required: ["avallach"], winCrowns: 70,
+		{id: "skellige", name: "Skellige", bossAfter: 3, required: ["avallach"], winCrowns: 70, music: "fields-of-ard-skellig",
 			reveal: [{x: 20, y: 68, rx: 21, ry: 28}],
 			epigraph: {source: {en: "Roderick de Novembre, The History of the World", es: "Roderick de Novembre, Historia del mundo"},
 				en: "The Skelligers are a proud, seafaring people who settle disputes by duel, by feast, or, most often, by both at once.",
@@ -132,7 +132,7 @@ const campaign = {
 				{en: "The jarls' sons are competing for the crown. So far the contest has involved three duels, two shipwrecks and one very confused bear.", es: "Los hijos de los jarls compiten por la corona. Hasta ahora, la contienda ha incluido tres duelos, dos naufragios y un oso muy confundido."},
 				{en: "A drinking song from An Skellig: the king is dead, the mead is not, so drink the king's, and drink a lot.", es: "Una canción de taberna de An Skellig: el rey murió, el hidromiel no; bebe el del rey, que el rey ya se fue."}
 			]},
-		{id: "kaermorhen", name: "Kaer Morhen", bossAfter: 2, winCrowns: 85,
+		{id: "kaermorhen", name: "Kaer Morhen", bossAfter: 2, winCrowns: 85, music: "menu",
 			reveal: [{x: 83, y: 15, rx: 12, ry: 14}],
 			epigraph: {source: {en: "Effenberg & Talbot, Encyclopaedia Maxima Mundi", es: "Effenberg y Talbot, Encyclopaedia Maxima Mundi"},
 				en: "Kaer Morhen: a ruined keep in the Blue Mountains, formerly a school of witchers. Abandoned. See also: mutants; superstition; regrettable episodes.",
@@ -148,7 +148,7 @@ const campaign = {
 				{en: "Shepherds in the Blue Mountains say the frost came early this year, in a single night, in the shape of a hand.", es: "Los pastores de las Montañas Azules dicen que este año la escarcha llegó temprano, en una sola noche, con la forma de una mano."}
 			]},
 		// Linear: each opponent requires the previous one
-		{id: "hunt", name: "The Wild Hunt", bossAfter: 2, winCrowns: 100,
+		{id: "hunt", name: "The Wild Hunt", bossAfter: 2, winCrowns: 100, music: "the-hunt-is-coming",
 			reveal: [{x: 22, y: 30, rx: 13, ry: 13}, {x: 65, y: 66, rx: 6, ry: 6}],
 			epigraph: {source: {en: "Effenberg & Talbot, Encyclopaedia Maxima Mundi", es: "Effenberg y Talbot, Encyclopaedia Maxima Mundi"},
 				en: "Wild Hunt: a folk superstition concerning spectral riders in the sky, regarded by serious scholarship as a misinterpretation of storms, geese and drink.",
@@ -164,7 +164,7 @@ const campaign = {
 				{en: "Wanted poster, Novigrad: the White Wolf, dead or alive. Someone has crossed out \"dead or alive\" and written \"good luck\".", es: "Cartel de se busca, Novigrad: el Lobo Blanco, vivo o muerto. Alguien tachó «vivo o muerto» y escribió «buena suerte»."}
 			]},
 		// Post-game side stories: both open once Eredin is beaten and have no boss
-		{id: "heartsofstone", name: "Hearts of Stone", opensAfter: "eredin", bossAfter: 0, winCrowns: 100,
+		{id: "heartsofstone", name: "Hearts of Stone", opensAfter: "eredin", bossAfter: 0, winCrowns: 100, music: "hearts-of-stone",
 			reveal: [{x: 65, y: 33, rx: 7, ry: 6}, {x: 13, y: 93, rx: 7, ry: 7}],
 			epigraph: {source: {en: "Oxenfurt Academy, Faculty of Folklore (unfinished thesis)", es: "Academia de Oxenfurt, Facultad de Folclore (tesis inconclusa)"},
 				en: "Of the Man of Glass, or Master Mirror, little can be stated with certainty, as every scholar who studied him has, on reflection, declined to continue.",
@@ -179,7 +179,7 @@ const campaign = {
 				{en: "The old women at the Gustfields crossroads won't sell pomegranates to strangers. They won't say why.", es: "Las ancianas de la encrucijada de Gustfields no les venden granadas a los desconocidos. No dicen por qué."},
 				{en: "Sailors in Skellige say a whirlpool off the south coast sings when the moon is full. The ones who answer don't sail back.", es: "Los marineros de Skellige dicen que frente a la costa sur hay un remolino que canta con la luna llena. Los que responden no vuelven a puerto."}
 			]},
-		{id: "bloodandwine", name: "Blood and Wine", opensAfter: "eredin", bossAfter: 0, winCrowns: 100,
+		{id: "bloodandwine", name: "Blood and Wine", opensAfter: "eredin", bossAfter: 0, winCrowns: 100, music: "blood-and-wine",
 			reveal: [{x: 88, y: 94, rx: 9, ry: 8}],
 			epigraph: {source: {en: "Effenberg & Talbot, Encyclopaedia Maxima Mundi", es: "Effenberg y Talbot, Encyclopaedia Maxima Mundi"},
 				en: "Toussaint: a southern duchy, vassal of Nilfgaard, where wine is a staple, chivalry a sport, and murder, when it happens, is considered terribly impolite.",
@@ -264,7 +264,7 @@ const campaign = {
 			]
 		},
 		beauclair: {
-			name: "Beauclair Tournament", place: "toussaint", requires: "regis", fee: 100, perRound: 100, champion: 400,
+			name: "Beauclair Tournament", place: "toussaint", requires: "regis", fee: 100, perRound: 100, champion: 400, music: "for-honor",
 			prizes: [26, 97, 143],
 			rumor: {en: "In Beauclair every match opens with a bow, a toast and a sonnet. Cheating is permitted, provided it rhymes.", es: "En Beauclair cada partida empieza con una reverencia, un brindis y un soneto. Hacer trampa está permitido, siempre que rime."},
 			dialogue: {
@@ -354,7 +354,7 @@ const campaign = {
 			}
 		},
 		vesemir: {
-			chapter: "prologue", name: "Vesemir", portrait: "neutral_vesemir", pin: {x: 90, y: 82}, level: "normal", boss: true,
+			chapter: "prologue", name: "Vesemir", portrait: "neutral_vesemir", pin: {x: 90, y: 82}, level: "normal", boss: true, music: "eyes-of-the-wolf",
 			deck: {faction: "realms", leader: 22, cards: [
 				[13,1], [214,1], [28,3], [30,2], [54,1], [38,1],
 				[48,1], [52,1], [46,1], [35,1], [36,1], [37,1], [2,1], [4,1]
@@ -399,7 +399,7 @@ const campaign = {
 			}
 		},
 		emhyr: {
-			chapter: "vizima", name: "Emhyr var Emreis", portrait: "nilfgaard_emhyr_copper", pin: {x: 93.5, y: 62}, level: "normal", boss: true, unlocks: "nilfgaard",
+			chapter: "vizima", name: "Emhyr var Emreis", portrait: "nilfgaard_emhyr_copper", pin: {x: 93.5, y: 62}, level: "normal", boss: true, unlocks: "nilfgaard", music: "emhyr-var-emreis",
 			deck: {faction: "nilfgaard", leader: 58, cards: [
 				[63,1], [65,1], [71,2],
 				[79,1], [78,1], [87,1], [66,1], [92,1], [82,1], [9,1],
@@ -566,7 +566,7 @@ const campaign = {
 			}
 		},
 		crones: {
-			chapter: "velen", name: "The Crones", portrait: "monsters_witch_velen", pin: {x: 65, y: 60}, level: "normal", boss: true, unlocks: "monsters", retold: true,
+			chapter: "velen", name: "The Crones", portrait: "monsters_witch_velen", pin: {x: 65, y: 60}, level: "normal", boss: true, unlocks: "monsters", retold: true, music: "ladies-of-the-woods",
 			deck: {faction: "monsters", leader: 96, cards: [
 				[105,1], [106,1], [107,1], [130,1], [113,1], [127,1], [128,1], [129,1], [117,1],
 				[118,1], [119,1], [102,1],
@@ -692,7 +692,7 @@ const campaign = {
 			}
 		},
 		zoltan: {
-			chapter: "novigrad", name: "Zoltan Chivay", portrait: "neutral_zoltan", pin: {x: 49, y: 29}, place: "novigrad", level: "hard", boss: true, unlocks: "scoiatael",
+			chapter: "novigrad", name: "Zoltan Chivay", portrait: "neutral_zoltan", pin: {x: 49, y: 29}, place: "novigrad", level: "hard", boss: true, unlocks: "scoiatael", music: "tavern",
 			deck: {faction: "scoiatael", leader: 142, cards: [
 				[16,1], [151,1], [152,1], [153,1], [168,1], [169,1], [170,1], [171,1], [172,1], [146,1],
 				[145,1], [162,1], [163,1], [164,1], [159,1], [160,1], [176,1], [177,1], [178,1],
@@ -817,7 +817,7 @@ const campaign = {
 			}
 		},
 		crach: {
-			chapter: "skellige", name: "Crach an Craite", portrait: "skellige_crach_an_craite", pin: {x: 17, y: 51}, place: "kaertrolde", level: "hard", boss: true, unlocks: "skellige",
+			chapter: "skellige", name: "Crach an Craite", portrait: "skellige_crach_an_craite", pin: {x: 17, y: 51}, place: "kaertrolde", level: "hard", boss: true, unlocks: "skellige", music: "commanding-the-fury",
 			deck: {faction: "skellige", leader: 211, cards: [
 				[192,3], [187,1], [188,1], [189,1], [185,2], [186,1], [190,1], [191,1], [193,1], [205,1],
 				[208,1], [181,1], [210,3], [202,1], [209,2], [182,1], [198,1], [5,1], [10,1]
@@ -919,7 +919,7 @@ const campaign = {
 			}
 		},
 		battle: {
-			chapter: "kaermorhen", name: "Battle of Kaer Morhen", portrait: "monsters_eredin_silver", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard", boss: true, retold: true,
+			chapter: "kaermorhen", name: "Battle of Kaer Morhen", portrait: "monsters_eredin_silver", pin: {x: 83, y: 15}, place: "kaermorhen", level: "hard", boss: true, retold: true, music: "forged-in-fire",
 			deck: {faction: "monsters", leader: 93, cards: [
 				[113,1], [102,1], [111,1], [130,1], [121,1], [114,1], [115,1], [109,1], [112,1], [123,1],
 				[98,1], [99,1], [100,1], [101,1], [117,1], [118,1], [119,1], [5,1]
@@ -946,7 +946,7 @@ const campaign = {
 
 		// ---------- Chapter VI: The Wild Hunt ----------
 		imlerith: {
-			chapter: "hunt", name: "Imlerith", portrait: "monsters_imlerith", pin: {x: 65, y: 66}, level: "hard", retold: true,
+			chapter: "hunt", name: "Imlerith", portrait: "monsters_imlerith", pin: {x: 65, y: 66}, level: "hard", retold: true, music: "eredin",
 			deck: {faction: "monsters", leader: 96, cards: [
 				[124,1], [108,1], [111,1], [130,1], [121,1], [114,1], [115,1], [113,1], [102,1], [131,1],
 				[132,1], [133,1], [134,1], [135,1], [117,1], [118,1], [119,1], [5,1]
@@ -967,7 +967,7 @@ const campaign = {
 			}
 		},
 		caranthir: {
-			chapter: "hunt", name: "Caranthir", portrait: "monsters_eredin_bronze", pin: {x: 22, y: 30}, place: "naglfar", level: "hard", requires: "imlerith", retold: true,
+			chapter: "hunt", name: "Caranthir", portrait: "monsters_eredin_bronze", pin: {x: 22, y: 30}, place: "naglfar", level: "hard", requires: "imlerith", retold: true, music: "eredin",
 			deck: {faction: "monsters", leader: 94, cards: [
 				[123,1], [109,1], [112,1], [120,1], [137,1], [104,1], [110,1], [116,1],
 				[98,1], [99,1], [100,1], [101,1], [127,1], [128,1], [129,1], [5,1], [1,1]
@@ -988,7 +988,7 @@ const campaign = {
 			}
 		},
 		eredin: {
-			chapter: "hunt", name: "Eredin Bréacc Glas", portrait: "monsters_eredin_gold", pin: {x: 22, y: 30}, place: "naglfar", level: "expert", boss: true, requires: "caranthir", credits: true, retold: true,
+			chapter: "hunt", name: "Eredin Bréacc Glas", portrait: "monsters_eredin_gold", pin: {x: 22, y: 30}, place: "naglfar", level: "expert", boss: true, requires: "caranthir", credits: true, retold: true, music: "eredin",
 			deck: {faction: "monsters", leader: 95, cards: [
 				[108,1], [126,1], [125,1], [111,1], [130,1], [121,1], [114,1], [115,1], [123,1], [109,1],
 				[112,1], [131,1], [132,1], [133,1], [134,1], [135,1], [98,1], [99,1], [100,1], [101,1],
@@ -1022,7 +1022,7 @@ const campaign = {
 
 		// ---------- Post-game: Hearts of Stone ----------
 		olgierd: {
-			chapter: "heartsofstone", name: "Olgierd von Everec", portrait: "neutral_olgierd", pin: {x: 68, y: 33.5}, level: "hard",
+			chapter: "heartsofstone", name: "Olgierd von Everec", portrait: "neutral_olgierd", pin: {x: 68, y: 33.5}, level: "hard", music: "immortal",
 			deck: {faction: "realms", leader: 22, cards: [
 				[17,1], [28,3], [30,3], [29,2], [46,1], [52,1], [33,1], [34,1], [54,1], [55,1],
 				[45,1], [32,1], [10,1], [5,1], [1,1]
@@ -1041,7 +1041,7 @@ const campaign = {
 			}
 		},
 		odimm: {
-			chapter: "heartsofstone", name: "Gaunter O'Dimm", portrait: "neutral_gaunter_odimm", pin: {x: 62, y: 31}, level: "expert", requires: "olgierd",
+			chapter: "heartsofstone", name: "Gaunter O'Dimm", portrait: "neutral_gaunter_odimm", pin: {x: 62, y: 31}, level: "expert", requires: "olgierd", music: "hearts-of-stone",
 			deck: {faction: "realms", leader: 22, cards: [
 				[18,1], [19,3], [28,3], [30,3], [29,2], [33,1], [34,1], [46,1], [52,1], [48,1],
 				[50,1], [54,1], [55,1], [45,1], [32,1], [10,1], [5,1], [1,2], [4,1]
@@ -1063,7 +1063,7 @@ const campaign = {
 			}
 		},
 		maelstrom: {
-			chapter: "heartsofstone", name: "The Maelstrom", portrait: "neutral_villen", pin: {x: 13, y: 93}, level: "expert", requires: "odimm", hidden: true,
+			chapter: "heartsofstone", name: "The Maelstrom", portrait: "neutral_villen", pin: {x: 13, y: 93}, level: "expert", requires: "odimm", hidden: true, music: "hearts-of-stone",
 			deck: {faction: "monsters", leader: 96, cards: [
 				[111,1], [130,1], [121,1], [114,1], [115,1], [123,1], [109,1], [112,1], [108,1], [125,1],
 				[98,1], [99,1], [100,1], [101,1], [117,1], [118,1], [119,1], [127,1], [128,1], [129,1],
@@ -1083,7 +1083,7 @@ const campaign = {
 
 		// ---------- Post-game: Blood and Wine ----------
 		regis: {
-			chapter: "bloodandwine", name: "Regis", portrait: "neutral_emiel", pin: {x: 88, y: 96}, place: "toussaint", level: "normal",
+			chapter: "bloodandwine", name: "Regis", portrait: "neutral_emiel", pin: {x: 88, y: 96}, place: "toussaint", level: "normal", music: "blood-and-wine",
 			deck: {faction: "monsters", leader: 93, cards: [
 				[7,1], [131,1], [132,1], [135,1], [111,1], [130,1], [102,1], [113,1],
 				[121,1], [120,1], [5,1], [1,1]
@@ -1101,7 +1101,7 @@ const campaign = {
 			}
 		},
 		dettlaff: {
-			chapter: "bloodandwine", name: "Dettlaff van der Eretein", portrait: "monsters_katakan", pin: {x: 88, y: 96}, place: "toussaint", level: "hard", requires: "regis", retold: true,
+			chapter: "bloodandwine", name: "Dettlaff van der Eretein", portrait: "monsters_katakan", pin: {x: 88, y: 96}, place: "toussaint", level: "hard", requires: "regis", retold: true, music: "night-of-long-fangs",
 			deck: {faction: "monsters", leader: 96, cards: [
 				[131,1], [132,1], [133,1], [134,1], [135,1], [108,1], [111,1], [130,1], [121,1], [114,1],
 				[115,1], [123,1], [109,1], [112,1], [117,1], [118,1], [119,1], [10,2], [5,1], [1,1]
