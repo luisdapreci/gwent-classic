@@ -658,6 +658,12 @@ class Player {
 		let x = document.querySelector("#stats-" +this.tag+ " .profile-img > div > div");
 		x.style.backgroundImage = iconURL("deck_shield_" + deck.faction);
 		this.setAvatar("");
+		this.setMaster(false);
+	}
+	
+	// Story mode's Gwent Master title: a star by the name
+	setMaster(on) {
+		document.getElementById("name-" + this.tag).classList.toggle("master", on);
 	}
 	
 	// Avatar id shown in the profile circle; "" = the default silhouette
@@ -3928,6 +3934,7 @@ class DeckMaker {
 		player_me = new Player(0, t("Player 1"), p1.deck);
 		player_op = hotseat ? new Player(1, t("Player 2"), p2.deck, true) : new Player(1, DeckMaker.opponentName(), this.constructOpponentDeck());
 		player_me.setAvatar(Settings.avatar.get());
+		player_me.setMaster(!hotseat && StoryMode.isMaster());
 		player_op.setAvatar(hotseat ? Settings.p2Avatar.get() : AI_AVATARS[player_op.deck.faction]);
 		
 		this.elem.classList.add("hide");

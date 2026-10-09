@@ -6,6 +6,8 @@ const portraitFrames = {
 	"avatars/28.jpg": [50, 40, 100],
 	"icons/notif_me_turn.png": [87.2, 6.2, 133.5],
 	"monsters_bruxa": [100, 2.5, 133.5],
+	"monsters_celaeno_harpy": [100, 7, 133.5],
+	"monsters_draug": [100, 4.7, 133.5],
 	"monsters_eredin_bronze": [0, 0, 100],
 	"monsters_eredin_gold": [0, 8.5, 100],
 	"monsters_eredin_silver": [100, 7.2, 100],

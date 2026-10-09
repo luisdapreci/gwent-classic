@@ -42,7 +42,7 @@ const StoryMode = {
 	newSave() {
 		const save = {
 			version: this.VERSION, crowns: 0, collection: {}, decks: {}, activeFaction: "realms", unlockedFactions: [],
-			progress: {}, pending: [], matches: 0, last: null, shop: null, tournament: null, seenChapters: [],
+			progress: {}, pending: [], matches: 0, last: null, shop: null, tournament: null, seenChapters: [], master: false,
 			stats: {wins: 0, losses: 0, streak: 0, bestStreak: 0, crownsEarned: 0, tournamentsWon: 0}
 		};
 		this.unlockFaction("realms", save);
@@ -178,6 +178,27 @@ const StoryMode = {
 
 	beaten(id) {
 		return (this.data.progress[id]?.wins ?? 0) > 0;
+	},
+
+	// Every campaign opponent (side and secret ones too) beaten with all four stars
+	allStars() {
+		return Object.keys(campaign.opponents).every(id => this.data.progress[id]?.stars.every(Boolean));
+	},
+
+	// The Gwent Master title, kept once earned even if new opponents are added later
+	isMaster() {
+		return this.data.master === true;
+	},
+
+	// Grants the title and every card still missing; the number of cards added, or null if not earned now
+	awardMaster() {
+		if (this.isMaster() || !this.allStars())
+			return null;
+		let added = 0;
+		card_dict.forEach((c, i) => added += this.addCard(i, this.maxCopies(i) - this.owned(i)).added);
+		this.data.master = true;
+		this.commit();
+		return added;
 	},
 
 	chapterOpponents(chapterId) {
@@ -453,6 +474,7 @@ const StoryMode = {
 		player_op?.reset();
 		const oppDeck = this.opponentDeck(opp, story.rematch);
 		player_me = new Player(0, t("Geralt"), deck);
+		player_me.setMaster(this.isMaster());
 		player_op = new Player(1, t(opp.name), oppDeck);
 		player_op.controller = new ControllerAI(player_op, opp.level);
 		this.boardPortrait("me", this.frameStyle("neutral_geralt", this.artURL("lg/neutral_geralt.jpg")));
@@ -876,6 +898,9 @@ const StoryMode = {
 		StoryUI.show();
 		await this.resolvePending();
 		StoryUI.render();
+		const added = this.awardMaster();
+		if (added !== null)
+			await StoryUI.showMaster(added);
 		await this.playOpeners();
 	},
 
@@ -993,6 +1018,7 @@ const StoryMode = {
 			? campaign.chapters.map(c => c.id).filter(id => raw.seenChapters.includes(id))
 			: campaign.chapters.filter(c => this.chapterOpponents(c.id).some(id => save.progress[id]?.wins > 0)).map(c => c.id);
 		save.last = campaign.opponents[raw.last] ? raw.last : null;
+		save.master = raw.master === true;
 		const stock = raw.shop?.stock;
 		save.shop = Array.isArray(stock) && isCount(raw.shop.refreshAt) && stock.length <= this.SHOP_SIZE && stock.every(i => Number.isInteger(i) && card_dict[i] && card_dict[i].row !== "leader")
 			? {stock: [...stock], refreshAt: raw.shop.refreshAt} : null;
@@ -1411,7 +1437,7 @@ const StoryUI = {
 				open && storyEl("span", {class: "story-stars", text: stars + "/" + maxStars + " \u2605"}));
 		});
 		const tournaments = StoryMode.openTournaments();
-		return [storyEl("h2", {text: t("Journal")}), storyEl("p", {class: "story-kicker", text: t("Choose a place on the map or a chapter below.")}), ...rows,
+		return [storyEl("h2", {text: t("Journal")}), this.masterBadge(), storyEl("p", {class: "story-kicker", text: t("Choose a place on the map or a chapter below.")}), ...rows,
 			tournaments.length > 0 && storyEl("h3", {text: t("Tournaments")}),
 			...tournaments.map(id => this.tournamentRow(id, {kind: "journal"}))];
 	},
@@ -1746,6 +1772,27 @@ const StoryUI = {
 		this.render();
 	},
 
+	masterBadge(always = false) {
+		return (always || StoryMode.isMaster()) && storyEl("p", {class: "story-master", text: "\u2605 " + t("Gwent Master")});
+	},
+
+	// Dandelion's scene and the title card for 4 stars on every battle
+	async showMaster(added) {
+		await this.dialogue({dialogue: {master: campaign.master}}, "master");
+		const done = this.openModal(
+			storyEl("div", {class: "story-result-title"}, storyEl("h2", {text: t("Gwent Master")}),
+				storyEl("p", {class: "story-kicker", text: t("Every battle won with all four stars")})),
+			this.masterBadge(true),
+			storyEl("div", {class: "story-result-notes"},
+				storyEl("p", {class: "story-dim", text: added ? t("{n} missing cards were added to your collection. It is now complete.", {n: added}) : t("Your collection was already complete.")}),
+				storyEl("p", {class: "story-dim", text: t("Your title now appears next to your name in every match, online too.")})),
+			this.closeButton(t("Continue")));
+		this.modalBox.classList.add("result");
+		AudioManager.playSFX("game_win");
+		setTimeout(() => fx.burst(this.modalBox.querySelector(".story-master"), "gold"), 300);
+		return done;
+	},
+
 	closeButton(text = t("Close")) {
 		return storyEl("div", {class: "story-buttons"}, storyEl("button", {class: "btn-gold", text, onclick: () => this.closeModal()}));
 	},
@@ -1810,6 +1857,7 @@ const StoryUI = {
 		const row = (label, value) => [storyEl("dt", {text: label}), storyEl("dd", {text: String(value)})];
 		const done = this.openModal(
 			storyEl("div", {class: "story-result-title"}, storyEl("h2", {text: t("The End")}), storyEl("p", {class: "story-kicker", text: t("Path of the Witcher")})),
+			this.masterBadge(StoryMode.allStars()),
 			storyEl("dl", {class: "story-stats story-credits-stats"},
 				row(t("Wins"), data.stats.wins), row(t("Losses"), data.stats.losses), row(t("Stars"), stars),
 				row(t("Tournaments won"), data.stats.tournamentsWon), row(t("Crowns earned"), data.stats.crownsEarned),
@@ -1901,6 +1949,7 @@ const StoryUI = {
 		};
 		const done = this.openModal(
 			storyEl("h2", {text: t("Stats")}),
+			this.masterBadge(),
 			storyEl("div", {class: "story-stats-tiles"},
 				tile(t("Wins"), s.wins), tile(t("Losses"), s.losses),
 				tile(t("Win rate"), played ? Math.round(100 * s.wins / played) + "%" : "\u2013"),

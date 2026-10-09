@@ -92,6 +92,8 @@ const Online = {
 	opponentName: "",
 	avatar: "",
 	opponentAvatar: "",
+	master: false,
+	opponentMaster: false,
 	timerSetting: 60,
 	rulesSetting: [],
 	ready: false,
@@ -424,6 +426,8 @@ const Online = {
 		player_op = new Player(1, start.names[op], deckFor(op), false, {seat: op, remote: true, rng: seededRandom(start.seed + "/" + op)});
 		player_me.setAvatar(this.avatar);
 		player_op.setAvatar(this.opponentAvatar);
+		player_me.setMaster(this.master);
+		player_op.setMaster(this.opponentMaster);
 		if (!titleScreen.classList.contains("hide"))
 			closeTitleScreen();
 		document.getElementById("lobby").classList.add("hide");
@@ -542,6 +546,7 @@ const Online = {
 		sessionStorage.setItem(SESSION_KEY, JSON.stringify({
 			code: this.code, role: this.role, seat: this.seat, token: this.token,
 			name: this.name, opponent: this.opponentName, avatar: this.avatar, opponentAvatar: this.opponentAvatar,
+			master: this.master, opponentMaster: this.opponentMaster,
 			timer: this.timerSetting, rules: this.rulesSetting, at: Date.now()
 		}));
 	},
@@ -558,6 +563,13 @@ const Online = {
 		if (this.start && player_op)
 			player_op.setAvatar(this.opponentAvatar);
 		this.saveSession();
+	},
+
+	// The Gwent Master title is self-reported and only cosmetic, like avatars
+	setOpponentMaster(on) {
+		this.opponentMaster = on === true;
+		if (this.start && player_op)
+			player_op.setMaster(this.opponentMaster);
 	},
 
 	// ================= deck builder (room) =================
@@ -884,7 +896,7 @@ const Online = {
 				if (this.token)
 					this.sendResume();
 				else
-					this.send({t: "hello", v: ONLINE_PROTOCOL, cards: card_dict.length, name: this.name, avatar: this.avatar});
+					this.send({t: "hello", v: ONLINE_PROTOCOL, cards: card_dict.length, name: this.name, avatar: this.avatar, master: this.master});
 			}
 		});
 		conn.on("data", m => this.onData(conn, m));
@@ -938,8 +950,9 @@ const Online = {
 			this.guestJoined = true;
 			this.opponentName = name;
 			this.opponentAvatar = cleanAvatar(m.avatar);
+			this.opponentMaster = m.master === true;
 			this.adopt(conn);
-			this.send({t: "welcome", v: ONLINE_PROTOCOL, name: this.name, avatar: this.avatar, token: this.token, timer: this.timerSetting, rules: this.rulesSetting});
+			this.send({t: "welcome", v: ONLINE_PROTOCOL, name: this.name, avatar: this.avatar, master: this.master, token: this.token, timer: this.timerSetting, rules: this.rulesSetting});
 			this.onConnected();
 		} else if (m.t === "resume") {
 			if (!this.token || m.token !== this.token)
@@ -962,7 +975,7 @@ const Online = {
 	},
 
 	sendResume() {
-		this.send({t: "resume", token: this.token, match: this.start?.id ?? null, have: this.log[1 - this.seat].length, avatar: this.avatar});
+		this.send({t: "resume", token: this.token, match: this.start?.id ?? null, have: this.log[1 - this.seat].length, avatar: this.avatar, master: this.master});
 	},
 
 	onConnected() {
@@ -990,6 +1003,7 @@ const Online = {
 					return;
 				this.opponentName = cleanName(m.name) || t("Opponent");
 				this.opponentAvatar = cleanAvatar(m.avatar);
+				this.opponentMaster = m.master === true;
 				this.token = String(m.token ?? "").slice(0, 64);
 				this.timerSetting = TIMER_CHOICES.includes(m.timer) ? m.timer : 0;
 				this.rulesSetting = cleanRules(m.rules);
@@ -1091,6 +1105,8 @@ const Online = {
 		this.reconnected();
 		if ("avatar" in m)
 			this.setOpponentAvatar(m.avatar);
+		if ("master" in m)
+			this.setOpponentMaster(m.master);
 		const mine = this.start?.id ?? null;
 		const theirs = typeof m.match === "string" ? m.match : null;
 		if (mine && theirs === mine) {
@@ -1201,6 +1217,7 @@ const Online = {
 		this.turnOpen = false;
 		this.role = null;
 		this.code = this.token = this.opponentName = this.opponentAvatar = "";
+		this.opponentMaster = false;
 		this.guestJoined = false;
 		this.ready = this.opponentReady = false;
 		this.log = [[], []];
@@ -1233,6 +1250,8 @@ const Online = {
 		this.opponentName = cleanName(s.opponent);
 		this.avatar = cleanAvatar(s.avatar);
 		this.opponentAvatar = cleanAvatar(s.opponentAvatar);
+		this.master = s.master === true;
+		this.opponentMaster = s.opponentMaster === true;
 		this.timerSetting = TIMER_CHOICES.includes(s.timer) ? s.timer : 0;
 		this.rulesSetting = cleanRules(s.rules);
 		this.guestJoined = true;
@@ -1376,6 +1395,7 @@ const Lobby = {
 		Settings.onlineName.set(name);
 		Online.name = name;
 		Online.avatar = cleanAvatar(Settings.avatar.get());
+		Online.master = StoryMode.isMaster();
 		return name;
 	},
 

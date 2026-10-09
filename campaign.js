@@ -213,6 +213,15 @@ const campaign = {
 		]
 	},
 
+	// Played once, when every opponent has all four stars (the Gwent Master title and the full collection)
+	master: [
+		{who: "narrator", en: "A confession, dear reader: I kept count. Every table, every swamp, every cursed banquet, and Geralt won them all the hard way, under every condition the house could invent.", es: "Una confesión, querido lector: llevé la cuenta. Cada mesa, cada pantano, cada banquete maldito, y Geralt los ganó todos por las malas, con todas las condiciones que la casa supo inventar."},
+		{who: "narrator", en: "Word travels faster than witchers. By spring, innkeepers from Novigrad to Beauclair called him the Gwent Master, and hid their best cards when he came through the door.", es: "Las noticias viajan más rápido que los brujos. Para la primavera, los posaderos de Novigrad a Beauclair lo llamaban el Maestro del gwent, y escondían sus mejores cartas cuando cruzaba la puerta."},
+		{who: "narrator", en: "It didn't help. Merchants, rivals and one very insistent dwarf sent him every card he was still missing, so nobody could say the Master's collection had a hole in it.", es: "No sirvió de nada. Mercaderes, rivales y un enano muy insistente le enviaron todas las cartas que aún le faltaban, para que nadie pudiera decir que la colección del Maestro tenía un hueco."},
+		{who: "geralt", en: "Wonderful. Now nobody will play me.", es: "Maravilloso. Ahora nadie querrá jugar conmigo."},
+		{who: "narrator", en: "They still did. They just lost with more dignity.", es: "Siguieron jugando. Solo que perdían con más dignidad."}
+	],
+
 	// Single-elimination runs against random opponents; each round sets the AI deck pool, play level and whether heroes are removed
 	tournaments: {
 		passiflora: {

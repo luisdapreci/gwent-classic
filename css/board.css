@@ -315,6 +315,12 @@
 	text-shadow: 0 1px 2px black;
 }
 #name-me { top: 60%; }
+/* story mode's Gwent Master title */
+.name.master::before {
+	content: "\2605\00a0";
+	color: var(--gold-2);
+	text-shadow: 0 0 calc(0.5 * var(--u)) var(--gold-glow), 0 1px 2px black;
+}
 
 .deck-name {
 	left: 53%;
