@@ -677,8 +677,9 @@ const Online = {
 		t.expired = true;
 		if (t.onExpire) {
 			t.onExpire();
-			// Forced picks may need several clicks
-			t.repeat = setInterval(t.onExpire, 500);
+			// Forced picks may need several clicks; a timeout pass stops the timer itself and must not repeat
+			if (!t.stopped)
+				t.repeat = setInterval(t.onExpire, 500);
 		}
 	},
 
@@ -686,6 +687,7 @@ const Online = {
 		const t = this.timers[player.tag];
 		if (!t)
 			return;
+		t.stopped = true;
 		clearInterval(t.tick);
 		clearInterval(t.repeat);
 		t.elem.classList.add("hide");
